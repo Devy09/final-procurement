@@ -8,23 +8,60 @@ generator client {
 }
 
 model User {
-  id          String  @id @default(uuid())
-  clerkId     String  @unique
-  email       String  @unique
-  fullName    String?
-  imageUrl    String?
-  department  String?
-  section     String?
-  alobsNo     String?
-  saiNo       String?
-  role        String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
 
-model Item {
-  id            Int     @id @default(autoincrement())
-  description   String
-  unitCost      Float
-  category      String
+model PPMP {
+  id            String   @id @default(uuid())
+  ppmp_item     String
+  unit_cost     Float
+  ppmp_category String
+  createdAt     DateTime @default(now())
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
 }

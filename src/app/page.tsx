@@ -1,14 +1,21 @@
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import Image from "next/image";
+import { SignInButton } from "@clerk/nextjs";
 
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
       <header className="flex justify-between items-center px-6 py-4 bg-background">
-        <h1 className="text-2xl font-bold">CSU Procurement</h1>
-        <Button asChild>
-          <Link href="/sign-in">Login</Link>
-        </Button>
+        <div className="flex items-center space-x-3">
+          <Image src="/transcsu.png" alt="CSU Logo" width={40} height={40} />
+          <h1 className="text-2xl font-bold">CSU Procurement</h1>
+        </div>
+        <SignInButton>
+          <Button>
+            Sign In
+          </Button>
+        </SignInButton>
       </header>
       <main className="flex-grow">
         <section className="bg-muted py-20 px-6 text-center">
@@ -26,5 +33,5 @@ export default function Home() {
         </section>
       </main>
     </div>
-  )
+  );
 }

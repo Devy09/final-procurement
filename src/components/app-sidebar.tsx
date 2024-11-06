@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { NavMain } from "@/components/nav-main";
+import { NavAdmin } from "@/components/nav-admin";
 import { NavUser } from "@/components/nav-user";
 import { useUser } from "@clerk/nextjs";
 import {
@@ -16,17 +17,32 @@ import {
 import {
   Files,
   FileCheck,
-  Command,
+  University,
   FilePenLine,
   LayoutDashboard,
   ArchiveRestore,
 } from "lucide-react";
 
 
-const navMain = [
+// ADMIN SIDEBAR
+const navAdmin = [
   {
     title: "Dashboard",
     url: "/dashboard",
+    icon: LayoutDashboard,
+    isActive: true,
+    items: [
+      { title: "Overview", url: "/dashboard" },
+      { title: "User Management", url: "../../dashboard/user-management" },
+    ],
+  },
+]
+
+// PROCUREMENT OFFICER SIDEBAR
+const navMain = [
+  {
+    title: "Dashboard",
+    url: "dashboard/procurement-dashboard",
     icon: LayoutDashboard,
     isActive: true,
     items: [
@@ -70,6 +86,8 @@ const navMain = [
   },
 ];
 
+
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useUser(); // Fetch user data from Clerk
 
@@ -79,14 +97,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const primaryEmail = emailAddresses[0]?.emailAddress || "No email available";
 
   return (
-    <Sidebar variant="inset" {...props}>
+    <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <a href="#">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <Command className="size-4" />
+                  <University className="size-4" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">CSU</span>
@@ -99,15 +117,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
 
       <SidebarContent>
+        <NavAdmin items={navAdmin} />
         <NavMain items={navMain} />
       </SidebarContent>
 
       <SidebarFooter>
         <NavUser
           userData={{
-            name: fullName || "Anonymous User",
+            fullName: fullName || "Anonymous User",
             email: primaryEmail,
-            avatar: imageUrl,
+            imageUrl: imageUrl,
           }}
         />
       </SidebarFooter>

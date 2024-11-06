@@ -1,65 +1,29 @@
 "use client";
 
 import { useRouter } from 'next/navigation';
-
-import { 
-  Bell, 
-  ChevronsUpDown, 
-  LogOut, 
-  UserCog
-} from "lucide-react";
-
-import { 
-  SignedIn, 
-  UserButton, 
-  SignOutButton, 
-  useUser 
-} from "@clerk/nextjs";
-
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar";
-
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
-import {
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
-} from "@/components/ui/sidebar";
+import { SignOutButton } from '@/components/signout-button';
+import { Bell, ChevronsUpDown, LogOut, UserCog } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 
 interface UserProps {
   userData: {
-    name: string;
+    fullName: string;
     email: string;
-    avatar: string;
+    imageUrl?: string;
   };
 }
 
 export function NavUser({ userData }: UserProps) {
-  const { user } = useUser(); // Fetch user data from Clerk
   const { isMobile } = useSidebar();
   const router = useRouter();
 
+  const primaryEmail = userData.email || "No email available";
+
   const navigateToProfile = () => {
-    router.push('dashboard/profile');
-  }
-
-  if (!user) return null; // Handle case where user data is not loaded
-
-  const { fullName, imageUrl, emailAddresses } = user;
-  const primaryEmail = emailAddresses[0]?.emailAddress || "No email available";
+    router.push('/dashboard/p-profile');
+  };
 
   return (
     <SidebarMenu>
@@ -71,12 +35,15 @@ export function NavUser({ userData }: UserProps) {
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={imageUrl} alt={fullName || "User"} />
-                <AvatarFallback className="rounded-lg">DP</AvatarFallback>
+                {userData.imageUrl ? (
+                  <AvatarImage src={userData.imageUrl} alt="User avatar" />
+                ) : (
+                  <AvatarFallback className="rounded-lg">DP</AvatarFallback>
+                )}
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">
-                  {fullName || "Anonymous User"}
+                  {userData.fullName || "Anonymous User"}
                 </span>
                 <span className="truncate text-xs">{primaryEmail}</span>
               </div>
@@ -92,20 +59,15 @@ export function NavUser({ userData }: UserProps) {
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <SignedIn>
-                  <UserButton />
-                </SignedIn>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">
-                    {fullName || "Anonymous User"}
+                    {userData.fullName || "Anonymous User"}
                   </span>
                   <span className="truncate text-xs">{primaryEmail}</span>
                 </div>
               </div>
             </DropdownMenuLabel>
-
             <DropdownMenuSeparator />
-
             <DropdownMenuGroup>
               <DropdownMenuItem onClick={navigateToProfile}>
                 <UserCog />
@@ -116,14 +78,9 @@ export function NavUser({ userData }: UserProps) {
                 Notifications
               </DropdownMenuItem>
             </DropdownMenuGroup>
-
             <DropdownMenuSeparator />
-
             <DropdownMenuItem>
-              <LogOut />
-              <SignOutButton>
-                <button>Logout</button>
-              </SignOutButton>
+              <SignOutButton />
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
