@@ -1,11 +1,19 @@
 "use client";
 
 import { useRouter } from 'next/navigation';
-import { SignOutButton } from '@/components/signout-button';
-import { Bell, ChevronsUpDown, LogOut, UserCog } from "lucide-react";
+import { Bell, ChevronsUpDown, UserCog, Moon, Sun } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuGroup, 
+  DropdownMenuItem, 
+  DropdownMenuLabel, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
+import { useTheme } from "next-themes";
 
 interface UserProps {
   userData: {
@@ -16,8 +24,8 @@ interface UserProps {
 }
 
 export function NavUser({ userData }: UserProps) {
-  const { isMobile } = useSidebar();
   const router = useRouter();
+  const { theme, setTheme } = useTheme();
 
   const primaryEmail = userData.email || "No email available";
 
@@ -53,7 +61,6 @@ export function NavUser({ userData }: UserProps) {
 
           <DropdownMenuContent
             className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-            side={isMobile ? "bottom" : "right"}
             align="end"
             sideOffset={4}
           >
@@ -69,19 +76,28 @@ export function NavUser({ userData }: UserProps) {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
+              {theme !== "light" && (
+                <DropdownMenuItem onClick={() => setTheme("light")}>
+                  <Sun className="mr-2 h-4 w-4" />
+                  Light
+                </DropdownMenuItem>
+              )}
+              {theme !== "dark" && (
+                <DropdownMenuItem onClick={() => setTheme("dark")}>
+                  <Moon className="mr-2 h-4 w-4" />
+                  Dark
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuSeparator />
               <DropdownMenuItem onClick={navigateToProfile}>
-                <UserCog />
+                <UserCog className="mr-2 h-4 w-4" />
                 Profile
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <Bell />
+                <Bell className="mr-2 h-4 w-4" />
                 Notifications
               </DropdownMenuItem>
             </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <SignOutButton />
-            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
