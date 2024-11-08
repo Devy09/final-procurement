@@ -53,13 +53,13 @@ export default function Home() {
       <main className="flex-grow">
         <section className="relative bg-muted py-40 px-6 text-center overflow-hidden">
           <div className="absolute inset-0 z-0">
-            <Image
-              src="/csugate.jpg"
-              alt="University Campus Background"
-              layout="fill"
-              objectFit="cover"
-              className="opacity-50"
-            />
+          <Image
+            src="/csugate.jpg"
+            alt="University Campus Background"
+            fill
+            className="object-cover opacity-50"
+          />
+
           </div>
           <div className="relative z-10 max-w-3xl mx-auto space-y-6">
             <div className="flex items-center space-x-3 ml-80">

@@ -2,12 +2,7 @@
 
 import { useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  MoreHorizontal,
-  Trash2,
-  SquarePen,
-} from "lucide-react";
+import { ArrowUpDown, MoreHorizontal, Trash2, SquarePen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -24,11 +19,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { PPMPTableColumn } from "./types";
 
-
-export const generateColumns = (refreshData: () => void): ColumnDef<PPMPTableColumn>[] => [
+export const generateColumns = (
+  refreshData: () => void
+): ColumnDef<PPMPTableColumn>[] => [
   {
     accessorKey: "ppmp_item",
     header: "Item Description",
@@ -78,7 +75,7 @@ export const generateColumns = (refreshData: () => void): ColumnDef<PPMPTableCol
           ...formData,
           unit_cost: parseFloat(formData.unit_cost),
         };
-        
+
         try {
           console.log("Updating item with data:", updatedData);
           const response = await fetch(`/api/ppmp/${ppmp.id}`, {
@@ -90,9 +87,9 @@ export const generateColumns = (refreshData: () => void): ColumnDef<PPMPTableCol
           });
 
           if (!response.ok) {
-              const errorText = await response.text();
-              console.error("Failed to update item:", response.status, errorText);
-              throw new Error("Failed to update item");
+            const errorText = await response.text();
+            console.error("Failed to update item:", response.status, errorText);
+            throw new Error("Failed to update item");
           }
 
           console.log("Updated successfully");
@@ -137,12 +134,14 @@ export const generateColumns = (refreshData: () => void): ColumnDef<PPMPTableCol
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => setOpenUpdate(true)}
-                className="font-bold">
+                className="font-bold"
+              >
                 <SquarePen /> Update
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => setOpenRemoveConfirm(true)}
-                className="text-red-500 font-bold">
+                className="text-red-500 font-bold"
+              >
                 <Trash2 /> Remove
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -155,29 +154,29 @@ export const generateColumns = (refreshData: () => void): ColumnDef<PPMPTableCol
                 <DialogTitle>Update PPMP Item</DialogTitle>
               </DialogHeader>
               <div className="grid gap-4 py-4">
-                <label className="block text-sm font-medium text-gray-700">
+                <Label className="block text-sm text-gray-700 dark:text-gray-300">
                   Item Description
                   <Input
                     value={formData.ppmp_item}
                     onChange={(e) =>
                       setFormData({ ...formData, ppmp_item: e.target.value })
                     }
-                    placeholder="Enter item description"
+                    className="mt-2"
                   />
-                </label>
+                </Label>
 
-                <label className="block text-sm font-medium text-gray-700">
+                <Label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Unit Cost
                   <Input
                     value={formData.unit_cost}
                     onChange={(e) =>
                       setFormData({ ...formData, unit_cost: e.target.value })
                     }
-                    placeholder="Enter unit cost"
+                    className="mt-2"
                   />
-                </label>
+                </Label>
 
-                <label className="block text-sm font-medium text-gray-700">
+                <Label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Category
                   <Input
                     value={formData.ppmp_category}
@@ -187,9 +186,9 @@ export const generateColumns = (refreshData: () => void): ColumnDef<PPMPTableCol
                         ppmp_category: e.target.value,
                       })
                     }
-                    placeholder="Enter category"
+                    className="mt-2"
                   />
-                </label>
+                </Label>
               </div>
               <DialogFooter>
                 <Button onClick={handleUpdate} disabled={loading}>
@@ -206,10 +205,14 @@ export const generateColumns = (refreshData: () => void): ColumnDef<PPMPTableCol
                 <DialogTitle>Confirm Removal</DialogTitle>
               </DialogHeader>
               <div className="py-4">
-                Are you sure you want to remove this item? This action cannot be undone.
+                Are you sure you want to remove this item? This action cannot be
+                undone.
               </div>
               <DialogFooter>
-                <Button variant="ghost" onClick={() => setOpenRemoveConfirm(false)}>
+                <Button
+                  variant="ghost"
+                  onClick={() => setOpenRemoveConfirm(false)}
+                >
                   Cancel
                 </Button>
                 <Button className="bg-red-500" onClick={handleRemove}>

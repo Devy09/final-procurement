@@ -1,22 +1,31 @@
 "use client";
 
-import { useRouter } from 'next/navigation';
-import { Bell, ChevronsUpDown, UserCog, Moon, Sun } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { SignOutButton } from "@/components/signout-button";
+import { Bell, ChevronsUpDown, UserCog, Moon, Sun, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuGroup, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
+import {
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
 import { useTheme } from "next-themes";
+import { useState } from "react";
+import { ProfileSheet } from "./profile-sheet";
 
 interface UserProps {
   userData: {
+    id?: string;
+    clerkId?: string;
     fullName: string;
     email: string;
     imageUrl?: string;
@@ -26,12 +35,9 @@ interface UserProps {
 export function NavUser({ userData }: UserProps) {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
+  const [isSheetOpen, setSheetOpen] = useState(false);
 
   const primaryEmail = userData.email || "No email available";
-
-  const navigateToProfile = () => {
-    router.push('/dashboard/p-profile');
-  };
 
   return (
     <SidebarMenu>
@@ -89,17 +95,27 @@ export function NavUser({ userData }: UserProps) {
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={navigateToProfile}>
+              <DropdownMenuItem onClick={() => setSheetOpen(true)}>
                 <UserCog className="mr-2 h-4 w-4" />
                 Profile
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <Bell className="mr-2 h-4 w-4" />
-                Notifications
+                Notification
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <LogOut className="mr-2 h-4 w-4" />
+                <SignOutButton />
               </DropdownMenuItem>
             </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
+
+        {/* Render ProfileSheet component */}
+        <ProfileSheet
+          isOpen={isSheetOpen}
+          onClose={() => setSheetOpen(false)}
+        />
       </SidebarMenuItem>
     </SidebarMenu>
   );

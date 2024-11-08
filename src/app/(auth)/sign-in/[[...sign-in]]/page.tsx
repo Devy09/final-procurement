@@ -1,6 +1,9 @@
 'use client'
+import { useRouter } from 'next/navigation'
 import * as Clerk from '@clerk/elements/common'
 import * as SignIn from '@clerk/elements/sign-in'
+import { useEffect } from 'react'
+import { useUser } from '@clerk/nextjs'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import {
@@ -17,6 +20,16 @@ import { Icons } from '@/components/ui/icons'
 import { cn } from '@/lib/utils'
 
 export default function SignInPage() {
+
+  const router = useRouter()
+  const { isSignedIn, user } = useUser() // Access user data
+
+  useEffect(() => {
+    if (isSignedIn && user?.publicMetadata?.role === 'admin') {
+      router.push('/dashboard')
+    }
+  }, [isSignedIn, user, router])
+
   return (
     <div className="grid w-full grow items-center px-4 sm:justify-center mt-20">
       <SignIn.Root>

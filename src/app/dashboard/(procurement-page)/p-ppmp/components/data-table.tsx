@@ -43,8 +43,8 @@ import { Input } from "@/components/ui/input";
 import { Loader2, PackagePlus, ChevronLeft, ChevronRight } from "lucide-react";
 import { generateColumns } from "./columns";
 import { PPMPTableColumn } from "./types";
-import { useToast } from "@/hooks/use-toast"; // Import useToast
-import { Toaster } from "@/components/ui/toaster"; // Import Toaster
+import { useToast } from "@/hooks/use-toast";
+import { Toaster } from "@/components/ui/toaster";
 
 interface DataTableProps {
   data: PPMPTableColumn[];
@@ -58,7 +58,7 @@ export function DataTable({ data, setData }: DataTableProps) {
   const [loading, setLoading] = React.useState(false);
   const [loadingTable, setLoadingTable] = React.useState(false);
   const [dialogOpen, setDialogOpen] = React.useState(false);
-  const { toast } = useToast(); // Initialize toast
+  const { toast } = useToast();
 
   const refreshData = async () => {
     setLoadingTable(true);
@@ -103,13 +103,13 @@ export function DataTable({ data, setData }: DataTableProps) {
         setItemDescription("");
         setUnitCost("");
         setCategory("");
-        setDialogOpen(false); // Close dialog
-        toast({ title: "Success", description: "Item added successfully!", type: "background" }); // Success toast
+        setDialogOpen(false);
+        toast({ title: "Success", description: "Item added successfully!", type: "background" });
       } else {
         throw new Error("Failed to add item");
       }
     } catch (error) {
-      toast({ title: "Error", description: "Failed to add item", type: "background" }); // Error toast
+      toast({ title: "Error", description: "Failed to add item", type: "background" });
     } finally {
       setLoading(false);
     }
@@ -216,6 +216,7 @@ export function DataTable({ data, setData }: DataTableProps) {
           </DialogContent>
         </Dialog>
       </div>
+      {/* PPMP TABLE */}
       <div className="rounded-md border ml-4">
         <Table className="w-[800px]">
           <TableHeader>
@@ -268,6 +269,7 @@ export function DataTable({ data, setData }: DataTableProps) {
           </TableBody>
         </Table>
       </div>
+      {/* PAGINATION */}
       <div className="flex items-center justify-end space-x-2 py-4">
         <Button
           variant="outline"
