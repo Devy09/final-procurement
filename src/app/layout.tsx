@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Loader2 }  from "lucide-react";
 import { Inter } from 'next/font/google';
-import { ClerkProvider } from '@clerk/nextjs'
+import { ClerkProvider, ClerkLoaded, ClerkLoading  } from '@clerk/nextjs'
 import { ThemeProvider } from "@/components/theme-provider";
 
 const inter = Inter({subsets: ['latin']});
@@ -26,7 +27,10 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-          {children}
+          <ClerkLoading>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          </ClerkLoading>
+          <ClerkLoaded>{children}</ClerkLoaded>
         </ThemeProvider>
         </body>
       </html>

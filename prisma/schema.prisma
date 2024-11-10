@@ -7,25 +7,26 @@ generator client {
   provider = "prisma-client-js"
 }
 
-
 model User {
-  id            String     @id @default(cuid())
-  clerkId       String     @unique
+  id            String    @id @default(cuid())
+  clerkId       String    @unique
   name          String?
-  email         String     @unique
+  email         String    @unique
   emailVerified DateTime?
   image         String?
   accounts      Account[]
   sessions      Session[]
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   // OTHER INFO FIELDS
-  department    String?
-  section       String?
-  designation   String?
-  saino         String?
-  alobsno       String?
+  department  String?
+  section     String?
+  designation String?
+  saino       String?
+  alobsno     String?
+
+  purchaseRequests PurchaseRequest[]
 }
 
 model PPMP {
@@ -35,6 +36,62 @@ model PPMP {
   ppmp_category String
   createdAt     DateTime @default(now())
 }
+
+model PurchaseRequest {
+  id           String   @id @default(cuid())
+  prno         String   @unique
+  department   String
+  section      String
+  saino        String?
+  alobsno      String?
+  date         DateTime @default(now())
+  purpose      String // Reason for request
+  overallTotal Float // Sum of total costs for all items
+
+  // Approval statuses
+  status                  String    @default("pending") // Overall status: pending, approved, or rejected
+  requisitionerApproved   Boolean   @default(false) // Approval from requisitioner
+  approvedByAccountant    Boolean   @default(false) // Approval from accountant
+  approvedByPresident     Boolean   @default(false) // Approval from president
+  approvedAtRequisitioner DateTime? // Approval date by requisitioner
+  approvedAtAccountant    DateTime? // Approval date by accountant
+  approvedAtPresident     DateTime? // Approval date by president
+  rejectedReason          String? // Reason if the request is rejected
+
+  // Relations
+  createdBy   User                  @relation(fields: [createdById], references: [id])
+  createdById String // Foreign key to User
+  items       PurchaseRequestItem[] // Link to purchase request items
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PurchaseRequestItem {
+  id          String  @id @default(cuid())
+  itemNo      Int // Item number in the request
+  quantity    Int
+  unit        String
+  description String
+  stockNo     String?
+  unitCost    Float
+  totalCost   Float // Computed as quantity * unitCost
+
+  // Relations
+  purchaseRequest   PurchaseRequest @relation(fields: [purchaseRequestId], references: [id])
+  purchaseRequestId String // Foreign key to PurchaseRequest
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PurchaseRequestSequence {
+  id         String @id @default(cuid())
+  year       Int    @unique // e.g., 2025 for tracking per year
+  lastNumber Int    @default(0) // Last sequence number used for this year
+}
+
+
 
 model Account {
   userId            String

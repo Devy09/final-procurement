@@ -42,10 +42,11 @@ const navAdmin = [
 const navMain = [
   {
     title: "Dashboard",
-    url: "dashboard/procurement-dashboard",
+    url: "../../dashboard/procurement-dashboard",
     icon: LayoutDashboard,
     isActive: true,
     items: [
+      { title: "Overview", url: "../../dashboard/procurement-dashboard" },
       { title: "Requisition", url: "../../dashboard/p-requisition" },
       { title: "PPMP", url: "../../dashboard/p-ppmp" },
     ],
