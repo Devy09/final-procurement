@@ -7,6 +7,12 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum RequestStatus {
+  pending
+  approved
+  rejected
+}
+
 model User {
   id            String    @id @default(cuid())
   clerkId       String    @unique
@@ -38,57 +44,57 @@ model PPMP {
 }
 
 model PurchaseRequest {
-  id           String   @id @default(cuid())
-  prno         String   @unique
+  id           String        @id @default(cuid())
+  prno         String        @unique
   department   String
   section      String
   saino        String?
   alobsno      String?
-  date         DateTime @default(now())
-  purpose      String // Reason for request
-  overallTotal Float // Sum of total costs for all items
+  date         DateTime      @default(now())
+  purpose      String        
+  overallTotal Float         
 
   // Approval statuses
-  status                  String    @default("pending") // Overall status: pending, approved, or rejected
-  requisitionerApproved   Boolean   @default(false) // Approval from requisitioner
-  approvedByAccountant    Boolean   @default(false) // Approval from accountant
-  approvedByPresident     Boolean   @default(false) // Approval from president
-  approvedAtRequisitioner DateTime? // Approval date by requisitioner
-  approvedAtAccountant    DateTime? // Approval date by accountant
-  approvedAtPresident     DateTime? // Approval date by president
-  rejectedReason          String? // Reason if the request is rejected
+  status                  RequestStatus @default(pending)
+  requisitionerApproved   Boolean       @default(false)
+  approvedByAccountant    Boolean       @default(false)
+  approvedByPresident     Boolean       @default(false)
+  approvedAtRequisitioner DateTime?
+  approvedAtAccountant    DateTime?
+  approvedAtPresident     DateTime?
+  rejectedReason          String?
 
   // Relations
   createdBy   User                  @relation(fields: [createdById], references: [id])
-  createdById String // Foreign key to User
-  items       PurchaseRequestItem[] // Link to purchase request items
+  createdById String
+  items       PurchaseRequestItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model PurchaseRequestItem {
-  id          String  @id @default(cuid())
-  itemNo      Int // Item number in the request
-  quantity    Int
-  unit        String
-  description String
-  stockNo     String?
-  unitCost    Float
-  totalCost   Float // Computed as quantity * unitCost
+  id                String         @id @default(cuid())
+  itemNo            Int            
+  quantity          Int
+  unit              String
+  description       String
+  stockNo           String?
+  unitCost          Float
+  totalCost         Float          // Computed as quantity * unitCost
 
   // Relations
-  purchaseRequest   PurchaseRequest @relation(fields: [purchaseRequestId], references: [id])
-  purchaseRequestId String // Foreign key to PurchaseRequest
+  purchaseRequest   PurchaseRequest @relation(fields: [purchaseRequestId], references: [id], onDelete: Cascade)
+  purchaseRequestId String
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
 }
 
 model PurchaseRequestSequence {
   id         String @id @default(cuid())
-  year       Int    @unique // e.g., 2025 for tracking per year
-  lastNumber Int    @default(0) // Last sequence number used for this year
+  year       Int    @unique
+  lastNumber Int    @default(0)
 }
 
 

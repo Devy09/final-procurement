@@ -5,7 +5,6 @@ import {
   ColumnDef,
   ColumnFiltersState,
   SortingState,
-  VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -13,6 +12,8 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -21,49 +22,50 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Loader2, ChevronLeft, ChevronRight } from "lucide-react";
-import { generateColumns } from "./columns";
-import { RequisitionTableColumn } from "./types";
-import { useToast } from "@/hooks/use-toast";
-import { Toaster } from "@/components/ui/toaster";
-import RequisitionForm from "@/components/requisition-form";
+import PurchaseRequestFormWrapper from "@/components/requisition-form";
 
-interface RequisitionDataTableProps {
-  data: RequisitionTableColumn[];
-  setData: React.Dispatch<React.SetStateAction<RequisitionTableColumn[]>>;
+interface DataTableProps<TData, TValue> {
+  columns: ColumnDef<TData, TValue>[];
+  data?: TData[];
 }
 
-export function RequisitionDataTable({ data, setData }: RequisitionDataTableProps) {
-  const [loading, setLoading] = React.useState(false);
-  const [loadingTable, setLoadingTable] = React.useState(false);
-  const { toast } = useToast();
-
-  const refreshData = async () => {
-    setLoadingTable(true);
-    try {
-      const response = await fetch("/api/ppmp");
-      const newData = await response.json();
-      setData(newData);
-    } catch (error) {
-      console.error("Failed to fetch data:", error);
-      toast({ title: "Error", description: "Failed to refresh data", type: "background" });
-    } finally {
-      setLoadingTable(false);
-    }
-  };
+export function DataTable<TData, TValue>({
+  columns,
+  data: initialData,
+}: DataTableProps<TData, TValue>) {
+  const [data, setData] = React.useState<TData[]>(initialData || []);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
 
   React.useEffect(() => {
-    refreshData();
-  }, []);
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch("/api/purchase-request");
+        if (!response.ok) throw new Error("Failed to fetch data");
+        const result = await response.json();
+        setData(
+          result.map((item: any) => ({
+            id: item.id,
+            prno: item.prno,
+            department: item.department,
+            section: item.section,
+            date_submitted: new Date(item.date).toLocaleDateString(),
+            pr_status: item.status,
+          }))
+        );
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const columns: ColumnDef<RequisitionTableColumn>[] = generateColumns(refreshData);
-
-
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+    if (!initialData) fetchData();
+  }, [initialData]);
 
   const table = useReactTable({
     data,
@@ -74,17 +76,17 @@ export function RequisitionDataTable({ data, setData }: RequisitionDataTableProp
     getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
     state: {
       sorting,
       columnFilters,
-      columnVisibility,
     },
   });
 
+  if (isLoading) return <div>Loading...</div>;
+
   return (
     <div>
-      <div className="flex items-center justify-between py-4 ml-4">
+      <div className="flex items-center py-4 ml-4 justify-between">
         <Input
           placeholder="Search..."
           value={(table.getColumn("prno")?.getFilterValue() as string) ?? ""}
@@ -92,83 +94,70 @@ export function RequisitionDataTable({ data, setData }: RequisitionDataTableProp
             table.getColumn("prno")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
-          autoComplete="off"
         />
-        <RequisitionForm />
+        <PurchaseRequestFormWrapper />
       </div>
-      {/* PPMP TABLE */}
       <div className="rounded-md border ml-4">
-        <Table className="w-[800px]">
+        <Table className="w-[790px]">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  )
-                })}
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>
           <TableBody>
-            {loadingTable ? (
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+                  No results.
                 </TableCell>
               </TableRow>
-            ) : (
-              table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={columns.length} className="h-24 text-center">
-                    No results.
-                  </TableCell>
-                </TableRow>
-              )
             )}
           </TableBody>
         </Table>
       </div>
-      {/* PAGINATION */}
+
       <div className="flex items-center justify-end space-x-2 py-4">
         <Button
           variant="outline"
-          size="icon"
+          size="sm"
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
         >
-         <ChevronLeft className="h-4 w-4" />
+          Previous
         </Button>
         <Button
           variant="outline"
-          size="icon"
+          size="sm"
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
         >
-          <ChevronRight className="h-4 w-4" />
+          Next
         </Button>
       </div>
-      <Toaster /> 
     </div>
   );
 }

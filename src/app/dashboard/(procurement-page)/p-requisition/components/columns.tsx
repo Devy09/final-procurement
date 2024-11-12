@@ -1,23 +1,27 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, MoreHorizontal, Trash2, SquarePen } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ColumnDef } from "@tanstack/react-table"
+import { MoreHorizontal, ArrowUpDown, ExternalLink } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { RequisitionTableColumn } from "./types";
+} from "@/components/ui/dropdown-menu"
 
-export const generateColumns = (
-  refreshData: () => void
-): ColumnDef<RequisitionTableColumn>[] => [
+export type PurchaseRequestColumn = {
+  id: string
+  prno: string
+  department: string
+  section: string
+  date_submitted: string
+  pr_status: string
+}
+
+export const columns: ColumnDef<PurchaseRequestColumn>[] = [
   {
     accessorKey: "prno",
     header: "PR No.",
@@ -35,44 +39,41 @@ export const generateColumns = (
     header: "Date Submitted",
   },
   {
-    accessorKey: "status",
-    header: "Status",
+    accessorKey: "pr_status",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "desc")}
+        >
+          Status
+          <ArrowUpDown className="h-4 w-4" />
+        </Button>
+      )
+    },
   },
   {
     id: "actions",
     cell: ({ row }) => {
-      const requisition = row.original;
-      const [formData, setFormData] = useState({
-        prno: requisition.prno,
-        department: requisition.department,
-        section: requisition.section,
-        date_submitted: requisition.date_submitted,
-        pr_status: requisition.pr_status
-      });
-
+      const requisition = row.original
+ 
       return (
-        <>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel className="font-bold">
-                Actions
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuCheckboxItem
-                className="font-bold"
-              >
-                <SquarePen /> View Details
-              </DropdownMenuCheckboxItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </>
-      );
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Open menu</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>
+              <ExternalLink />View
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )
     },
   },
-];
+]

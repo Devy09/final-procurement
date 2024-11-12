@@ -2,26 +2,28 @@
 
 'use client'
 
-import { useState, useCallback } from 'react'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from "@/components/ui/table"
-import { Textarea } from "@/components/ui/textarea"
-import { ClipboardPlus, PackagePlus, FileDown, FileText } from "lucide-react"
+import { useState, useCallback } from 'react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
+import { ClipboardPlus, PackagePlus, FileDown } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Toaster } from "@/components/ui/toaster";
 
 interface PrItem {
-  id: number
-  description: string
-  unitCost: number
-  quantity: number
-  unit: string
-  stockNo: string
+  id: number;
+  description: string;
+  unitCost: number;
+  quantity: number;
+  unit: string;
+  stockNo: string;
 }
 
 export default function PurchaseRequestFormWrapper() {
-  const [isMainDialogOpen, setIsMainDialogOpen] = useState(false)
+  const [isMainDialogOpen, setIsMainDialogOpen] = useState(false);
 
   return (
     <Dialog open={isMainDialogOpen} onOpenChange={setIsMainDialogOpen}>
@@ -35,65 +37,120 @@ export default function PurchaseRequestFormWrapper() {
         <PurchaseRequestForm />
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 
 function PurchaseRequestForm() {
-  const [prItems, setPrItems] = useState<PrItem[]>([])
+  const [prItems, setPrItems] = useState<PrItem[]>([]);
   const [newPrItem, setNewPrItem] = useState<Omit<PrItem, 'id'>>({
     description: '',
     unitCost: 0,
     quantity: 0,
     unit: '',
     stockNo: ''
-  })
-  const [purpose, setPurpose] = useState('')
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [errorMessage, setErrorMessage] = useState('')
-  const [successMessage, setSuccessMessage] = useState('')
+  });
+  const [purpose, setPurpose] = useState('');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
     setNewPrItem(prev => ({
       ...prev,
       [name]: name === 'unitCost' || name === 'quantity' ? Number(value) : value
-    }))
-    setErrorMessage('')
-  }, [])
+    }));
+  }, []);
 
   const handleSelectChange = useCallback((name: keyof Omit<PrItem, 'id'>, value: string) => {
-    setNewPrItem(prev => ({ ...prev, [name]: value }))
-    setErrorMessage('')
-  }, [])
+    setNewPrItem(prev => ({ ...prev, [name]: value }));
+  }, []);
 
   const addItem = useCallback(() => {
-    const { description, unitCost, quantity, unit } = newPrItem
+    const { description, unitCost, quantity, unit } = newPrItem;
     if (!description || unitCost <= 0 || quantity <= 0 || !unit) {
-      setErrorMessage("All fields are required and must be valid.")
-      setSuccessMessage('')
-      return
+      toast({
+        title: "Validation Error",
+        description: "All fields are required and must be valid.",
+        variant: "destructive",
+      });
+      return;
     }
 
-    setPrItems(prev => [...prev, { ...newPrItem, id: Date.now() }])
-    setNewPrItem({ description: '', unitCost: 0, quantity: 0, unit: '', stockNo: '' })
-    setIsDialogOpen(false)
-    setErrorMessage('')
-    setSuccessMessage('Item added successfully!')
-    
-    setTimeout(() => setSuccessMessage(''), 3000)
-  }, [newPrItem])
+    setPrItems(prev => [...prev, { ...newPrItem, id: Date.now() }]);
+    setNewPrItem({ description: '', unitCost: 0, quantity: 0, unit: '', stockNo: '' });
+    setIsDialogOpen(false);
+  }, [newPrItem, toast]);
 
   const calculateTotal = useCallback(() => {
-    return prItems.reduce((total, item) => total + (item.unitCost * item.quantity), 0)
-  }, [prItems])
+    return prItems.reduce((total, item) => total + (item.unitCost * item.quantity), 0);
+  }, [prItems]);
 
-  const handleSubmit = useCallback((e: React.FormEvent) => {
-    e.preventDefault()
-    console.log('Submitted:', { items: prItems, purpose })
-  }, [prItems, purpose])
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+  
+    if (!purpose.trim() || prItems.length === 0) {
+      toast({
+        title: "Submission Error",
+        description: "Please provide a purpose and at least one item.",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
+  
+    const payload = {
+      purpose,
+      items: prItems.map(item => ({
+        description: item.description,
+        quantity: item.quantity,
+        unit: item.unit,
+        stockNo: item.stockNo,
+        unitCost: item.unitCost
+      }))
+    };
+  
+    try {
+      const response = await fetch("/api/purchase-request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("API Error:", errorData);
+        toast({
+          title: "Error",
+          description: errorData.error || "Failed to submit purchase request.",
+          variant: "destructive",
+        });
+      } else {
+        setPrItems([]);
+        setPurpose('');
+        toast({
+          title: "Success",
+          description: "Purchase request submitted successfully!",
+          variant: "default",
+        });
+        setIsDialogOpen(false);
+      }
+    } catch (error) {
+      console.error("Submission error:", error);
+      toast({
+        title: "Error",
+        description: "Error submitting the form. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [prItems, purpose, toast]);
 
   return (
     <div className="space-y-6">
+      <Toaster />
       <div className="flex justify-end">
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -122,6 +179,7 @@ function PurchaseRequestForm() {
                 onChange={handleInputChange}
                 min="0"
                 step="0.01"
+                required
               />
               <Input
                 name="quantity"
@@ -131,19 +189,20 @@ function PurchaseRequestForm() {
                 onChange={handleInputChange}
                 min="0"
                 step="1"
+                required
               />
               <Select onValueChange={(value) => handleSelectChange('unit', value)}>
                 <SelectTrigger>
-                    <SelectValue placeholder="Unit" />
+                  <SelectValue placeholder="Unit" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="Pieces">Pieces</SelectItem>
-                    <SelectItem value="Ream">Ream</SelectItem>
-                    <SelectItem value="Box">Box</SelectItem>
-                    <SelectItem value="Pack">Pack</SelectItem>
-                    <SelectItem value="Set">Set</SelectItem>
-                    <SelectItem value="Bottle">Bottle</SelectItem>
-                    <SelectItem value="Roll">Roll</SelectItem>
+                  <SelectItem value="Pieces">Pieces</SelectItem>
+                  <SelectItem value="Ream">Ream</SelectItem>
+                  <SelectItem value="Box">Box</SelectItem>
+                  <SelectItem value="Pack">Pack</SelectItem>
+                  <SelectItem value="Set">Set</SelectItem>
+                  <SelectItem value="Bottle">Bottle</SelectItem>
+                  <SelectItem value="Roll">Roll</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -153,8 +212,6 @@ function PurchaseRequestForm() {
                 value={newPrItem.stockNo}
                 onChange={handleInputChange}
               />
-              {errorMessage && <p className="text-red-600" aria-live="assertive">{errorMessage}</p>}
-              {successMessage && <p className="text-green-600" aria-live="polite">{successMessage}</p>}
               
               <Button onClick={addItem}><PackagePlus /> Add Item</Button>
             </div>
@@ -201,9 +258,12 @@ function PurchaseRequestForm() {
           value={purpose}
           onChange={(e) => setPurpose(e.target.value)}
           className="w-full"
+          required
         />
-        <Button type="submit" className='flex items-center'><FileDown /> Submit</Button>
+        <Button type="submit" className='flex items-center' disabled={isLoading}>
+          {isLoading ? 'Submitting...' : <><FileDown /> Submit</>}
+        </Button>
       </form>
     </div>
-  )
+  );
 }
