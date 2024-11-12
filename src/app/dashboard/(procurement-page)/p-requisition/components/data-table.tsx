@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/table";
 import PurchaseRequestFormWrapper from "@/components/requisition-form";
 
+
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data?: TData[];
@@ -36,9 +37,7 @@ export function DataTable<TData, TValue>({
   const [data, setData] = React.useState<TData[]>(initialData || []);
   const [isLoading, setIsLoading] = React.useState(true);
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  );
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 
   React.useEffect(() => {
     const fetchData = async () => {
@@ -83,6 +82,7 @@ export function DataTable<TData, TValue>({
   });
 
   if (isLoading) return <div>Loading...</div>;
+
 
   return (
     <div>
