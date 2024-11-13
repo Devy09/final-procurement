@@ -137,7 +137,7 @@ export async function GET(req: NextRequest) {
         status: true,
       },
       orderBy: {
-        date: "desc",
+        date: "asc",
       },
     });
     return NextResponse.json(purchaseRequests);
