@@ -16,7 +16,8 @@ export async function GET(
         createdBy: {
           select: {
             name: true,
-            email: true,
+            saino: true,
+            alobsno: true,
           },
         },
       },

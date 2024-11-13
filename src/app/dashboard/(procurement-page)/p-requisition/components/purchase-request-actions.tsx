@@ -52,6 +52,8 @@ interface PurchaseRequestDetails {
   department: string
   section: string
   date: string
+  saino: string
+  alobsno: string
   purpose: string
   status: string
   overallTotal: number
@@ -146,42 +148,37 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
               <Card>
                 <CardContent className="p-6">
                   <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <h3 className="text-lg font-semibold mb-2">General Information</h3>
-                        <dl className="grid grid-cols-2 gap-4">
-                          <div>
-                            <dt className="font-medium text-gray-500">PR No</dt>
-                            <dd>{prDetails.prno}</dd>
-                          </div>
-                          <div>
-                            <dt className="font-medium text-gray-500">Date</dt>
-                            <dd>{format(new Date(prDetails.date), 'PPP')}</dd>
-                          </div>
-                          <div>
-                            <dt className="font-medium text-gray-500">Department</dt>
-                            <dd>{prDetails.department}</dd>
-                          </div>
-                          <div>
-                            <dt className="font-medium text-gray-500">Section</dt>
-                            <dd>{prDetails.section}</dd>
-                          </div>
-                        </dl>
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold mb-2">Status and Purpose</h3>
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4">General Information</h3>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                         <div className="space-y-4">
-                          <div>
-                            <dt className="font-medium text-gray-500">Status</dt>
-                            <dd>
-                              <Badge className={getStatusColor(prDetails.status)}>
-                                {prDetails.status}
-                              </Badge>
-                            </dd>
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-500">Department:</span>
+                            <span>{prDetails.department}</span>
                           </div>
-                          <div>
-                            <dt className="font-medium text-gray-500">Purpose</dt>
-                            <dd>{prDetails.purpose}</dd>
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-500">Section:</span>
+                            <span>{prDetails.section}</span>
+                          </div>
+                        </div>
+                        <div className="space-y-4">
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-500">PR No:</span>
+                            <span>{prDetails.prno}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-500">Date:</span>
+                            <span>{format(new Date(prDetails.date), 'PPP')}</span>
+                          </div>
+                        </div>
+                        <div className="space-y-4">
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-500">SAI No:</span>
+                            <span>{prDetails.saino}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-500">ALOBS No:</span>
+                            <span>{prDetails.alobsno}</span>
                           </div>
                         </div>
                       </div>
@@ -216,8 +213,8 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
                             </TableRow>
                           ))}
                           <TableRow>
-                            <TableCell colSpan={6} className="text-right font-medium">Overall Total:</TableCell>
-                            <TableCell className="text-right font-medium">₱{prDetails.overallTotal.toFixed(2)}</TableCell>
+                            <TableCell colSpan={6} className="text-right font-medium text-green-500">Total:</TableCell>
+                            <TableCell className="text-right font-medium text-green-500">₱{prDetails.overallTotal.toFixed(2)}</TableCell>
                           </TableRow>
                         </TableBody>
                       </Table>
@@ -229,13 +226,12 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
                       <h3 className="text-lg font-semibold mb-2">Additional Information</h3>
                       <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <dt className="font-medium text-gray-500">Created By</dt>
-                          <dd>{prDetails.createdBy.name}</dd>
-                          <dd className="text-sm text-muted-foreground">{prDetails.createdBy.email}</dd>
+                          <dt className="font-medium text-gray-500">Purpose</dt>
+                          <dd>{prDetails.purpose}</dd>
                         </div>
                         <div>
-                          <dt className="font-medium text-gray-500">Created At</dt>
-                          <dd>{format(new Date(prDetails.createdAt), 'PPP')}</dd>
+                          <dt className="font-medium text-gray-500">Certified by</dt>
+                          <dd>{prDetails.createdBy.name}</dd>
                         </div>
                       </dl>
                     </div>
