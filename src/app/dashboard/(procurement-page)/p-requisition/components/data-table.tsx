@@ -23,6 +23,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import PurchaseRequestFormWrapper from "@/components/requisition-form";
+import { Clock, CheckCircle, Loader2, XCircle } from "lucide-react";
 
 
 interface DataTableProps<TData, TValue> {
@@ -81,7 +82,11 @@ export function DataTable<TData, TValue>({
     },
   });
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return (
+    <div className="flex items-center justify-center py-8 ml-10">
+      <Loader2 className="h-16 w-16 animate-spin" />
+    </div>
+  );
 
 
   return (
@@ -98,7 +103,7 @@ export function DataTable<TData, TValue>({
         <PurchaseRequestFormWrapper />
       </div>
       <div className="rounded-md border ml-4">
-        <Table className="w-[790px]">
+        <Table className="w-[800px]">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -124,7 +129,24 @@ export function DataTable<TData, TValue>({
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {cell.column.id === "pr_status" ? (
+                        <span
+                          className={`flex items-center gap-2 px-3 py-1 rounded-full capitalize ${
+                            cell.getValue() === "pending"
+                              ? "bg-yellow-100 text-yellow-700"
+                              : cell.getValue() === "approved"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-red-100 text-red-700"
+                          }`}
+                        >
+                          {cell.getValue() === "pending" && <Clock className="w-4 h-4" />}
+                          {cell.getValue() === "approved" && <CheckCircle className="w-4 h-4" />}
+                          {cell.getValue() === "rejected" && <XCircle className="w-4 h-4" />}
+                          {cell.getValue() as string}
+                        </span>
+                      ) : (
+                        flexRender(cell.column.columnDef.cell, cell.getContext())
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>

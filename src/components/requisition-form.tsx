@@ -2,7 +2,7 @@
 
 'use client'
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -21,6 +21,21 @@ interface PrItem {
   unit: string;
   stockNo: string;
 }
+
+interface PPMPDropdownItem {
+  id: string;
+  ppmp_item: string;
+  unit_cost: number;
+}
+
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('en-PH', {
+    style: 'currency',
+    currency: 'PHP',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount).replace('PHP', '₱');
+};
 
 export default function PurchaseRequestFormWrapper() {
   const [isMainDialogOpen, setIsMainDialogOpen] = useState(false);
@@ -53,6 +68,31 @@ function PurchaseRequestForm() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const [dropdownItems, setDropdownItems] = useState<PPMPDropdownItem[]>([]);
+  const [isLoadingItems, setIsLoadingItems] = useState(true);
+
+  useEffect(() => {
+    const fetchDropdownItems = async () => {
+      setIsLoadingItems(true);
+      try {
+        const response = await fetch('/api/ppmp-dropdown');
+        if (!response.ok) throw new Error('Failed to fetch dropdown items');
+        const data = await response.json();
+        setDropdownItems(data);
+      } catch (error) {
+        console.error('Error fetching dropdown items:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load items for selection",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoadingItems(false);
+      }
+    };
+
+    fetchDropdownItems();
+  }, []);
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -63,8 +103,19 @@ function PurchaseRequestForm() {
   }, []);
 
   const handleSelectChange = useCallback((name: keyof Omit<PrItem, 'id'>, value: string) => {
-    setNewPrItem(prev => ({ ...prev, [name]: value }));
-  }, []);
+    setNewPrItem(prev => {
+      const updates: Partial<typeof prev> = { [name]: value };
+      
+      if (name === 'description') {
+        const selectedItem = dropdownItems.find(item => item.ppmp_item === value);
+        if (selectedItem) {
+          updates.unitCost = selectedItem.unit_cost;
+        }
+      }
+      
+      return { ...prev, ...updates };
+    });
+  }, [dropdownItems]);
 
   const addItem = useCallback(() => {
     const { description, unitCost, quantity, unit } = newPrItem;
@@ -162,13 +213,25 @@ function PurchaseRequestForm() {
             </DialogHeader>
             <div className="flex flex-col gap-4">
               <Select onValueChange={(value) => handleSelectChange('description', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Item Description" />
+                <SelectTrigger disabled={isLoadingItems}>
+                  <SelectValue placeholder={isLoadingItems ? "Loading items..." : "Item Description"} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Arch File Folder">Arch File Folder</SelectItem>
-                  <SelectItem value="Bond Paper">Bond Paper</SelectItem>
-                  <SelectItem value="Binder Clip">Binder Clip</SelectItem>
+                  {isLoadingItems ? (
+                    <SelectItem value="loading" disabled>
+                      Loading items...
+                    </SelectItem>
+                  ) : dropdownItems.length > 0 ? (
+                    dropdownItems.map((item) => (
+                      <SelectItem key={item.id} value={item.ppmp_item}>
+                        {item.ppmp_item}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="no-items" disabled>
+                      No items available
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
               <Input
@@ -180,6 +243,7 @@ function PurchaseRequestForm() {
                 min="0"
                 step="0.01"
                 required
+                readOnly
               />
               <Input
                 name="quantity"
@@ -239,15 +303,15 @@ function PurchaseRequestForm() {
               <TableCell>{item.unit}</TableCell>
               <TableCell>{item.description}</TableCell>
               <TableCell>{item.stockNo}</TableCell>
-              <TableCell>₱{item.unitCost.toFixed(2)}</TableCell>
-              <TableCell>₱{(item.unitCost * item.quantity).toFixed(2)}</TableCell>
+              <TableCell>{formatCurrency(item.unitCost)}</TableCell>
+              <TableCell>{formatCurrency(item.unitCost * item.quantity)}</TableCell>
             </TableRow>
           ))}
         </TableBody>
         <TableFooter>
           <TableRow>
             <TableCell colSpan={6} className="text-right font-bold">Total</TableCell>
-            <TableCell className="font-bold">₱{calculateTotal().toFixed(2)}</TableCell>
+            <TableCell className="font-bold">{formatCurrency(calculateTotal())}</TableCell>
           </TableRow>
         </TableFooter>
       </Table>

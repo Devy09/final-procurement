@@ -31,7 +31,6 @@ import {
   Card,
   CardContent,
 } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 
@@ -42,8 +41,8 @@ interface PurchaseRequestItem {
   unit: string
   description: string
   stockNo: string | null
-  unitCost: number
-  totalCost: number
+  unitCost: string
+  totalCost: string
 }
 
 interface PurchaseRequestDetails {
@@ -56,7 +55,7 @@ interface PurchaseRequestDetails {
   alobsno: string
   purpose: string
   status: string
-  overallTotal: number
+  overallTotal: string
   items: PurchaseRequestItem[]
   createdBy: {
     name: string
@@ -101,19 +100,6 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
       fetchData()
     }
   }, [open, requisition.id])
-
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'approved':
-        return 'bg-green-500'
-      case 'pending':
-        return 'bg-yellow-500'
-      case 'rejected':
-        return 'bg-red-500'
-      default:
-        return 'bg-gray-500'
-    }
-  }
 
   return (
     <>
@@ -208,13 +194,19 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
                               <TableCell>{item.unit}</TableCell>
                               <TableCell>{item.description}</TableCell>
                               <TableCell>{item.stockNo || '-'}</TableCell>
-                              <TableCell className="text-right">₱{item.unitCost.toFixed(2)}</TableCell>
-                              <TableCell className="text-right">₱{item.totalCost.toFixed(2)}</TableCell>
+                              <TableCell className="text-right font-medium">
+                                ₱{parseFloat(item.unitCost).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                ₱{parseFloat(item.totalCost).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </TableCell>
                             </TableRow>
                           ))}
                           <TableRow>
                             <TableCell colSpan={6} className="text-right font-medium text-green-500">Total:</TableCell>
-                            <TableCell className="text-right font-medium text-green-500">₱{prDetails.overallTotal.toFixed(2)}</TableCell>
+                            <TableCell className="text-right font-medium text-green-500">
+                              ₱{parseFloat(prDetails.overallTotal).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </TableCell>
                           </TableRow>
                         </TableBody>
                       </Table>
