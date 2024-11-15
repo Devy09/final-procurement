@@ -37,8 +37,40 @@ const formatCurrency = (amount: number) => {
   }).format(amount).replace('PHP', '₱');
 };
 
-export default function PurchaseRequestFormWrapper() {
+interface PurchaseRequestFormWrapperProps {
+  onSuccess?: (newRequest: any) => void;
+}
+
+export default function PurchaseRequestFormWrapper({ onSuccess }: PurchaseRequestFormWrapperProps) {
   const [isMainDialogOpen, setIsMainDialogOpen] = useState(false);
+
+  const handleSubmit = async (formData: any) => {
+    try {
+      const optimisticRequest = {
+        id: crypto.randomUUID(),
+        prno: formData.prno,
+        department: formData.department,
+        section: formData.section,
+        date_submitted: new Date().toLocaleDateString(),
+        pr_status: "pending"
+      };
+      
+      onSuccess?.(optimisticRequest);
+
+      const response = await fetch("/api/purchase-request", {
+        method: "POST",
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create purchase request");
+      }
+      const result = await response.json();
+      
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <Dialog open={isMainDialogOpen} onOpenChange={setIsMainDialogOpen}>

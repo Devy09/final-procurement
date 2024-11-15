@@ -29,11 +29,13 @@ import { Clock, CheckCircle, Loader2, XCircle } from "lucide-react";
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data?: TData[];
+  onDataUpdate?: (newData: TData[]) => void;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data: initialData,
+  onDataUpdate,
 }: DataTableProps<TData, TValue>) {
   const [data, setData] = React.useState<TData[]>(initialData || []);
   const [isLoading, setIsLoading] = React.useState(true);
@@ -82,6 +84,12 @@ export function DataTable<TData, TValue>({
     },
   });
 
+  const addNewRequest = (newRequest: TData) => {
+    const updatedData = [newRequest, ...data];
+    setData(updatedData);
+    onDataUpdate?.(updatedData);
+  };
+
   if (isLoading) return (
     <div className="flex items-center justify-center py-8 ml-10">
       <Loader2 className="h-16 w-16 animate-spin" />
@@ -100,7 +108,7 @@ export function DataTable<TData, TValue>({
           }
           className="max-w-sm"
         />
-        <PurchaseRequestFormWrapper />
+        <PurchaseRequestFormWrapper onSuccess={addNewRequest} />
       </div>
       <div className="rounded-md border ml-4">
         <Table className="w-[800px]">
@@ -131,7 +139,7 @@ export function DataTable<TData, TValue>({
                     <TableCell key={cell.id}>
                       {cell.column.id === "pr_status" ? (
                         <span
-                          className={`flex items-center gap-2 px-3 py-1 rounded-full capitalize ${
+                          className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium capitalize ${
                             cell.getValue() === "pending"
                               ? "bg-yellow-100 text-yellow-700"
                               : cell.getValue() === "approved"
@@ -139,9 +147,9 @@ export function DataTable<TData, TValue>({
                               : "bg-red-100 text-red-700"
                           }`}
                         >
-                          {cell.getValue() === "pending" && <Clock className="w-4 h-4" />}
-                          {cell.getValue() === "approved" && <CheckCircle className="w-4 h-4" />}
-                          {cell.getValue() === "rejected" && <XCircle className="w-4 h-4" />}
+                          {cell.getValue() === "pending" && <Clock className="mr-1 h-3 w-3" />}
+                          {cell.getValue() === "approved" && <CheckCircle className="mr-1 h-3 w-3" />}
+                          {cell.getValue() === "rejected" && <XCircle className="mr-1 h-3 w-3" />}
                           {cell.getValue() as string}
                         </span>
                       ) : (

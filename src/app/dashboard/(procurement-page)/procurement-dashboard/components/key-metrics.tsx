@@ -203,7 +203,7 @@ export default function ProcurementDashboard() {
                     <TableCell>{po.supplier}</TableCell>
                     <TableCell>₱{po.amount.toLocaleString()}</TableCell>
                     <TableCell>
-                      <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                      <span className={`inline-flex items-center rounded-full ml-4 px-2 py-1 text-xs font-medium ${
                         po.status === 'Approved' ? 'bg-green-100 text-green-700' :
                         po.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
                         'bg-blue-100 text-blue-700'
