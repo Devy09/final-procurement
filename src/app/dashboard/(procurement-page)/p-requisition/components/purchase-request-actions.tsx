@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { format } from "date-fns"
-import { ExternalLink, MoreHorizontal, Loader2 } from 'lucide-react'
+import { ExternalLink, MoreHorizontal, Loader2, CheckCircle, MapPin } from 'lucide-react'
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -33,6 +34,7 @@ import {
 } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
+import DocumentTracker from './document-tracker'
 
 interface PurchaseRequestItem {
   id: string
@@ -59,9 +61,9 @@ interface PurchaseRequestDetails {
   items: PurchaseRequestItem[]
   createdBy: {
     name: string
-    email: string
+    createdAt: string
   }
-  createdAt: string
+  approvedByProcurementOfficer: boolean
 }
 
 interface PurchaseRequestColumn {
@@ -76,6 +78,8 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
   const [open, setOpen] = useState(false)
   const [prDetails, setPrDetails] = useState<PurchaseRequestDetails | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [isApproving, setIsApproving] = useState(false)
+  const [trackerOpen, setTrackerOpen] = useState(false)
 
   useEffect(() => {
     if (open) {
@@ -101,6 +105,37 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
     }
   }, [open, requisition.id])
 
+  const handleApprove = async () => {
+    setIsApproving(true)
+    try {
+      const response = await fetch(`/api/approval/officer-approval/requisition-approve/${requisition.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to approve purchase request')
+      }
+
+      toast.success('Purchase request approved successfully')
+      // Refresh the data
+      if (open) {
+        const updatedResponse = await fetch(`/api/requisition-view/${requisition.id}`)
+        if (updatedResponse.ok) {
+          const updatedData = await updatedResponse.json()
+          setPrDetails(updatedData)
+        }
+      }
+    } catch (error) {
+      console.error('Error approving purchase request:', error)
+      toast.error('Failed to approve purchase request')
+    } finally {
+      setIsApproving(false)
+    }
+  }
+
   return (
     <>
       <DropdownMenu>
@@ -115,6 +150,23 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => setOpen(true)}>
             <ExternalLink className="mr-2 h-4 w-4" />View Details
+          </DropdownMenuItem>
+          <DropdownMenuItem 
+            onClick={handleApprove}
+            disabled={isApproving || prDetails?.approvedByProcurementOfficer === true}
+          >
+            <CheckCircle className="mr-2 h-4 w-4" />
+            {isApproving ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Approving...
+              </>
+            ) : (
+              'Approve Request'
+            )}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setTrackerOpen(true)}>
+            <MapPin className="mr-2 h-4 w-4" />Document Tracker
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -216,14 +268,18 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
 
                     <div>
                       <h3 className="text-lg font-semibold mb-2">Additional Information</h3>
-                      <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <dl className="space-y-4">
                         <div>
                           <dt className="font-medium text-gray-500">Purpose</dt>
                           <dd>{prDetails.purpose}</dd>
                         </div>
-                        <div>
-                          <dt className="font-medium text-gray-500">Certified by</dt>
-                          <dd>{prDetails.createdBy.name}</dd>
+                        <div className="flex justify-between">
+                          <div>
+                            <dt className="font-medium text-gray-500">Submitted by</dt>
+                            <dd>
+                              {prDetails.createdBy.name}
+                            </dd>
+                          </div>
                         </div>
                       </dl>
                     </div>
@@ -232,6 +288,15 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
               </Card>
             </ScrollArea>
           ) : null}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={trackerOpen} onOpenChange={setTrackerOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Document Tracker</DialogTitle>
+          </DialogHeader>
+          <DocumentTracker purchaseRequestId={requisition.id} />
         </DialogContent>
       </Dialog>
     </>

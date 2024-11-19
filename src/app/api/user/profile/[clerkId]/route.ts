@@ -13,6 +13,7 @@ export async function GET(req: NextRequest, context: { params: { clerkId: string
                 clerkId,
                 name: null,
                 email: null,
+                role: null,
                 department: "",
                 section: "",
                 designation: "",

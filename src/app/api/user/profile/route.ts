@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         console.log("Received body:", body);
 
-        const { clerkId, name, email, department, section, designation, saino, alobsno } = body;
+        const { clerkId, name, email, role, department, section, designation, saino, alobsno } = body;
 
         if (!clerkId || !email) {
             console.warn("Missing required fields: clerkId or email");
@@ -16,8 +16,8 @@ export async function POST(req: NextRequest) {
 
         const user = await prisma.user.upsert({
             where: { clerkId },
-            update: { name, email, department, section, designation, saino, alobsno },
-            create: { clerkId, name, email, department, section, designation, saino, alobsno },
+            update: { name, email, role, department, section, designation, saino, alobsno },
+            create: { clerkId, name, email, role, department, section, designation, saino, alobsno },
         });
         return NextResponse.json(user, { status: 201 });
     } catch (error: any) {

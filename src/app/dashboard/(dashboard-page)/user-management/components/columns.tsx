@@ -17,7 +17,15 @@ export type User = {
     id: string
     name: string | null
     email: string
+    role: string
     createdAt: Date
+}
+
+const formatRole = (role: string) => {
+  return role
+    .split('_')
+    .map(word => word.charAt(0) + word.slice(1).toLowerCase())
+    .join(' ')
 }
 
 export const columns: ColumnDef<User>[] = [
@@ -28,6 +36,14 @@ export const columns: ColumnDef<User>[] = [
   {
     accessorKey: "email",
     header: "Email",
+  },
+  {
+    accessorKey: "role",
+    header: "Role",
+    cell: ({ row }) => {
+      const role: string = row.getValue("role")
+      return <div>{formatRole(role)}</div>
+    }
   },
   {
     accessorKey: "createdAt",

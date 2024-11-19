@@ -3,6 +3,9 @@
 import * as React from "react";
 import { NavMain } from "@/components/nav-main";
 import { NavAdmin } from "@/components/nav-admin";
+import { NavAccountant } from "@/components/nav-accountant";
+import { NavPresident } from "@/components/nav-president";
+import { NavOfficeHead } from "@/components/nav-officehead";
 import { NavUser } from "@/components/nav-user";
 import { useUser } from "@clerk/nextjs";
 import {
@@ -22,7 +25,6 @@ import {
   LayoutDashboard,
   ArchiveRestore,
 } from "lucide-react";
-
 
 // ADMIN SIDEBAR
 const navAdmin = [
@@ -87,15 +89,98 @@ const navMain = [
   },
 ];
 
+// ACCOUNTANT SIDEBAR
+const navAccountant = [
+  {
+    title: "Dashboard",
+    url: "../../dashboard/accountant-dashboard",
+    icon: LayoutDashboard,
+    isActive: true,
+    items: [
+      { title: "Overview", url: "../../dashboard/accountant-dashboard" },
+      { title: "Requisition", url: "../../dashboard/a-requisition" },
+    ],
+  },
+]
 
+// PRESIDENT SIDEBAR
+const navPresident = [
+  {
+    title: "Dashboard",
+    url: "../../dashboard/president-overview",
+    icon: LayoutDashboard,
+    isActive: true,
+    items: [
+      { title: "Overview", url: "../../dashboard/president-overview" },
+      { title: "Requisition", url: "../../dashboard/president-requisition" },
+    ],
+  },
+]
+
+// OFFICE HEAD SIDEBAR
+const navOfficeHead = [
+  {
+    title: "Dashboard",
+    url: "../../dashboard/officehead-dashboard",
+    icon: LayoutDashboard,
+    isActive: true,
+    items: [
+      { title: "Overview", url: "../../dashboard/officehead-dashboard" },
+      { title: "Requisition", url: "../../dashboard/officehead-requisition" },
+      { title: "PPMP", url: "../../dashboard/officehead-ppmp" },
+    ],
+  },
+  {
+    title: "Purchase Orders",
+    url: "#",
+    icon: FileCheck,
+    items: [
+      { title: "Purchase Order", url: "#" },
+    ],
+  },
+  {
+    title: "Archive",
+    url: "#",
+    icon: ArchiveRestore,
+    items: [
+      { title: "Restore", url: "#" },
+    ],
+  },
+];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { user } = useUser(); // Fetch user data from Clerk
+  const { user } = useUser();
 
   if (!user) return null;
 
   const { fullName, imageUrl, emailAddresses } = user;
   const primaryEmail = emailAddresses[0]?.emailAddress || "No email available";
+  const userRole = user.publicMetadata.role as string;
+
+  const renderNavigation = () => {
+    switch(userRole) {
+      case 'ADMIN':
+        return (
+          <>
+            <NavAdmin items={navAdmin} />
+            <NavMain items={navMain} />
+            <NavAccountant items={navAccountant} />
+            <NavPresident items={navPresident} />
+            <NavOfficeHead items={navOfficeHead} />
+          </>
+        );
+      case 'PROCUREMENT_OFFICER':
+        return <NavMain items={navMain} />;
+      case 'OFFICE_HEAD':
+        return <NavOfficeHead items={navOfficeHead} />;
+      case 'ACCOUNTANT':
+        return <NavAccountant items={navAccountant} />;
+      case 'PRESIDENT':
+        return <NavPresident items={navPresident} />;
+      default:
+        return null;
+    }
+  };
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -118,8 +203,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
 
       <SidebarContent>
-        <NavAdmin items={navAdmin} />
-        <NavMain items={navMain} />
+        {renderNavigation()}
       </SidebarContent>
 
       <SidebarFooter>

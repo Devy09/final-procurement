@@ -7,7 +7,8 @@ import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
-import { Loader2 } from "lucide-react";
+import { Loader2, Save } from "lucide-react";
+
 
 interface ProfileSheetProps {
   isOpen: boolean;
@@ -56,7 +57,6 @@ export function ProfileSheet({ isOpen, onClose }: ProfileSheetProps) {
       }
     };
 
-    // Fetch profile data when component mounts
     if (user?.id) {
       fetchProfile();
     }
@@ -75,6 +75,7 @@ export function ProfileSheet({ isOpen, onClose }: ProfileSheetProps) {
           name: user?.fullName,
           email: user?.primaryEmailAddress?.emailAddress,
           imageUrl: user?.imageUrl,
+          role: user?.publicMetadata?.role,
           department,
           section,
           designation,
@@ -109,20 +110,25 @@ export function ProfileSheet({ isOpen, onClose }: ProfileSheetProps) {
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="right" className="w-[90%] sm:w-[400px]">
+      <SheetContent side="right" className="w-[98%] sm:w-[1500px] overflow-y-auto">
         <SheetHeader>
           <SheetTitle>Profile</SheetTitle>
           <SheetDescription>Manage your profile settings</SheetDescription>
         </SheetHeader>
-        <div className="mt-6 space-y-4">
+        <div className="mt-6 space-y-4 pb-16">
           <div className="flex items-center gap-2 text-sm">
-            <Avatar className="h-12 w-12 rounded-lg">
-              {user?.imageUrl ? (
-                <AvatarImage src={user.imageUrl} alt="User avatar" />
-              ) : (
-                <AvatarFallback className="rounded-lg">DP</AvatarFallback>
-              )}
-            </Avatar>
+            <div className="flex flex-col items-center">
+              <Avatar className="h-12 w-12 rounded-lg">
+                {user?.imageUrl ? (
+                  <AvatarImage src={user.imageUrl} alt="User avatar" />
+                ) : (
+                  <AvatarFallback className="rounded-full">DP</AvatarFallback>
+                )}
+              </Avatar>
+              <p className="text-sm text-gray-700 dark:text-gray-300 mt-1 font-bold">
+                {(user?.publicMetadata as { role?: string })?.role || "No role available"}
+              </p>
+            </div>
             <div className="ml-2 gap-2">
               <p className="font-semibold text-2xl text-gray-700 dark:text-gray-300">
                 {user?.fullName || "Anonymous User"}
@@ -192,8 +198,8 @@ export function ProfileSheet({ isOpen, onClose }: ProfileSheetProps) {
             </div>
           </div>
 
-          {/* Save Profile Button with Loading */}
-          <div className="flex justify-end mt-6">
+          {/* Save Profile Button with Loading - moved outside the space-y-4 div */}
+          <div className="flex justify-end mt-6 sticky bottom-4 right-4 bg-background/80 backdrop-blur-sm p-4">
             <Button onClick={handleSaveProfile} disabled={loading}>
               {loading ? (
                 <>
@@ -201,7 +207,10 @@ export function ProfileSheet({ isOpen, onClose }: ProfileSheetProps) {
                   Saving...
                 </>
               ) : (
-                "Save Profile"
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Profile
+                </>
               )}
             </Button>
           </div>

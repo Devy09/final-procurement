@@ -9,6 +9,7 @@ generator client {
 
 enum RequestStatus {
   pending
+  reviewing
   approved
   rejected
 }
@@ -20,6 +21,7 @@ model User {
   email         String    @unique
   emailVerified DateTime?
   image         String?
+  role          String?
   accounts      Account[]
   sessions      Session[]
   createdAt     DateTime  @default(now())
@@ -43,6 +45,15 @@ model PPMP {
   createdAt     DateTime @default(now())
 }
 
+model OfficeHeadPPMP {
+  id            String   @id @default(uuid())
+  ppmp_item     String
+  unit_cost     Decimal  @db.Decimal(10, 2)
+  ppmp_category String
+  createdAt     DateTime @default(now())
+}
+
+
 model PurchaseRequest {
   id           String   @id @default(cuid())
   prno         String   @unique
@@ -55,14 +66,23 @@ model PurchaseRequest {
   overallTotal Decimal  @db.Decimal(10, 2)
 
   // Approval statuses
-  status                  RequestStatus @default(pending)
-  requisitionerApproved   Boolean       @default(false)
-  approvedByAccountant    Boolean       @default(false)
-  approvedByPresident     Boolean       @default(false)
-  approvedAtRequisitioner DateTime?
-  approvedAtAccountant    DateTime?
-  approvedAtPresident     DateTime?
-  rejectedReason          String?
+  status                       RequestStatus @default(pending)
+  // Procurement Officer Approval
+  approvedByProcurementOfficer Boolean       @default(false)
+  procurementOfficerName       String?
+  procurementOfficerRole       String?
+  // Accountant Approval
+  approvedByAccountant         Boolean       @default(false)
+  accountantName               String?
+  accountantRole               String?
+  // President Approval
+  approvedByPresident          Boolean       @default(false)
+  presidentName                 String?
+  presidentRole                 String?
+  approvedAtProcurementOfficer DateTime?
+  approvedAtAccountant         DateTime?
+  approvedAtPresident          DateTime?
+  rejectedReason               String?
 
   // Relations
   createdBy   User                  @relation(fields: [createdById], references: [id])
