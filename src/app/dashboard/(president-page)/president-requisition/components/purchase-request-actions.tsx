@@ -172,7 +172,117 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh]">
-          {/* ... Rest of the dialog content remains the same as accountant's version ... */}
+        <DialogHeader>
+            <DialogTitle>Purchase Request Details</DialogTitle>
+          </DialogHeader>
+          
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+          ) : prDetails ? (
+            <ScrollArea className="h-[calc(90vh-8rem)]">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4">General Information</h3>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <div className="space-y-4">
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-500">Department:</span>
+                            <span>{prDetails.department}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-500">Section:</span>
+                            <span>{prDetails.section}</span>
+                          </div>
+                        </div>
+                        <div className="space-y-4">
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-500">PR No:</span>
+                            <span>{prDetails.prno}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-500">Date:</span>
+                            <span>{format(new Date(prDetails.date), 'PPP')}</span>
+                          </div>
+                        </div>
+                        <div className="space-y-4">
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-500">SAI No:</span>
+                            <span>{prDetails.saino}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-500">ALOBS No:</span>
+                            <span>{prDetails.alobsno}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Items</h3>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Item No</TableHead>
+                            <TableHead>Quantity</TableHead>
+                            <TableHead>Unit</TableHead>
+                            <TableHead>Description</TableHead>
+                            <TableHead>Stock No</TableHead>
+                            <TableHead className="text-right">Unit Cost</TableHead>
+                            <TableHead className="text-right">Total Cost</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {prDetails.items.map((item) => (
+                            <TableRow key={item.id}>
+                              <TableCell>{item.itemNo}</TableCell>
+                              <TableCell>{item.quantity}</TableCell>
+                              <TableCell>{item.unit}</TableCell>
+                              <TableCell>{item.description}</TableCell>
+                              <TableCell>{item.stockNo || '-'}</TableCell>
+                              <TableCell className="text-right font-medium">
+                                ₱{parseFloat(item.unitCost).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                ₱{parseFloat(item.totalCost).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                          <TableRow>
+                            <TableCell colSpan={6} className="text-right font-medium text-green-500">Total:</TableCell>
+                            <TableCell className="text-right font-medium text-green-500">
+                              ₱{parseFloat(prDetails.overallTotal).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                    </div>
+
+                    <Separator />
+
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Additional Information</h3>
+                      <dl className="space-y-4">
+                        <div>
+                          <dt className="font-medium text-gray-500">Purpose</dt>
+                          <dd>{prDetails.purpose}</dd>
+                        </div>
+                        <div>
+                          <dt className="font-medium text-gray-500">Certified by</dt>
+                          <dd>{prDetails.createdBy.name}</dd>
+                        </div>
+                      </dl>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </ScrollArea>
+          ) : null}
         </DialogContent>
       </Dialog>
     </>

@@ -26,5 +26,9 @@ export default function PPMPTableWrapper() {
     fetchData();
   }, []);
 
-  return <DataTable data={data} setData={setData} />;
+  return (
+    <div className="w-full overflow-x-auto">
+      <DataTable data={data} setData={setData} />
+    </div>
+  );
 }

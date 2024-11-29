@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { format } from "date-fns"
-import { ExternalLink, MoreHorizontal, Loader2,  MapPin } from 'lucide-react'
+import { ExternalLink, MoreHorizontal, Loader2, MapPin } from 'lucide-react'
 
 import { Button } from "@/components/ui/button"
 import {
@@ -57,6 +57,7 @@ interface PurchaseRequestDetails {
   purpose: string
   status: string
   overallTotal: string
+  procurementMode: string
   items: PurchaseRequestItem[]
   createdBy: {
     name: string
@@ -70,6 +71,12 @@ interface PurchaseRequestColumn {
 
 interface PurchaseRequestActionsProps {
   requisition: PurchaseRequestColumn
+}
+
+// Utility function to validate dates
+function isValidDate(dateString: string): boolean {
+  const date = new Date(dateString);
+  return !isNaN(date.getTime());
 }
 
 export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsProps) {
@@ -158,7 +165,7 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
                           </div>
                           <div className="flex justify-between">
                             <span className="font-medium text-gray-500">Date:</span>
-                            <span>{format(new Date(prDetails.date), 'PPP')}</span>
+                            <span>{isValidDate(prDetails.date) ? format(new Date(prDetails.date), 'PPP') : 'Invalid date'}</span>
                           </div>
                         </div>
                         <div className="space-y-4">
@@ -222,16 +229,16 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
                       <h3 className="text-lg font-semibold mb-2">Additional Information</h3>
                       <dl className="space-y-4">
                         <div>
-                          <dt className="font-medium text-gray-500">Purpose</dt>
-                          <dd>{prDetails.purpose}</dd>
+                          <dt className="font-medium text-gray-500">Submitted by</dt>
+                          <dd>
+                            {prDetails.createdBy.name}
+                          </dd>
                         </div>
-                        <div className="flex justify-between">
-                          <div>
-                            <dt className="font-medium text-gray-500">Submitted by</dt>
-                            <dd>
-                              {prDetails.createdBy.name} on {format(new Date(prDetails.createdBy.createdAt), 'PPP')}
-                            </dd>
-                          </div>
+                        <div>
+                          <dt className="font-medium text-gray-500">Procurement Mode</dt>
+                          <dd>
+                            {prDetails.procurementMode}
+                          </dd>
                         </div>
                       </dl>
                     </div>

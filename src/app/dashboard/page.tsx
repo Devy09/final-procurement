@@ -1,9 +1,9 @@
-import AdminOverview from '@/app/dashboard/components/admin-overview';
+import React from 'react'
 
-const DashboardPage = () => {
+function WelcomePage() {
   return (
-    <AdminOverview />
+    <div>WelcomePage</div>
   )
 }
 
-export default DashboardPage
+export default WelcomePage

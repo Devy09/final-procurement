@@ -1,16 +1,19 @@
 'use client'
 
 import { useState, useEffect } from "react"
-import { Check, UserCircle } from 'lucide-react'
-import { Card } from "@/components/ui/card"
+import { Check, UserCircle, FileInput, Loader2 } from 'lucide-react'
 import { Progress } from "@/components/ui/progress"
 import { format } from "date-fns"
+import { Button } from "@/components/ui/button"
+import { toast } from "sonner"
 
 interface DocumentTrackerProps {
   purchaseRequestId: string
 }
 
 interface ApprovalDetails {
+  id: string
+  status: string
   approvedByProcurementOfficer: boolean
   approvedAtProcurementOfficer?: string | null
   procurementOfficerName?: string | null
@@ -23,11 +26,13 @@ interface ApprovalDetails {
   approvedAtPresident?: string | null
   presidentName?: string | null
   presidentRole?: string | null
+  hasQuotation?: boolean
 }
 
 export default function DocumentTracker({ purchaseRequestId }: DocumentTrackerProps) {
   const [approvalDetails, setApprovalDetails] = useState<ApprovalDetails | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isRequesting, setIsRequesting] = useState(false)
 
   useEffect(() => {
     const fetchApprovalDetails = async () => {
@@ -56,6 +61,29 @@ export default function DocumentTracker({ purchaseRequestId }: DocumentTrackerPr
       approvalDetails.approvedByPresident
     ].filter(Boolean).length
     return (approvedCount / 3) * 100
+  }
+
+  const handleRequestQuotation = async () => {
+    setIsRequesting(true)
+    try {
+      const response = await fetch(`/api/quotation/create/${purchaseRequestId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to create quotation request')
+      }
+
+      toast.success('Quotation request created successfully')
+    } catch (error) {
+      console.error('Error creating quotation request:', error)
+      toast.error('Failed to create quotation request')
+    } finally {
+      setIsRequesting(false)
+    }
   }
 
   if (isLoading) {
@@ -124,6 +152,35 @@ export default function DocumentTracker({ purchaseRequestId }: DocumentTrackerPr
               )}
             </div>
           ))}
+        </div>
+        
+        <div className="mt-6 flex justify-end">
+          <Button
+            onClick={handleRequestQuotation}
+            disabled={
+              approvalDetails?.status !== 'approved' || 
+              isRequesting || 
+              approvalDetails?.hasQuotation
+            }
+            variant={approvalDetails?.hasQuotation ? "secondary" : "default"}
+          >
+            {isRequesting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating Request...
+              </>
+            ) : approvalDetails?.hasQuotation ? (
+              <>
+                <Check className="mr-2 h-4 w-4" />
+                Already Requested
+              </>
+            ) : (
+              <>
+                <FileInput className="mr-2 h-4 w-4" />
+                Request for Quotation
+              </>
+            )}
+          </Button>
         </div>
     </div>
   )

@@ -56,6 +56,7 @@ export function DataTable<TData, TValue>({
             department: item.department,
             section: item.section,
             date_submitted: new Date(item.date).toLocaleDateString(),
+            procurement_mode: item.procurementMode,
             pr_status: item.status,
           }))
         );
@@ -111,7 +112,7 @@ export function DataTable<TData, TValue>({
         <PurchaseRequestFormWrapper onSuccess={addNewRequest} />
       </div>
       <div className="rounded-md border ml-4">
-        <Table className="w-[800px]">
+        <Table className="w-[900px]">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>

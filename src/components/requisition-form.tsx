@@ -37,6 +37,12 @@ const formatCurrency = (amount: number) => {
   }).format(amount).replace('PHP', '₱');
 };
 
+const getProcurementMode = (total: number) => {
+  if (total >= 1000000) return "Competitive Bidding";
+  if (total > 50000) return "Small Value";
+  return "Shopping";
+};
+
 interface PurchaseRequestFormWrapperProps {
   onSuccess?: (newRequest: any) => void;
 }
@@ -183,6 +189,7 @@ function PurchaseRequestForm() {
       return;
     }
   
+    const total = calculateTotal();
     const payload = {
       purpose,
       items: prItems.map(item => ({
@@ -191,7 +198,9 @@ function PurchaseRequestForm() {
         unit: item.unit,
         stockNo: item.stockNo,
         unitCost: item.unitCost
-      }))
+      })),
+      procurementMode: getProcurementMode(total),
+      totalAmount: total
     };
   
     try {
@@ -229,7 +238,7 @@ function PurchaseRequestForm() {
     } finally {
       setIsLoading(false);
     }
-  }, [prItems, purpose, toast]);
+  }, [prItems, purpose, toast, calculateTotal]);
 
   return (
     <div className="space-y-6">
@@ -292,7 +301,7 @@ function PurchaseRequestForm() {
                   <SelectValue placeholder="Unit" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Pieces">Pieces</SelectItem>
+                  <SelectItem value="Pcs">Pcs</SelectItem>
                   <SelectItem value="Ream">Ream</SelectItem>
                   <SelectItem value="Box">Box</SelectItem>
                   <SelectItem value="Pack">Pack</SelectItem>
@@ -342,8 +351,20 @@ function PurchaseRequestForm() {
         </TableBody>
         <TableFooter>
           <TableRow>
-            <TableCell colSpan={6} className="text-right font-bold">Total</TableCell>
-            <TableCell className="font-bold">{formatCurrency(calculateTotal())}</TableCell>
+            <TableCell colSpan={6} className="text-right font-bold">
+              Total Amount: {formatCurrency(calculateTotal())}
+            </TableCell>
+            <TableCell className="font-bold">
+              {formatCurrency(calculateTotal())}
+            </TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell colSpan={6} className="text-right font-bold">
+              Procurement Mode:
+            </TableCell>
+            <TableCell className="font-bold">
+              {getProcurementMode(calculateTotal())}
+            </TableCell>
           </TableRow>
         </TableFooter>
       </Table>

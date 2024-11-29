@@ -52,6 +52,7 @@ export default function Home() {
   </header>
       <main className="flex-grow">
         <section className="relative bg-muted py-40 px-6 text-center overflow-hidden">
+          
           <div className="absolute inset-0 z-0">
           <Image
             src="/csugate.jpg"
@@ -59,16 +60,19 @@ export default function Home() {
             fill
             className="object-cover opacity-50"
           />
-
           </div>
+
           <div className="relative z-10 max-w-3xl mx-auto space-y-6">
             <div className="flex items-center space-x-3 ml-80">
-              <Image src="/transcsu.png" alt="CSU Logo" width={160} height={160} />
+              <Image src="/transcsu.png" alt="CSU Logo" width={100} height={100} />
             </div>
+            <p className="text-2xl font-extrabold tracking-tight">
+              Cotabato State University
+            </p>
             <h2 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl">
-              Cotabato State University Procurement Management System
+              Procurement Management System
             </h2>
-            <p className="text-xl text-muted-foreground text-white">
+            <p className="text-xl tracking-tight">
               Streamline university procurement processes. Enhance efficiency and reduce manual process.
             </p>
             <div className="flex justify-center space-x-4">
@@ -88,10 +92,10 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {[
                 { icon: FileCog, title: "Digital Approval", description: "Expedite procurement requests with secure digital signatures and approvals" },
-                { icon: FileText, title: "Streamline Workflows", description: "Optimize procurement processes with automated, customizable workflows" },
+                { icon: FileText, title: "Streamline Workflows", description: "Optimize procurement processes" },
                 { icon: Search, title: "Document Tracking", description: "Real-time tracking and management of all procurement-related documents" },
-                { icon: FileSpreadsheet, title: "Generate Invoice", description: "Automatically create and manage invoices for procurement transactions" },
-                { icon: Upload, title: "Uploading PPMP", description: "Easily upload and manage Project Procurement Management Plans (PPMP)" },
+                { icon: FileSpreadsheet, title: "Generate Forms", description: "Automatically create and manage forms for procurement transactions" },
+                { icon: Upload, title: "PPMP", description: "Easily manage Project Procurement Management Plans (PPMP)" },
               ].map((feature, index) => (
                 <div key={index} className="flex flex-col items-center text-center p-6 bg-muted rounded-lg">
                   <feature.icon className="w-12 h-12 mb-4 text-primary" />

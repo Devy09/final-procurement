@@ -1,7 +1,7 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
-import { MoreHorizontal, ArrowUpDown, ExternalLink } from "lucide-react"
+import { ArrowUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { PurchaseRequestActions } from "./purchase-request-actions"
 
@@ -11,6 +11,7 @@ export type PurchaseRequestColumn = {
   department: string
   section: string
   date_submitted: string
+  procurement_mode: string
   pr_status: string
 }
 
@@ -30,6 +31,10 @@ export const columns: ColumnDef<PurchaseRequestColumn>[] = [
   {
     accessorKey: "date_submitted",
     header: "Date Submitted",
+  },
+  {
+    accessorKey: "procurement_mode",
+    header: "Procurement Mode",
   },
   {
     accessorKey: "pr_status",

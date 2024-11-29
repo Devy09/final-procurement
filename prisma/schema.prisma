@@ -64,6 +64,7 @@ model PurchaseRequest {
   date         DateTime @default(now())
   purpose      String
   overallTotal Decimal  @db.Decimal(10, 2)
+  procurementMode String
 
   // Approval statuses
   status                       RequestStatus @default(pending)
@@ -91,6 +92,8 @@ model PurchaseRequest {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  quotations  Quotation[]
 }
 
 model PurchaseRequestItem {
@@ -115,6 +118,65 @@ model PurchaseRequestSequence {
   id         String @id @default(cuid())
   year       Int    @unique
   lastNumber Int    @default(0)
+}
+
+model Quotation {
+  id              String    @id @default(cuid())
+  prno            String    
+  department      String
+  section         String
+  date            DateTime  @default(now())
+  
+  purchaseRequest PurchaseRequest @relation(fields: [prno], references: [prno])
+  
+  // Quotation items
+  items           QuotationItem[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model QuotationItem {
+  id          String    @id @default(cuid())
+  itemNo      Int
+  quantity    Int
+  unit        String
+  description String
+  unitCost    Decimal?  @db.Decimal(10, 2)
+  totalCost   Decimal?  @db.Decimal(10, 2)
+
+  // Relation to quotation
+  quotation   Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  quotationId String
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model SupplierQuotation {
+  id            String    @id @default(cuid())
+  supplierName  String
+  prno          String
+  date          DateTime
+  items         SupplierQuotationItem[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model SupplierQuotationItem {
+  id                  String            @id @default(cuid())
+  supplierQuotation   SupplierQuotation @relation(fields: [supplierQuotationId], references: [id], onDelete: Cascade)
+  supplierQuotationId String
+  itemNumber          String
+  description         String
+  quantity           Int
+  unit               String
+  unitCost           Float
+  totalCost          Float
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  @@index([supplierQuotationId])
 }
 
 model Account {

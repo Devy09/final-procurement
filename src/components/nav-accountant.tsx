@@ -37,7 +37,7 @@ export function NavAccountant({
       <SidebarGroupLabel>Accountant Dashboard</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (
-          <Collapsible key={item.title} asChild>
+          <Collapsible key={item.title} asChild defaultOpen>
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip={item.title}>
                 <a href={item.url}>

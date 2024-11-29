@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { format } from "date-fns"
-import { ExternalLink, MoreHorizontal, Loader2, CheckCircle, MapPin } from 'lucide-react'
+import { ExternalLink, MoreHorizontal, Loader2, CheckCircle, MapPin, Printer } from 'lucide-react'
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -28,13 +28,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import DocumentTracker from './document-tracker'
+import PurchaseRequestPage from "@/components/requisition-print";
 
 interface PurchaseRequestItem {
   id: string
@@ -64,6 +62,9 @@ interface PurchaseRequestDetails {
     createdAt: string
   }
   approvedByProcurementOfficer: boolean
+  procurementOfficerName: string
+  accountantName: string
+  presidentName: string
 }
 
 interface PurchaseRequestColumn {
@@ -80,9 +81,10 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
   const [isLoading, setIsLoading] = useState(false)
   const [isApproving, setIsApproving] = useState(false)
   const [trackerOpen, setTrackerOpen] = useState(false)
+  const [printOpen, setPrintOpen] = useState(false)
 
   useEffect(() => {
-    if (open) {
+    if (open || printOpen) {
       const fetchData = async () => {
         setIsLoading(true)
         try {
@@ -103,7 +105,11 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
 
       fetchData()
     }
-  }, [open, requisition.id])
+  }, [open, printOpen, requisition.id])
+
+  const handlePrint = () => {
+    setPrintOpen(true);
+  };
 
   const handleApprove = async () => {
     setIsApproving(true)
@@ -120,7 +126,6 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
       }
 
       toast.success('Purchase request approved successfully')
-      // Refresh the data
       if (open) {
         const updatedResponse = await fetch(`/api/requisition-view/${requisition.id}`)
         if (updatedResponse.ok) {
@@ -165,8 +170,12 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
               'Approve Request'
             )}
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setTrackerOpen(true)}>
-            <MapPin className="mr-2 h-4 w-4" />Document Tracker
+          <DropdownMenuItem onClick={() => setTrackerOpen(true)}> 
+            <MapPin className="mr-2 h-4 w-4" />Track Document
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handlePrint}> 
+            <Printer className="mr-2 h-4 w-4" />
+            Print
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -239,21 +248,30 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {prDetails.items.map((item) => (
-                            <TableRow key={item.id}>
-                              <TableCell>{item.itemNo}</TableCell>
-                              <TableCell>{item.quantity}</TableCell>
-                              <TableCell>{item.unit}</TableCell>
-                              <TableCell>{item.description}</TableCell>
-                              <TableCell>{item.stockNo || '-'}</TableCell>
-                              <TableCell className="text-right font-medium">
-                                ₱{parseFloat(item.unitCost).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                              </TableCell>
-                              <TableCell className="text-right">
-                                ₱{parseFloat(item.totalCost).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          {prDetails?.items?.length ? (
+                            prDetails.items.map((item) => (
+                              <TableRow key={item.id}>
+                                <TableCell>{item.itemNo}</TableCell>
+                                <TableCell>{item.quantity}</TableCell>
+                                <TableCell>{item.unit}</TableCell>
+                                <TableCell>{item.description}</TableCell>
+                                <TableCell>{item.stockNo || '-'}</TableCell>
+                                <TableCell className="text-right font-medium">
+                                  ₱{parseFloat(item.unitCost).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  ₱{parseFloat(item.totalCost).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </TableCell>
+                              </TableRow>
+                            ))
+                            
+                          ) : (
+                            <TableRow>
+                              <TableCell colSpan={7} className="text-center text-gray-500">
+                                No items found.
                               </TableCell>
                             </TableRow>
-                          ))}
+                          )}
                           <TableRow>
                             <TableCell colSpan={6} className="text-right font-medium text-green-500">Total:</TableCell>
                             <TableCell className="text-right font-medium text-green-500">
@@ -297,6 +315,52 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
             <DialogTitle>Document Tracker</DialogTitle>
           </DialogHeader>
           <DocumentTracker purchaseRequestId={requisition.id} />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={printOpen} onOpenChange={setPrintOpen}>
+        <DialogContent className="max-w-[22cm] max-h-[95vh] dialog-content">
+          <DialogHeader>
+            <DialogTitle>Print Preview</DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="h-[calc(95vh-8rem)]">
+            <div className="print-container bg-white shadow-lg text-black">
+              {isLoading ? (
+                <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+          ) : prDetails ? (
+              <PurchaseRequestPage 
+                data={{
+                  prNo: prDetails.prno,
+                  date: prDetails.date,
+                  department: prDetails.department,
+                  section: prDetails.section,
+                  saino: prDetails.saino,
+                  alobsno: prDetails.alobsno,
+                  purpose: prDetails.purpose,
+                  items: prDetails.items,
+                  overallTotal: prDetails.overallTotal,
+                  createdBy: prDetails.createdBy,
+                  procurementOfficerName: prDetails.procurementOfficerName,
+                  accountantName: prDetails.accountantName,
+                  presidentName: prDetails.presidentName,
+                }} 
+              />
+            ) : (
+                <div className="text-center py-4">No data available</div>
+              )}
+            </div>
+          </ScrollArea>
+          <div className="flex justify-end gap-4 print:hidden">
+            <Button variant="outline" onClick={() => setPrintOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => window.print()}>
+              <Printer className="mr-2 h-4 w-4" />
+              Print
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </>

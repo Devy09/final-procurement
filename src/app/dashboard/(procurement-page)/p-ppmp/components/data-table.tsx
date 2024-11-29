@@ -137,15 +137,16 @@ export function DataTable({ data, setData }: DataTableProps) {
   });
 
   return (
-    <div>
-      <div className="flex items-center py-4 ml-4">
+    <div className="flex flex-col flex-grow w-full p-4 bg-background">
+      {/* Search and Dialog */}
+      <div className="flex items-center flex-wrap gap-4">
         <Input
           placeholder="Search..."
           value={(table.getColumn("ppmp_item")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("ppmp_item")?.setFilterValue(event.target.value)
           }
-          className="max-w-sm"
+          className="max-w-sm flex-grow lg:w-1/4"
           autoComplete="off"
         />
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -191,7 +192,7 @@ export function DataTable({ data, setData }: DataTableProps) {
                   Category
                 </Label>
                 <Select onValueChange={setCategory}>
-                  <SelectTrigger className="w-[276px]">
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="--" />
                   </SelectTrigger>
                   <SelectContent className="text-left">
@@ -204,10 +205,7 @@ export function DataTable({ data, setData }: DataTableProps) {
             <DialogFooter>
               <Button onClick={handleSubmit} disabled={loading}>
                 {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Adding item...
-                  </>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
                   "Add Item"
                 )}
@@ -216,24 +214,19 @@ export function DataTable({ data, setData }: DataTableProps) {
           </DialogContent>
         </Dialog>
       </div>
-      {/* PPMP TABLE */}
-      <div className="rounded-md border ml-4">
-        <Table className="w-[800px]">
+
+      {/* PPMP Table */}
+      <div className="rounded-md border w-full overflow-x-auto mt-4 flex-grow">
+        <Table className="w-full table-fixed">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  )
-                })}
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id} className="px-4 py-2 text-left">
+                    {!header.isPlaceholder &&
+                      flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>
@@ -244,32 +237,28 @@ export function DataTable({ data, setData }: DataTableProps) {
                   <Loader2 className="h-6 w-6 animate-spin mx-auto" />
                 </TableCell>
               </TableRow>
-            ) : (
-              table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={columns.length} className="h-24 text-center">
-                    No results.
-                  </TableCell>
+            ) : table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id} className="px-4 text-left">
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
                 </TableRow>
-              )
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  No results.
+                </TableCell>
+              </TableRow>
             )}
           </TableBody>
         </Table>
       </div>
-      {/* PAGINATION */}
+
+      {/* Pagination */}
       <div className="flex items-center justify-end space-x-2 py-4">
         <Button
           variant="outline"
@@ -277,7 +266,7 @@ export function DataTable({ data, setData }: DataTableProps) {
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
         >
-         <ChevronLeft className="h-4 w-4" />
+          <ChevronLeft className="h-4 w-4" />
         </Button>
         <Button
           variant="outline"
@@ -288,7 +277,7 @@ export function DataTable({ data, setData }: DataTableProps) {
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
-      <Toaster /> 
+      <Toaster />
     </div>
   );
 }

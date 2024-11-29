@@ -22,11 +22,31 @@ import { cn } from '@/lib/utils'
 export default function SignInPage() {
 
   const router = useRouter()
-  const { isSignedIn, user } = useUser() // Access user data
+  const { isSignedIn, user } = useUser()
 
   useEffect(() => {
-    if (isSignedIn && user?.publicMetadata?.role === 'admin') {
-      router.push('/dashboard')
+    if (isSignedIn && user?.publicMetadata?.role) {
+      const role = user.publicMetadata.role as string
+      
+      switch(role) {
+        case 'ADMIN':
+          router.push('/dashboard')
+          break
+        case 'PROCUREMENT_OFFICER':
+          router.push('/dashboard/procurement-dashboard')
+          break
+        case 'ACCOUNTANT':
+          router.push('/dashboard/accountant-dashboard')
+          break
+        case 'PRESIDENT':
+          router.push('/dashboard/president-dashboard')
+          break
+        case 'OFFICE_HEAD':
+          router.push('/dashboard/officehead-dashboard')
+          break
+        default:
+          router.push('/dashboard')
+      }
     }
   }, [isSignedIn, user, router])
 

@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 });
   }
 
-  const { purpose, items } = requestData;
+  const { purpose, items, procurementMode } = requestData;
   const year = new Date().getFullYear();
 
   if (!purpose || !items) {
@@ -91,6 +91,7 @@ export async function POST(req: NextRequest) {
         alobsno: user.alobsno || '',
         purpose,
         overallTotal,
+        procurementMode,
         createdById: user.id,
         items: {
           create: items.map((item: any, index: number) => ({
@@ -134,6 +135,7 @@ export async function GET(req: NextRequest) {
         department: true,
         section: true,
         date: true,
+        procurementMode: true,
         status: true,
       },
       orderBy: {

@@ -18,13 +18,14 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import {
-  Files,
   FileCheck,
   University,
   FilePenLine,
   LayoutDashboard,
   ArchiveRestore,
+  Settings,
 } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 // ADMIN SIDEBAR
 const navAdmin = [
@@ -58,8 +59,8 @@ const navMain = [
     url: "#",
     icon: FilePenLine,
     items: [
-      { title: "Offices Quotations", url: "#" },
-      { title: "Supplier Quotations", url: "#" },
+      { title: "Offices Quotations", url: "../../dashboard/offices-quotation" },
+      { title: "Supplier Quotations", url: "../../dashboard/supplier-quotations" },
       { title: "Abstract of Bids", url: "#" },
     ],
   },
@@ -72,19 +73,19 @@ const navMain = [
     ],
   },
   {
-    title: "Documents",
-    url: "#",
-    icon: Files,
-    items: [
-      { title: "Location", url: "#" },
-    ],
-  },
-  {
     title: "Archive",
     url: "#",
     icon: ArchiveRestore,
     items: [
-      { title: "Restore", url: "#" },
+      { title: "Documents", url: "#" },
+    ],
+  },
+  {
+    title: "Settings",
+    url: "#",
+    icon: Settings,
+    items: [
+      { title: "Maintenance", url: "#" },
     ],
   },
 ];
@@ -99,6 +100,7 @@ const navAccountant = [
     items: [
       { title: "Overview", url: "../../dashboard/accountant-dashboard" },
       { title: "Requisition", url: "../../dashboard/a-requisition" },
+      { title: "Purchase Order", url: "#" },
     ],
   },
 ]
@@ -113,6 +115,8 @@ const navPresident = [
     items: [
       { title: "Overview", url: "../../dashboard/president-overview" },
       { title: "Requisition", url: "../../dashboard/president-requisition" },
+      { title: "Abstract of Bids", url: "#" },
+      { title: "Purchase Order", url: "#" },
     ],
   },
 ]
@@ -203,7 +207,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
 
       <SidebarContent>
-        {renderNavigation()}
+        <ScrollArea className="h-[calc(100vh-8rem)]">
+          {renderNavigation()}
+        </ScrollArea>
       </SidebarContent>
 
       <SidebarFooter>

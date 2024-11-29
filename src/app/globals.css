@@ -87,3 +87,43 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+
+  body {
+    margin: 10px;
+    padding: 0;
+    background: white !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+  .print-container {
+    visibility: visible !important;
+    display: block !important;
+    position: relative !important;
+    width: 100%; /* Full width for printing */
+    height: auto; /* Ensure height adjusts to content */
+    margin: 0; /* No margins */
+    padding: 0;
+    overflow: visible !important;
+    background: white;
+  }
+
+  .print-container * {
+    visibility: visible !important;
+  }
+}
+
+.page-break {
+  page-break-before: always;
+}
+
+.no-break {
+  page-break-inside: avoid;
+}

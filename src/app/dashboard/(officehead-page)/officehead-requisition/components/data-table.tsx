@@ -22,7 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import PurchaseRequestFormWrapper from "@/components/requisition-form";
+import PurchaseRequestFormWrapper from "../../components/requisition-form";
 import { Clock, CheckCircle, Loader2, XCircle } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
@@ -56,6 +56,7 @@ export function DataTable<TData, TValue>({
             department: item.department,
             section: item.section,
             date_submitted: format(parseISO(item.date), 'PPP'),
+            procurement_mode: item.procurementMode,
             pr_status: item.status,
           }))
         );
@@ -98,8 +99,8 @@ export function DataTable<TData, TValue>({
 
 
   return (
-    <div>
-      <div className="flex items-center py-4 ml-4 justify-between">
+    <div className="w-full px-4">
+      <div className="flex items-center py-4 justify-between">
         <Input
           placeholder="Search..."
           value={(table.getColumn("prno")?.getFilterValue() as string) ?? ""}
@@ -110,67 +111,69 @@ export function DataTable<TData, TValue>({
         />
         <PurchaseRequestFormWrapper onSuccess={addNewRequest} />
       </div>
-      <div className="rounded-md border ml-4">
-        <Table className="w-[800px]">
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {cell.column.id === "pr_status" ? (
-                        <span
-                          className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium capitalize ${
-                            cell.getValue() === "pending"
-                              ? "bg-yellow-100 text-yellow-700"
-                              : cell.getValue() === "reviewing"
-                              ? "bg-blue-100 text-blue-700"
-                              : cell.getValue() === "approved"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-red-100 text-red-700"
-                          }`}
-                        >
-                          {cell.getValue() === "pending" && <Clock className="mr-1 h-3 w-3" />}
-                          {cell.getValue() === "reviewing" && <Clock className="mr-1 h-3 w-3" />}
-                          {cell.getValue() === "approved" && <CheckCircle className="mr-1 h-3 w-3" />}
-                          {cell.getValue() === "rejected" && <XCircle className="mr-1 h-3 w-3" />}
-                          {cell.getValue() as string}
-                        </span>
-                      ) : (
-                        flexRender(cell.column.columnDef.cell, cell.getContext())
-                      )}
-                    </TableCell>
+      <div className="overflow-x-auto">
+        <div className="rounded-md border">
+          <Table className="min-w-full p-4">
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
                   ))}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {cell.column.id === "pr_status" ? (
+                          <span
+                            className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium capitalize ${
+                              cell.getValue() === "pending"
+                                ? "bg-yellow-100 text-yellow-700"
+                                : cell.getValue() === "reviewing"
+                                ? "bg-blue-100 text-blue-700"
+                                : cell.getValue() === "approved"
+                                ? "bg-green-100 text-green-700"
+                                : "bg-red-100 text-red-700"
+                            }`}
+                          >
+                            {cell.getValue() === "pending" && <Clock className="mr-1 h-3 w-3" />}
+                            {cell.getValue() === "reviewing" && <Clock className="mr-1 h-3 w-3" />}
+                            {cell.getValue() === "approved" && <CheckCircle className="mr-1 h-3 w-3" />}
+                            {cell.getValue() === "rejected" && <XCircle className="mr-1 h-3 w-3" />}
+                            {cell.getValue() as string}
+                          </span>
+                        ) : (
+                          flexRender(cell.column.columnDef.cell, cell.getContext())
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={columns.length} className="h-24 text-center">
+                    No results.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
 
       <div className="flex items-center justify-end space-x-2 py-4">
