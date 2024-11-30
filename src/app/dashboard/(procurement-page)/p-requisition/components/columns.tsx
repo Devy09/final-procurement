@@ -18,7 +18,17 @@ export type PurchaseRequestColumn = {
 export const columns: ColumnDef<PurchaseRequestColumn>[] = [
   {
     accessorKey: "prno",
-    header: "PR No.",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          PR No.
+          <ArrowUpDown className="h-4 w-4" />
+        </Button>
+      )
+    },
   },
   {
     accessorKey: "department",
@@ -34,7 +44,17 @@ export const columns: ColumnDef<PurchaseRequestColumn>[] = [
   },
   {
     accessorKey: "procurement_mode",
-    header: "Procurement Mode",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Procurement Mode
+          <ArrowUpDown className="h-4 w-4" />
+        </Button>
+      )
+    },
   },
   {
     accessorKey: "pr_status",
@@ -42,7 +62,7 @@ export const columns: ColumnDef<PurchaseRequestColumn>[] = [
       return (
         <Button
           variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "desc")}
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           Status
           <ArrowUpDown className="h-4 w-4" />

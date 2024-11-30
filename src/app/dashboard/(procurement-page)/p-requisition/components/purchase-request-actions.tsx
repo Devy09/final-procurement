@@ -65,6 +65,9 @@ interface PurchaseRequestDetails {
   procurementOfficerName: string
   accountantName: string
   presidentName: string
+  procurementOfficerRole: string
+  accountantRole: string
+  presidentRole: string
 }
 
 interface PurchaseRequestColumn {
@@ -345,6 +348,9 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
                   procurementOfficerName: prDetails.procurementOfficerName,
                   accountantName: prDetails.accountantName,
                   presidentName: prDetails.presidentName,
+                  procurementOfficerRole: prDetails.procurementOfficerRole,
+                  accountantRole: prDetails.accountantRole,
+                  presidentRole: prDetails.presidentRole,
                 }} 
               />
             ) : (

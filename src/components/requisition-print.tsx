@@ -30,6 +30,9 @@ interface PurchaseRequestProps {
     procurementOfficerName: string;
     accountantName: string;
     presidentName: string;
+    procurementOfficerRole: string;
+    accountantRole: string;
+    presidentRole: string;
   };
 }
 
@@ -146,12 +149,12 @@ export default function PurchaseRequestPage({ data }: PurchaseRequestProps) {
           </tbody>
         </table>
         <table className="w-full">
-          <tbody className="text-black dark:text-black text-xs font-bold">
+          <tbody className="text-black dark:text-black text-xs">
             <tr>
               <td className="border-b border-r border-black p-1.5 w-28"></td>
-              <td className="border-b border-r border-black p-1.5">Certified by:</td>
-              <td className="border-b border-r border-black p-1.5">Funds Available:</td>
-              <td className="border-b border-black p-1.5">Approved by:</td>
+              <td className="border-b border-r border-black p-1.5 font-bold">Certified by:</td>
+              <td className="border-b border-r border-black p-1.5 font-bold">Funds Available:</td>
+              <td className="border-b border-black p-1.5 font-bold">Approved by:</td>
             </tr>
             <tr>
               <td className="border-b border-r border-black p-1.5 font-bold">Signature</td>
@@ -161,15 +164,15 @@ export default function PurchaseRequestPage({ data }: PurchaseRequestProps) {
             </tr>
             <tr>
               <td className="border-b border-r border-black p-1.5 font-bold">Printed Name:</td>
-              <td className="border-b border-r border-black p-1.5 text-center">{data.procurementOfficerName}</td>
-              <td className="border-b border-r border-black p-1.5 text-center">{data.accountantName}</td>
-              <td className="border-b border-black p-1.5 text-center">{data.presidentName}</td>
+              <td className="border-b border-r border-black p-1.5 text-center font-bold">{data.procurementOfficerName}</td>
+              <td className="border-b border-r border-black p-1.5 text-center font-bold">{data.accountantName}</td>
+              <td className="border-b border-black p-1.5 text-center font-bold">{data.presidentName}</td>
             </tr>
             <tr>
               <td className="border-r border-black p-1.5 font-bold">Designation:</td>
-              <td className="border-r border-black p-1.5"></td>
-              <td className="border-r border-black p-1.5"></td>
-              <td className="border-black p-1.5"></td>
+              <td className="border-r border-black p-1.5 text-center">{data.procurementOfficerRole}</td>
+              <td className="border-r border-black p-1.5 text-center">{data.accountantRole}</td>
+              <td className="border-black p-1.5 text-center">{data.presidentRole}</td>
             </tr>
           </tbody>
         </table>
