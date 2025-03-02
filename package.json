@@ -32,7 +32,6 @@
     "@types/pdfkit": "^0.13.8",
     "axios": "^1.7.7",
     "bcryptjs": "^2.4.3",
-    "canvas": "^2.11.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
@@ -73,6 +72,6 @@
     "typescript": "^5"
   },
   "resolutions": {
-  "canvas": "2.11.2"
+    "canvas": "2.11.2"
   }
 }
