@@ -114,7 +114,7 @@ export default function PresidentProfilePage() {
   const handleSignatureUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-  
+
     if (!file.type.includes('image/')) {
       toast({
         title: "Error",
@@ -123,31 +123,76 @@ export default function PresidentProfilePage() {
       });
       return;
     }
-  
+
     setIsUploading(true);
     setIsReplacing(true);
-  
     try {
-      // Create form data and send it to the backend for processing
-      const formData = new FormData();
-      formData.append('signature', file);
-      formData.append('userId', user?.id || '');
-  
-      const response = await fetch('/api/user/signature', {
-        method: 'POST',
-        body: formData,
-      });
-  
-      if (response.ok) {
-        const data = await response.json();
-        setSignature(data.signatureUrl);
-        toast({
-          title: "Success",
-          description: "Signature uploaded successfully!",
+      // Create a temporary URL for the image
+      const imageUrl = URL.createObjectURL(file);
+      const img = new Image();
+      
+      img.onload = async () => {
+        // Create canvas
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        
+        if (!ctx) {
+          throw new Error('Could not get canvas context');
+        }
+
+        // Draw image
+        ctx.drawImage(img, 0, 0);
+        
+        // Get image data
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+
+        // Remove white background
+        for (let i = 0; i < data.length; i += 4) {
+          const red = data[i];
+          const green = data[i + 1];
+          const blue = data[i + 2];
+          
+          // Check if pixel is light (close to white)
+          if (red > 200 && green > 200 && blue > 200) {
+            // Make pixel transparent
+            data[i + 3] = 0;
+          }
+        }
+
+        // Put the modified image data back
+        ctx.putImageData(imageData, 0, 0);
+        
+        // Get the processed image as base64
+        const processedImage = canvas.toDataURL('image/png', 1.0);
+
+        // Create form data with processed image
+        const formData = new FormData();
+        formData.append('signature', file);
+        formData.append('userId', user?.id || '');
+        formData.append('processedImage', processedImage);
+
+        // Send to server
+        const response = await fetch('/api/user/signature', {
+          method: 'POST',
+          body: formData,
         });
-      } else {
-        throw new Error('Failed to upload signature');
-      }
+
+        if (response.ok) {
+          const data = await response.json();
+          setSignature(data.signatureUrl);
+          toast({
+            title: "Success",
+            description: "Signature uploaded successfully!",
+          });
+        } else {
+          throw new Error('Failed to upload signature');
+        }
+      };
+
+      img.src = imageUrl;
     } catch (error) {
       toast({
         title: "Error",
