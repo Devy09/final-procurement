@@ -28,6 +28,12 @@ interface PPMPDropdownItem {
   unit_cost: number;
 }
 
+interface AttachmentFiles {
+  certification: File | null;
+  letter: File | null;
+  proposal: File | null;
+}
+
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-PH', {
     style: 'currency',
@@ -81,10 +87,10 @@ export default function PurchaseRequestFormWrapper({ onSuccess }: PurchaseReques
   return (
     <Dialog open={isMainDialogOpen} onOpenChange={setIsMainDialogOpen}>
       <DialogTrigger asChild>
-        <Button><ClipboardPlus /> Purchase Request</Button>
+        <Button className="bg-red-950 text-white hover:bg-red-900"><ClipboardPlus /> Purchase Request</Button>
       </DialogTrigger>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader className='m-4'>
+        <DialogHeader className='bg-red-950 text-white p-6 rounded-lg'>
           <DialogTitle className='text-2xl'>Purchase Request Form</DialogTitle>
         </DialogHeader>
         <PurchaseRequestForm />
@@ -101,6 +107,11 @@ function PurchaseRequestForm() {
     quantity: 0,
     unit: '',
     stockNo: ''
+  });
+  const [files, setFiles] = useState<AttachmentFiles>({
+    certification: null,
+    letter: null,
+    proposal: null
   });
   const [purpose, setPurpose] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -179,10 +190,11 @@ function PurchaseRequestForm() {
     e.preventDefault();
     setIsLoading(true);
   
-    if (!purpose.trim() || prItems.length === 0) {
+    if (!purpose.trim() || prItems.length === 0 || 
+    !files.certification || !files.letter || !files.proposal) {
       toast({
         title: "Submission Error",
-        description: "Please provide a purpose and at least one item.",
+        description: "Please provide all required fields and attachments",
         variant: "destructive",
       });
       setIsLoading(false);
@@ -190,24 +202,29 @@ function PurchaseRequestForm() {
     }
   
     const total = calculateTotal();
-    const payload = {
-      purpose,
-      items: prItems.map(item => ({
-        description: item.description,
-        quantity: item.quantity,
-        unit: item.unit,
-        stockNo: item.stockNo,
-        unitCost: item.unitCost
-      })),
-      procurementMode: getProcurementMode(total),
-      totalAmount: total
-    };
+    const formData = new FormData();
+
+    // Append form data
+    formData.append('purpose', purpose);
+    formData.append('items', JSON.stringify(prItems.map(item => ({
+      description: item.description,
+      quantity: item.quantity,
+      unit: item.unit,
+      stockNo: item.stockNo,
+      unitCost: item.unitCost
+    }))));
+    formData.append('procurementMode', getProcurementMode(total));
+    formData.append('totalAmount', total.toString());
+    
+    // Append files
+    formData.append('certification', files.certification);
+    formData.append('letter', files.letter);
+    formData.append('proposal', files.proposal);
   
     try {
       const response = await fetch("/api/officehead-api/officehead-requisition/requisition", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: formData,
       });
   
       if (!response.ok) {
@@ -221,6 +238,7 @@ function PurchaseRequestForm() {
       } else {
         setPrItems([]);
         setPurpose('');
+        setFiles({ certification: null, letter: null, proposal: null });
         toast({
           title: "Success",
           description: "Purchase request submitted successfully!",
@@ -238,7 +256,15 @@ function PurchaseRequestForm() {
     } finally {
       setIsLoading(false);
     }
-  }, [prItems, purpose, toast, calculateTotal]);
+  }, [prItems, purpose, files, toast, calculateTotal]);
+
+  const handleFileChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>, key: keyof AttachmentFiles) => {
+      const file = e.target.files?.[0] || null;
+      setFiles(prev => ({ ...prev, [key]: file }));
+    },
+    []
+  );
 
   return (
     <div className="space-y-6">
@@ -246,11 +272,11 @@ function PurchaseRequestForm() {
       <div className="flex justify-end">
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button><PackagePlus /> Add New Item</Button>
+            <Button variant="customMaroon"><PackagePlus /> Add New Item</Button>
           </DialogTrigger>
           <DialogContent>
-            <DialogHeader>
-              <DialogTitle className='text-2xl mb-4'>Add New Item</DialogTitle>
+            <DialogHeader className='bg-red-950 text-white p-6 rounded-lg'>
+              <DialogTitle className='text-2xl'>Add New Item</DialogTitle>
             </DialogHeader>
             <div className="flex flex-col gap-4">
               <Select onValueChange={(value) => handleSelectChange('description', value)}>
@@ -318,7 +344,7 @@ function PurchaseRequestForm() {
                 onChange={handleInputChange}
               />
               
-              <Button onClick={addItem}><PackagePlus /> Add Item</Button>
+              <Button onClick={addItem} className="bg-red-950 text-white hover:bg-red-900"><PackagePlus /> Add Item</Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -352,7 +378,7 @@ function PurchaseRequestForm() {
         <TableFooter>
           <TableRow>
             <TableCell colSpan={6} className="text-right font-bold">
-              Total Amount: {formatCurrency(calculateTotal())}
+              Total Amount:
             </TableCell>
             <TableCell className="font-bold">
               {formatCurrency(calculateTotal())}
@@ -377,7 +403,44 @@ function PurchaseRequestForm() {
           className="w-full"
           required
         />
-        <Button type="submit" className='flex items-center' disabled={isLoading}>
+
+        <div className="w-full space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Certification (required)
+            </label>
+            <Input
+              type="file"
+              accept=".pdf,.doc,.docx,.jpg,.png"
+              onChange={(e) => handleFileChange(e, 'certification')}
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Letter (required)
+            </label>
+            <Input
+              type="file"
+              accept=".pdf,.doc,.docx,.jpg,.png"
+              onChange={(e) => handleFileChange(e, 'letter')}
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Proposal (required)
+            </label>
+            <Input
+              type="file"
+              accept=".pdf,.doc,.docx,.jpg,.png"
+              onChange={(e) => handleFileChange(e, 'proposal')}
+              required
+            />
+          </div>
+        </div>
+
+        <Button type="submit" className='flex items-center bg-customMaroon' disabled={isLoading}>
           {isLoading ? 'Submitting...' : <><FileDown /> Submit</>}
         </Button>
       </form>

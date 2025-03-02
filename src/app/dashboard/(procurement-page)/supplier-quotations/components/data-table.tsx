@@ -1,19 +1,19 @@
 "use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
   ColumnDef,
   ColumnFiltersState,
   SortingState,
   flexRender,
   getCoreRowModel,
-  getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  getFilteredRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input"
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -22,19 +22,23 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { SupplierQuotationItem } from "@prisma/client";
+import { AbstractDialog } from "./abstract-dialog";
+import { SupplierQuotation } from "./columns";
+import { Presentation } from "lucide-react";
 
-interface DataTableProps<TData, TValue> {
+interface DataTableProps<TData ,TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
 }
 
-export function DataTable<TData, TValue>({
+export function DataTable<TData extends SupplierQuotationItem, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-  const [rowSelection, setRowSelection] = React.useState({})
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [isAbstractOpen, setIsAbstractOpen] = React.useState(false);
 
   const table = useReactTable({
     data,
@@ -45,17 +49,16 @@ export function DataTable<TData, TValue>({
     getFilteredRowModel: getFilteredRowModel(),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
-    onRowSelectionChange: setRowSelection,
     state: {
       sorting,
       columnFilters,
-      rowSelection,
     },
   });
 
   return (
     <div>
-      <div className="flex items-center py-4 ml-4 justify-between">
+      {/* Search and Action Buttons */}
+      <div className="flex items-center py-4 ml-6 justify-between">
         <Input
           placeholder="Search..."
           value={(table.getColumn("prno")?.getFilterValue() as string) ?? ""}
@@ -64,25 +67,29 @@ export function DataTable<TData, TValue>({
           }
           className="max-w-sm"
         />
-        <Button>Create Abstract</Button>
+        <Button
+          onClick={() => setIsAbstractOpen(true)}
+        >
+          <Presentation className="mr-2" /> Start Bidding
+        </Button>
       </div>
-      <div className="rounded-md border ml-4">
-        <Table className="w-[850px]">
+
+      {/* Main Table */}
+      <div className="rounded-md border ml-6">
+        <Table className="w-[1200px]">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  );
-                })}
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>
@@ -116,11 +123,9 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      <div className="flex-1 text-sm text-muted-foreground ml-4 mt-4">
-        {table.getFilteredSelectedRowModel().rows.length} of{" "}
-        {table.getFilteredRowModel().rows.length} row(s) selected.
-      </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
+
+      {/* Pagination Controls */}
+      <div className="flex items-center justify-end space-x-2 py-2">
         <Button
           variant="outline"
           size="sm"
@@ -138,6 +143,11 @@ export function DataTable<TData, TValue>({
           Next
         </Button>
       </div>
+
+      <AbstractDialog
+        open={isAbstractOpen}
+        onOpenChange={setIsAbstractOpen}
+      />
     </div>
   );
 }

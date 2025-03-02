@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { User, columns } from "./components/columns";
 import { DataTable } from "./components/data-table";
-import { Loader2 } from 'lucide-react'
+import { Loader2, UserRoundPlus } from 'lucide-react'
 
 
 async function fetchUserData(): Promise<User[]> {
@@ -38,8 +38,16 @@ export default function UserManagementPage() {
   }, []);
 
   return (
-    <div className="container mx-auto py-10">
-      <h1 className="text-2xl font-bold mb-4 ml-4">User Management</h1>
+    <div className="flex flex-col gap-2">
+      <h1 className="text-2xl bg-red-950 text-white m-6 p-6 rounded-md w-[1200px]">
+        <div className="flex items-center gap-2">
+          <UserRoundPlus className="w-6 h-6" />
+          <span className="font-bold">User Management</span>
+        </div>
+        <p className="text-sm text-white mt-2">
+          List of all users in the procurement management system
+        </p>
+      </h1>
       {loading && <Loader2 className="animate-spin" />}
       {error && <p className="text-red-500">{error}</p>}
       {!loading && !error && (

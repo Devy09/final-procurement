@@ -33,16 +33,17 @@ body {
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-background: 0 74.7% 15.5%;
+    --sidebar-foreground: 0 0% 100%;
     --sidebar-primary: 240 5.9% 10%;
     --sidebar-primary-foreground: 0 0% 98%;
     --sidebar-accent: 240 4.8% 95.9%;
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
-    
+
   }
+
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
@@ -83,6 +84,7 @@ body {
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -90,12 +92,12 @@ body {
 
 @media print {
   @page {
-    size: A4 portrait;
-    margin: 10mm;
+    size: Legal portrait;
+    margin: 0;
   }
 
   body {
-    margin: 10px;
+    margin: 0;
     padding: 0;
     background: white !important;
   }
@@ -103,13 +105,17 @@ body {
   body * {
     visibility: hidden;
   }
+
   .print-container {
     visibility: visible !important;
     display: block !important;
     position: relative !important;
-    width: 100%; /* Full width for printing */
-    height: auto; /* Ensure height adjusts to content */
-    margin: 0; /* No margins */
+    width: 100%;
+    /* Full width for printing */
+    height: auto;
+    /* Ensure height adjusts to content */
+    margin: 0;
+    /* No margins */
     padding: 0;
     overflow: visible !important;
     background: white;

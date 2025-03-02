@@ -36,7 +36,17 @@ export const columns: ColumnDef<PurchaseRequestColumn>[] = [
   },
   {
     accessorKey: "section",
-    header: "Section",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Section
+          <ArrowUpDown className="h-4 w-4" />
+        </Button>
+      )
+    },
   },
   {
     accessorKey: "date_submitted",

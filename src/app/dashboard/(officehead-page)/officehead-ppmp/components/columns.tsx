@@ -23,24 +23,39 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { PPMPTableColumn } from "./types";
 
+const formatCurrency = (value: number) => {
+  if (typeof value !== 'number' || isNaN(value)) return '0.00';
+  const fixedValue = parseFloat(value.toFixed(2));
+  return fixedValue.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+    useGrouping: true
+  });
+};
+
 export const generateColumns = (
   refreshData: () => void
 ): ColumnDef<PPMPTableColumn>[] => [
   {
     accessorKey: "ppmp_item",
-    header: "Item Description",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Item Description
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
   },
   {
     accessorKey: "unit_cost",
     header: () => <div className="text-right">Unit Cost</div>,
     cell: ({ row }) => {
-      const unitcost = parseFloat(row.getValue("unit_cost"));
-      const formatted = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "PHP",
-      }).format(unitcost);
-
-      return <div className="text-right font-medium">{formatted}</div>;
+      const value = parseFloat(row.getValue("unit_cost"));
+      return <div className="text-right font-medium">{formatCurrency(value)}</div>;
     },
   },
   {
@@ -134,7 +149,7 @@ export const generateColumns = (
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => setOpenUpdate(true)}
-                className="font-bold"
+                className="font-bold text-blue-500"
               >
                 <SquarePen /> Update
               </DropdownMenuItem>

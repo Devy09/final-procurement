@@ -24,45 +24,43 @@ export async function PUT(
         id: true,
         role: true,
         name: true,
+        title: true,
+        signatureUrl: true,
+        designation: true
       }
     })
 
-    if (!user || user.role !== 'PROCUREMENT_OFFICER') {
+    if (!user || user.role !== 'ACCOUNTANT') {
       return NextResponse.json(
-        { error: 'Unauthorized: Only procurement officers can approve' },
+        { error: 'Unauthorized: Only accountants can approve' },
         { status: 403 }
       )
     }
 
     const id = params.id
 
-    const updatedRequest = await prisma.purchaseRequest.update({
+    const updatedPO = await prisma.purchaseOrder.update({
       where: {
         id: id,
       },
       data: {
-        approvedByProcurementOfficer: true,
-        approvedAtProcurementOfficer: new Date(),
-        procurementOfficerName: user.name,
-        procurementOfficerRole: user.role,
-        status: 'reviewing',
-      },
-      include: {
-        createdBy: {
-          select: {
-            name: true,
-            email: true,
-          },
-        },
-      },
+        approvedByAccountant: true,
+        approvedAtAccountant: new Date(),
+        accountantName: user.name,
+        accountantRole: user.role,
+        accountantTitle: user.title,
+        accountantSignatureUrl: user.signatureUrl,
+        accountantDesignation: user.designation,
+        status: 'pending', // Still pending until president approves
+      }
     })
 
-    return NextResponse.json(updatedRequest)
+    return NextResponse.json(updatedPO)
   } catch (error) {
-    console.error('Error approving purchase request:', error)
+    console.error('Error approving purchase order:', error)
     return NextResponse.json(
-      { error: 'Failed to approve purchase request' },
+      { error: 'Failed to approve purchase order' },
       { status: 500 }
     )
   }
-}
+} 

@@ -1,8 +1,11 @@
 import React from 'react'
+import KeyMetrics from '../components/key-metrics'
 
 function OfficeHeadDashboard() {
   return (
-    <div>OfficeHeadDashboard</div>
+    <div>
+      <KeyMetrics />
+    </div>
   )
 }
 

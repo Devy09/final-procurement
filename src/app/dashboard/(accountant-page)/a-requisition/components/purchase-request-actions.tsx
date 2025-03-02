@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { format } from "date-fns"
-import { ExternalLink, MoreHorizontal, Loader2, CheckCircle, MapPin } from 'lucide-react'
+import { ExternalLink, MoreHorizontal, Loader2, CheckCircle } from 'lucide-react'
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -156,6 +156,7 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
           <DropdownMenuItem 
             onClick={handleApprove}
             disabled={isApproving || prDetails?.approvedByAccountant === true}
+            className="text-green-700"
           >
             <CheckCircle className="mr-2 h-4 w-4" />
             {isApproving ? (
@@ -171,7 +172,7 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
       </DropdownMenu>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh]">
+        <DialogContent className="max-w-6xl max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>Purchase Request Details</DialogTitle>
           </DialogHeader>
@@ -185,25 +186,25 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
               <Card>
                 <CardContent className="p-6">
                   <div className="space-y-6">
-                    <div>
+                    <div className="bg-yellow-500 text-white p-6 rounded-lg">
                       <h3 className="text-lg font-semibold mb-4">General Information</h3>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                         <div className="space-y-4">
-                          <div className="flex justify-between">
+                          <div className="flex flex-col gap-1">
                             <span className="font-medium text-gray-500">Department:</span>
                             <span>{prDetails.department}</span>
                           </div>
-                          <div className="flex justify-between">
+                          <div className="flex flex-col gap-1">
                             <span className="font-medium text-gray-500">Section:</span>
                             <span>{prDetails.section}</span>
                           </div>
                         </div>
                         <div className="space-y-4">
-                          <div className="flex justify-between">
+                          <div className="flex flex-col gap-1">
                             <span className="font-medium text-gray-500">PR No:</span>
                             <span>{prDetails.prno}</span>
                           </div>
-                          <div className="flex justify-between">
+                          <div className="flex flex-col gap-1">
                             <span className="font-medium text-gray-500">Date:</span>
                             <span>{format(new Date(prDetails.date), 'PPP')}</span>
                           </div>
@@ -220,19 +221,15 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
                         </div>
                       </div>
                     </div>
-
-                    <Separator />
-
                     <div>
-                      <h3 className="text-lg font-semibold mb-2">Items</h3>
                       <Table>
                         <TableHeader>
-                          <TableRow>
-                            <TableHead>Item No</TableHead>
+                          <TableRow className="bg-yellow-100">
+                            <TableHead>Item No.</TableHead>
                             <TableHead>Quantity</TableHead>
                             <TableHead>Unit</TableHead>
                             <TableHead>Description</TableHead>
-                            <TableHead>Stock No</TableHead>
+                            <TableHead>Stock No.</TableHead>
                             <TableHead className="text-right">Unit Cost</TableHead>
                             <TableHead className="text-right">Total Cost</TableHead>
                           </TableRow>
@@ -254,8 +251,8 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
                             </TableRow>
                           ))}
                           <TableRow>
-                            <TableCell colSpan={6} className="text-right font-medium text-green-500">Total:</TableCell>
-                            <TableCell className="text-right font-medium text-green-500">
+                            <TableCell colSpan={6} className="text-right font-medium text-green-500 bg-yellow-100">Total:</TableCell>
+                            <TableCell className="text-right font-medium text-green-500 bg-yellow-100">
                               ₱{parseFloat(prDetails.overallTotal).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </TableCell>
                           </TableRow>
@@ -263,17 +260,15 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
                       </Table>
                     </div>
 
-                    <Separator />
-
                     <div>
-                      <h3 className="text-lg font-semibold mb-2">Additional Information</h3>
-                      <dl className="space-y-4">
-                        <div>
-                          <dt className="font-medium text-gray-500">Purpose</dt>
+                      <h3 className="text-lg font-semibold mb-4">Additional Information</h3>
+                      <dl className="grid grid-cols-2 gap-4">
+                        <div className="bg-yellow-50 p-4 rounded-lg">
+                          <dt className="font-medium text-gray-500 mb-1">Purpose</dt>
                           <dd>{prDetails.purpose}</dd>
                         </div>
-                        <div>
-                          <dt className="font-medium text-gray-500">Certified by</dt>
+                        <div className="bg-yellow-50 p-4 rounded-lg">
+                          <dt className="font-medium text-gray-500 mb-1">Certified by</dt>
                           <dd>{prDetails.createdBy.name}</dd>
                         </div>
                       </dl>

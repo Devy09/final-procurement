@@ -4,7 +4,6 @@ import * as Clerk from '@clerk/elements/common'
 import * as SignIn from '@clerk/elements/sign-in'
 import { useEffect } from 'react'
 import { useUser } from '@clerk/nextjs'
-import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -43,6 +42,9 @@ export default function SignInPage() {
           break
         case 'OFFICE_HEAD':
           router.push('/dashboard/officehead-dashboard')
+          break
+        case 'BAC':
+          router.push('/dashboard/bac-dashboard')
           break
         default:
           router.push('/dashboard')

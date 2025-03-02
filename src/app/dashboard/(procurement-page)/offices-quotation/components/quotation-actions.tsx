@@ -56,6 +56,10 @@ interface QuotationDetails {
   section: string;
   date: string;
   items: QuotationItem[];
+  presidentName: string;
+  presidentTitle: string;
+  presidentSignatureUrl: string;
+  presidentDesignation: string;
 }
 
 interface QuotationColumn {
@@ -184,7 +188,6 @@ export function QuotationActions({ requisition }: QuotationActionsProps) {
     }, 0);
   };
 
-  // Add this function to prevent wheel events on number inputs
   const preventWheelChange = (e: React.WheelEvent<HTMLInputElement>) => {
     e.currentTarget.blur(); // Remove focus from input
     e.stopPropagation(); // Stop event from bubbling up
@@ -209,15 +212,15 @@ export function QuotationActions({ requisition }: QuotationActionsProps) {
           </DropdownMenuItem>
 
           <DropdownMenuItem onClick={handlePrint}>
-            <Printer className="mr-2 h-4 w-4" />
-            Print Preview
+            <Printer className="mr-2 h-4 w-4 text-blue-500" />
+            <span className="text-blue-500">Print Preview</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-
+      
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-6xl max-h-[90vh]">
-          <DialogHeader>
+        <DialogContent className="max-w-6xl max-h-[100vh]">
+          <DialogHeader className="bg-red-950 text-white p-4 rounded-md">
             <DialogTitle>Quotation Details</DialogTitle>
           </DialogHeader>
 
@@ -230,13 +233,13 @@ export function QuotationActions({ requisition }: QuotationActionsProps) {
               <Card>
                 <CardContent className="p-6">
                   <div className="space-y-6">
-                    <div className="mb-4">
+                    <div className="mb-4 bg-red-950 text-white p-4 rounded-md">
                       <Label htmlFor="supplierName">Name of Supplier</Label>
                       <Input
                         id="supplierName"
                         value={supplierName}
                         onChange={(e) => setSupplierName(e.target.value)}
-                        className="max-w-md"
+                        className="max-w-md text-black"
                         placeholder="Enter supplier name"
                       />
                     </div>
@@ -294,6 +297,7 @@ export function QuotationActions({ requisition }: QuotationActionsProps) {
             <Button 
               onClick={handleCreateSupplierQuotation}
               disabled={isSubmitting}
+              className="bg-red-950 text-white hover:bg-red-900 z-10"
             >
               {isSubmitting ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -312,7 +316,7 @@ export function QuotationActions({ requisition }: QuotationActionsProps) {
             <DialogTitle>Print Preview</DialogTitle>
           </DialogHeader>
           <ScrollArea className="h-[calc(95vh-8rem)]">
-            <div className="print-container bg-white shadow-lg text-black">
+            <div className="print-container bg-white text-black">
               {isLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-8 w-8 animate-spin" />
@@ -322,7 +326,16 @@ export function QuotationActions({ requisition }: QuotationActionsProps) {
                   data={{
                     prNo: quotationDetails?.prno,
                     date: quotationDetails?.date,
-                    items: quotationDetails?.items,
+                    items: quotationDetails?.items?.map(item => ({
+                      itemNo: item.itemNo,
+                      quantity: item.quantity,
+                      unit: item.unit,
+                      description: item.description
+                    })),
+                    presidentName: quotationDetails?.presidentName || "",
+                    presidentTitle: quotationDetails?.presidentTitle || "",
+                    presidentSignatureUrl: quotationDetails?.presidentSignatureUrl || "",
+                    presidentDesignation: quotationDetails?.presidentDesignation || "",
                   }}
                 />
               )}
@@ -332,7 +345,7 @@ export function QuotationActions({ requisition }: QuotationActionsProps) {
             <Button variant="outline" onClick={() => setPrintDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={() => window.print()}>
+            <Button onClick={() => window.print()} className="bg-red-950 text-white hover:bg-red-900">
               <Printer className="mr-2 h-4 w-4" />
               Print
             </Button>

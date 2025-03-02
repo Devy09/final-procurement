@@ -9,7 +9,6 @@ generator client {
 
 enum RequestStatus {
   pending
-  reviewing
   approved
   rejected
 }
@@ -22,17 +21,17 @@ model User {
   emailVerified DateTime?
   image         String?
   role          String?
-  accounts      Account[]
-  sessions      Session[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
   // OTHER INFO FIELDS
-  department  String?
-  section     String?
-  designation String?
-  saino       String?
-  alobsno     String?
+  department   String?
+  section      String?
+  title        String?
+  designation  String?
+  saino        String?
+  alobsno      String?
+  signatureUrl String? @db.Text
 
   purchaseRequests PurchaseRequest[]
 }
@@ -53,37 +52,41 @@ model OfficeHeadPPMP {
   createdAt     DateTime @default(now())
 }
 
-
 model PurchaseRequest {
-  id           String   @id @default(cuid())
-  prno         String   @unique
-  department   String
-  section      String
-  saino        String?
-  alobsno      String?
-  date         DateTime @default(now())
-  purpose      String
-  overallTotal Decimal  @db.Decimal(10, 2)
-  procurementMode String
+  id                String   @id @default(cuid())
+  prno              String   @unique
+  department        String
+  section           String
+  saino             String?
+  alobsno           String?
+  date              DateTime @default(now())
+  purpose           String
+  certificationFile String
+  letterFile        String
+  proposalFile      String
+  overallTotal      Decimal  @db.Decimal(10, 2)
+  procurementMode   String
 
   // Approval statuses
-  status                       RequestStatus @default(pending)
-  // Procurement Officer Approval
-  approvedByProcurementOfficer Boolean       @default(false)
-  procurementOfficerName       String?
-  procurementOfficerRole       String?
+  status                 RequestStatus @default(pending)
   // Accountant Approval
-  approvedByAccountant         Boolean       @default(false)
-  accountantName               String?
-  accountantRole               String?
+  approvedByAccountant   Boolean       @default(false)
+  accountantName         String?
+  accountantRole         String?
+  accountantTitle        String?
+  accountantSignatureUrl String?       @db.Text
+  accountantDesignation  String?
   // President Approval
-  approvedByPresident          Boolean       @default(false)
-  presidentName                 String?
-  presidentRole                 String?
-  approvedAtProcurementOfficer DateTime?
-  approvedAtAccountant         DateTime?
-  approvedAtPresident          DateTime?
-  rejectedReason               String?
+  approvedByPresident    Boolean       @default(false)
+  presidentName          String?
+  presidentRole          String?
+  presidentTitle         String?
+  presidentSignatureUrl  String?       @db.Text
+  presidentDesignation   String?
+  // Approval dates
+  approvedAtAccountant   DateTime?
+  approvedAtPresident    DateTime?
+  rejectedReason         String?
 
   // Relations
   createdBy   User                  @relation(fields: [createdById], references: [id])
@@ -93,7 +96,7 @@ model PurchaseRequest {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  quotations  Quotation[]
+  quotations Quotation[]
 }
 
 model PurchaseRequestItem {
@@ -121,46 +124,46 @@ model PurchaseRequestSequence {
 }
 
 model Quotation {
-  id              String    @id @default(cuid())
-  prno            String    
-  department      String
-  section         String
-  date            DateTime  @default(now())
-  
+  id         String   @id @default(cuid())
+  prno       String
+  department String
+  section    String
+  date       DateTime @default(now())
+
   purchaseRequest PurchaseRequest @relation(fields: [prno], references: [prno])
-  
+
   // Quotation items
-  items           QuotationItem[]
-  
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  items QuotationItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model QuotationItem {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   itemNo      Int
   quantity    Int
   unit        String
   description String
-  unitCost    Decimal?  @db.Decimal(10, 2)
-  totalCost   Decimal?  @db.Decimal(10, 2)
+  unitCost    Decimal? @db.Decimal(10, 2)
+  totalCost   Decimal? @db.Decimal(10, 2)
 
   // Relation to quotation
   quotation   Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
   quotationId String
 
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model SupplierQuotation {
-  id            String    @id @default(cuid())
-  supplierName  String
-  prno          String
-  date          DateTime
-  items         SupplierQuotationItem[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id           String                  @id @default(cuid())
+  supplierName String
+  prno         String
+  date         DateTime
+  items        SupplierQuotationItem[]
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @updatedAt
 }
 
 model SupplierQuotationItem {
@@ -169,51 +172,76 @@ model SupplierQuotationItem {
   supplierQuotationId String
   itemNumber          String
   description         String
-  quantity           Int
-  unit               String
-  unitCost           Float
-  totalCost          Float
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
+  quantity            Int
+  unit                String
+  unitCost            Float
+  totalCost           Float
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
 
   @@index([supplierQuotationId])
 }
 
-model Account {
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String?
-  access_token      String?
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String?
-  session_state     String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@id([provider, providerAccountId])
+enum PurchaseOrderStatus {
+  pending
+  approved
+  rejected
 }
 
-model Session {
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+model PurchaseOrder {
+  id           String              @id @default(cuid())
+  prno         String
+  supplierName String
+  totalAmount  Float
+  date         DateTime
+  status       PurchaseOrderStatus @default(pending)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  // Accountant Approval
+  approvedByAccountant   Boolean   @default(false)
+  accountantName         String?
+  accountantRole         String?
+  accountantTitle        String?
+  accountantSignatureUrl String?   @db.Text
+  accountantDesignation  String?
+  approvedAtAccountant   DateTime?
+
+  // President Approval
+  approvedByPresident   Boolean   @default(false)
+  presidentName         String?
+  presidentRole         String?
+  presidentTitle        String?
+  presidentSignatureUrl String?   @db.Text
+  presidentDesignation  String?
+  approvedAtPresident   DateTime?
+
+  rejectedReason String?
+  items          PurchaseOrderItem[]
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  @@index([prno])
 }
 
-model VerificationToken {
-  identifier String
-  token      String
-  expires    DateTime
+model PurchaseOrderItem {
+  id            String        @id @default(cuid())
+  purchaseOrder PurchaseOrder @relation(fields: [poId], references: [id])
+  poId          String
+  itemNumber    String
+  description   String
+  quantity      Int
+  unit          String
+  unitCost      Float
+  totalCost     Float
 
-  @@id([identifier, token])
+  @@index([poId])
+}
+
+model Report {
+  id                      String   @id @default(uuid())
+  period                  String
+  totalSpend              Float
+  purchaseRequestCount    Int
+  officeQuotationsCount   Int
+  supplierQuotationsCount Int
+  createdAt               DateTime @default(now())
 }

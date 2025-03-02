@@ -22,7 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Clock, CheckCircle, Loader2, XCircle } from "lucide-react";
+import { Clock, CheckCircle, Loader2, XCircle, FileClock } from "lucide-react";
 
 
 interface DataTableProps<TData, TValue> {
@@ -98,7 +98,7 @@ export function DataTable<TData, TValue>({
 
   return (
     <div>
-      <div className="flex items-center py-4 ml-4 justify-between">
+      <div className="flex items-center py-4 ml-6 justify-between">
         <Input
           placeholder="Search..."
           value={(table.getColumn("prno")?.getFilterValue() as string) ?? ""}
@@ -108,8 +108,8 @@ export function DataTable<TData, TValue>({
           className="max-w-sm"
         />
       </div>
-      <div className="rounded-md border ml-4">
-        <Table className="w-[800px]">
+      <div className="rounded-md border ml-6">
+        <Table className="w-[1200px]">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -140,8 +140,6 @@ export function DataTable<TData, TValue>({
                           className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium capitalize ${
                             cell.getValue() === "pending"
                             ? "bg-yellow-100 text-yellow-700"
-                            : cell.getValue() === "reviewing"
-                            ? "bg-blue-100 text-blue-700"
                             : cell.getValue() === "approved"
                             ? "bg-green-100 text-green-700"
                             : "bg-red-100 text-red-700"

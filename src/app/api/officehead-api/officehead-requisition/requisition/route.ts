@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
+import { promises as fs } from 'fs';
+import path from 'path';
 
 async function generatePrNumber(year: number): Promise<string> {
   return await prisma.$transaction(async (transaction) => {
@@ -29,59 +31,82 @@ async function generatePrNumber(year: number): Promise<string> {
   });
 }
 
-// SUBMITTING FORM
 
 export async function POST(req: NextRequest) {
-  let requestData;
-
   try {
-    requestData = await req.json();
-  } catch (error) {
-    console.error('Failed to parse JSON:', error);
-    return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 });
-  }
+    // Parse form data
+    const formData = await req.formData();
 
-  const { purpose, items, procurementMode } = requestData;
-  const year = new Date().getFullYear();
+    // Extract files
+    const certification = formData.get('certification') as File;
+    const letter = formData.get('letter') as File;
+    const proposal = formData.get('proposal') as File;
 
-  if (!purpose || !items || !procurementMode) {
-    console.error('Missing required fields:', { purpose, items, procurementMode });
-    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
-  }
-
-  const authData = await auth();
-  const userId = authData.userId;
-  console.log('Authenticated User ID:', userId);
-
-  if (!userId) {
-    console.error('User authentication failed');
-    return NextResponse.json({ error: 'User authentication failed' }, { status: 401 });
-  }
-
-  const user = await prisma.user.findUnique({ where: { clerkId: userId } });
-  if (!user) {
-    console.error(`User with Clerk ID ${userId} not found in the database`);
-    return NextResponse.json({ error: 'User not found' }, { status: 404 });
-  }
-  console.log('Fetched user:', user);
-
-  let prno;
-  try {
-    prno = await generatePrNumber(year);
-  } catch (error) {
-    console.error('Error generating purchase request number:', error);
-    return NextResponse.json({ error: 'Failed to generate purchase request number' }, { status: 500 });
-  }
-
-  const overallTotal = items.reduce((total: number, item: any) => {
-    if (!item.quantity || !item.unitCost) {
-      console.error('Invalid item data:', item);
-      throw new Error('Invalid item data');
+    // Validate required files
+    if (!certification || !letter || !proposal) {
+      return NextResponse.json(
+        { error: 'All files (certification, letter, proposal) are required' },
+        { status: 400 }
+      );
     }
-    return total + item.quantity * item.unitCost;
-  }, 0);
 
-  try {
+    // Extract form fields
+    const purpose = formData.get('purpose') as string;
+    const items = JSON.parse(formData.get('items') as string);
+    const procurementMode = formData.get('procurementMode') as string;
+
+    // Validate required fields
+    if (!purpose || !items?.length || !procurementMode) {
+      return NextResponse.json(
+        { error: 'Missing required fields (purpose, items, procurementMode)' },
+        { status: 400 }
+      );
+    }
+
+    // Authentication and user validation
+    const authData = await auth();
+    const userId = authData.userId;
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'User authentication failed' },
+        { status: 401 }
+      );
+    }
+
+    const user = await prisma.user.findUnique({ where: { clerkId: userId } });
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    // Generate PR number
+    const year = new Date().getFullYear();
+    const prno = await generatePrNumber(year);
+
+    // Calculate total
+    const overallTotal = items.reduce((total: number, item: any) => {
+      return total + (item.quantity || 0) * (item.unitCost || 0);
+    }, 0);
+
+    // Save files to disk
+    const uploadDir = path.join(process.cwd(), 'public/uploads');
+    await fs.mkdir(uploadDir, { recursive: true });
+
+    const saveFile = async (file: File) => {
+      const buffer = await file.arrayBuffer();
+      const filename = `${Date.now()}-${file.name}`;
+      const filePath = path.join(uploadDir, filename);
+      await fs.writeFile(filePath, Buffer.from(buffer));
+      return filename;
+    };
+
+    const certificationFile = await saveFile(certification);
+    const letterFile = await saveFile(letter);
+    const proposalFile = await saveFile(proposal);
+
+    // Create purchase request
     const purchaseRequest = await prisma.purchaseRequest.create({
       data: {
         prno,
@@ -92,6 +117,9 @@ export async function POST(req: NextRequest) {
         purpose,
         overallTotal,
         procurementMode,
+        certificationFile,
+        letterFile,
+        proposalFile,
         createdById: user.id,
         items: {
           create: items.map((item: any, index: number) => ({
@@ -101,21 +129,24 @@ export async function POST(req: NextRequest) {
             description: item.description,
             stockNo: item.stockNo,
             unitCost: item.unitCost,
-            totalCost: item.quantity * item.unitCost,
+            totalCost: (item.quantity || 0) * (item.unitCost || 0),
           })),
         },
       },
       include: { items: true },
     });
 
-    console.log('Purchase request created successfully:', purchaseRequest);
     return NextResponse.json({
       message: 'Purchase request created successfully',
       purchaseRequest,
     });
+
   } catch (error) {
-    console.error('Error creating purchase request:', error);
-    return NextResponse.json({ error: 'Failed to create purchase request' }, { status: 500 });
+    console.error('Error:', error);
+    return NextResponse.json(
+      { error: 'Failed to process request' },
+      { status: 500 }
+    );
   }
 }
 
@@ -128,7 +159,22 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "User authentication failed" }, { status: 401 });
     }
 
+    // Fetch the current user to get their section
+    const user = await prisma.user.findUnique({
+      where: { clerkId: userId },
+      select: { section: true }, // Only get the section
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // Ensure section is not null before filtering
+    const filterCondition = user.section ? { section: user.section } : {};
+
+    // Fetch only purchase requests matching the user's section
     const purchaseRequests = await prisma.purchaseRequest.findMany({
+      where: filterCondition,
       select: {
         id: true,
         prno: true,
@@ -142,6 +188,7 @@ export async function GET(req: NextRequest) {
         date: "asc",
       },
     });
+
     return NextResponse.json(purchaseRequests);
   } catch (error) {
     console.error("Error fetching purchase requests:", error);

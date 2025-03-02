@@ -24,6 +24,10 @@ export async function PUT(
         id: true,
         role: true,
         name: true,
+        title: true,
+        signatureUrl: true,
+        designation: true
+        
       }
     })
 
@@ -50,6 +54,9 @@ export async function PUT(
         approvedAtPresident: new Date(),
         presidentName: user.name,
         presidentRole: user.role,
+        presidentTitle: user.title,
+        presidentSignatureUrl: user.signatureUrl,
+        presidentDesignation: user.designation,
         // Update status to approved only if accountant has also approved
         ...(currentRequest?.approvedByAccountant && {
           status: 'approved'

@@ -5,6 +5,7 @@ import { Inter } from 'next/font/google';
 import { ClerkProvider, ClerkLoaded, ClerkLoading  } from '@clerk/nextjs'
 import { ThemeProvider } from "@/components/theme-provider";
 
+
 const inter = Inter({subsets: ['latin']});
 
 export const metadata: Metadata = {
@@ -28,10 +29,16 @@ export default function RootLayout({
             disableTransitionOnChange
           >
           <ClerkLoading>
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <div className="flex h-screen w-full items-center justify-center bg-background">
+              <div className="flex flex-col items-center gap-4">
+                <Loader2 className="h-20 w-20 animate-spin text-red-950 drop-shadow-lg" />
+                <p className="text-2xl text-muted-foreground">Loading, please wait...</p>
+              </div>
+            </div>
           </ClerkLoading>
           <ClerkLoaded>{children}</ClerkLoaded>
         </ThemeProvider>
+        
         </body>
       </html>
     </ClerkProvider>

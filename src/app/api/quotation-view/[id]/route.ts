@@ -6,35 +6,42 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const purchaseRequest = await prisma.purchaseRequest.findUnique({
+    const quotation = await prisma.quotation.findUnique({
       where: {
         id: params.id,
       },
       include: {
-        quotations: {
+        purchaseRequest: {
           select: {
-            id: true,
-          },
+            presidentName: true,
+            presidentTitle: true,
+            presidentSignatureUrl: true,
+            presidentDesignation: true,
+          }
         },
-      },
+        items: true,
+      }
     })
 
-    if (!purchaseRequest) {
+    if (!quotation) {
       return NextResponse.json(
-        { error: 'Purchase request not found' },
+        { error: 'Quotation not found' },
         { status: 404 }
       )
     }
 
     return NextResponse.json({
-      ...purchaseRequest,
-      hasQuotation: purchaseRequest.quotations.length > 0,
+      ...quotation,
+      presidentName: quotation.purchaseRequest.presidentName,
+      presidentTitle: quotation.purchaseRequest.presidentTitle,
+      presidentSignatureUrl: quotation.purchaseRequest.presidentSignatureUrl,
+      presidentDesignation: quotation.purchaseRequest.presidentDesignation,
     })
 
   } catch (error) {
-    console.error('Error fetching purchase request:', error)
+    console.error('Error fetching quotation:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch purchase request' },
+      { error: 'Failed to fetch quotation' },
       { status: 500 }
     )
   }

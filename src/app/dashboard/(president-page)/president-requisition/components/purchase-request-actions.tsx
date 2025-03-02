@@ -62,6 +62,9 @@ interface PurchaseRequestDetails {
     name: string
     email: string
   }
+  certificationFile: string;
+  letterFile: string;
+  proposalFile: string;
   createdAt: string
   approvedByPresident: boolean
   approvedAtPresident?: string
@@ -138,6 +141,43 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
     }
   }
 
+  const renderAttachments = () => {
+    if (!prDetails) return null;
+
+    const attachments = [
+      { label: 'Certification', file: prDetails.certificationFile },
+      { label: 'Letter', file: prDetails.letterFile },
+      { label: 'Proposal', file: prDetails.proposalFile },
+    ];
+
+    return (
+      <div>
+        <h3 className="text-lg font-semibold mb-4">Attachments</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {attachments.map((attachment, index) => (
+            <div key={index} className="bg-gray-50 p-4 rounded-lg">
+              <dt className="font-medium text-gray-500 mb-2">{attachment.label}</dt>
+              <dd className="text-lg">
+                {attachment.file ? (
+                  <a
+                    href={`/uploads/${attachment.file}`} // Adjust the path if needed
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline"
+                  >
+                    View File
+                  </a>
+                ) : (
+                  <span className="text-gray-400">No file uploaded</span>
+                )}
+              </dd>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <>
       <DropdownMenu>
@@ -156,6 +196,7 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
           <DropdownMenuItem 
             onClick={handleApprove}
             disabled={isApproving || prDetails?.approvedByPresident === true}
+            className="cursor-pointer text-green-500"
           >
             <CheckCircle className="mr-2 h-4 w-4" />
             {isApproving ? (
@@ -185,46 +226,43 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
               <Card>
                 <CardContent className="p-6">
                   <div className="space-y-6">
-                    <div>
+                    <div className="bg-red-950 text-white p-6 rounded-lg">
                       <h3 className="text-lg font-semibold mb-4">General Information</h3>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                         <div className="space-y-4">
-                          <div className="flex justify-between">
-                            <span className="font-medium text-gray-500">Department:</span>
-                            <span>{prDetails.department}</span>
+                          <div className="flex flex-col gap-1">
+                            <span className="font-medium text-gray-500">Department</span>
+                            <span className="text-lg">{prDetails.department}</span>
                           </div>
-                          <div className="flex justify-between">
-                            <span className="font-medium text-gray-500">Section:</span>
-                            <span>{prDetails.section}</span>
-                          </div>
-                        </div>
-                        <div className="space-y-4">
-                          <div className="flex justify-between">
-                            <span className="font-medium text-gray-500">PR No:</span>
-                            <span>{prDetails.prno}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="font-medium text-gray-500">Date:</span>
-                            <span>{format(new Date(prDetails.date), 'PPP')}</span>
+                          <div className="flex flex-col gap-1">
+                            <span className="font-medium text-gray-500">Section</span>
+                            <span className="text-lg">{prDetails.section}</span>
                           </div>
                         </div>
                         <div className="space-y-4">
-                          <div className="flex justify-between">
-                            <span className="font-medium text-gray-500">SAI No:</span>
-                            <span>{prDetails.saino}</span>
+                          <div className="flex flex-col gap-1">
+                            <span className="font-medium text-gray-500">PR No</span>
+                            <span className="text-lg">{prDetails.prno}</span>
                           </div>
-                          <div className="flex justify-between">
-                            <span className="font-medium text-gray-500">ALOBS No:</span>
-                            <span>{prDetails.alobsno}</span>
+                          <div className="flex flex-col gap-1">
+                            <span className="font-medium text-gray-500">Date</span>
+                            <span className="text-lg">{format(new Date(prDetails.date), 'PPP')}</span>
+                          </div>
+                        </div>
+                        <div className="space-y-4">
+                          <div className="flex flex-col gap-1">
+                            <span className="font-medium text-gray-500">SAI No</span>
+                            <span className="text-lg">{prDetails.saino}</span>
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <span className="font-medium text-gray-500">ALOBS No</span>
+                            <span className="text-lg">{prDetails.alobsno}</span>
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    <Separator />
-
                     <div>
-                      <h3 className="text-lg font-semibold mb-2">Items</h3>
                       <Table>
                         <TableHeader>
                           <TableRow>
@@ -263,21 +301,20 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
                       </Table>
                     </div>
 
-                    <Separator />
-
                     <div>
                       <h3 className="text-lg font-semibold mb-2">Additional Information</h3>
-                      <dl className="space-y-4">
-                        <div>
+                      <dl className="grid grid-cols-2 gap-4">
+                        <div className="bg-gray-50 p-4 rounded-lg">
                           <dt className="font-medium text-gray-500">Purpose</dt>
-                          <dd>{prDetails.purpose}</dd>
+                          <dd className="text-lg">{prDetails.purpose}</dd>
                         </div>
-                        <div>
+                        <div className="bg-gray-50 p-4 rounded-lg">
                           <dt className="font-medium text-gray-500">Certified by</dt>
-                          <dd>{prDetails.createdBy.name}</dd>
+                          <dd className="text-lg">{prDetails.createdBy.name}</dd>
                         </div>
                       </dl>
                     </div>
+                    {renderAttachments()}
                   </div>
                 </CardContent>
               </Card>

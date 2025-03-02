@@ -1,9 +1,13 @@
-import React from 'react'
+import WelcomeContent from './components/welcome-content'
 
-function WelcomePage() {
+export default async function WelcomePage() {
+
   return (
-    <div>WelcomePage</div>
+    <div className="min-h-screen bg-white flex items-start justify-center pt-12">
+      <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
+        <WelcomeContent />
+      </div>
+    </div>
   )
 }
 
-export default WelcomePage

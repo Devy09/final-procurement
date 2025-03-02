@@ -134,7 +134,7 @@ export function SupplierQuotationDetails({
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-[100px]">Item #</TableHead>
-                        <TableHead>Description</TableHead>
+                        <TableHead>Item Description</TableHead>
                         <TableHead className="text-right">Quantity</TableHead>
                         <TableHead className="text-right">Unit</TableHead>
                         <TableHead className="text-right">Unit Cost</TableHead>

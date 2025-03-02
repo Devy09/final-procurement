@@ -40,16 +40,27 @@ import {
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, PackagePlus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, PackagePlus, ChevronLeft, ChevronRight, FileDown } from "lucide-react";
 import { generateColumns } from "./columns";
 import { PPMPTableColumn } from "./types";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface DataTableProps {
   data: PPMPTableColumn[];
   setData: React.Dispatch<React.SetStateAction<PPMPTableColumn[]>>;
 }
+
+const formatCurrency = (value: number) => {
+  if (typeof value !== 'number' || isNaN(value)) return '0.00';
+  const fixedValue = parseFloat(value.toFixed(2));
+  return fixedValue.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+    useGrouping: true
+  });
+};
 
 export function DataTable({ data, setData }: DataTableProps) {
   const [itemDescription, setItemDescription] = React.useState("");
@@ -58,6 +69,9 @@ export function DataTable({ data, setData }: DataTableProps) {
   const [loading, setLoading] = React.useState(false);
   const [loadingTable, setLoadingTable] = React.useState(false);
   const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [uploadDialogOpen, setUploadDialogOpen] = React.useState(false);
+  const [previewData, setPreviewData] = React.useState<any[]>([]);
+  const [uploadLoading, setUploadLoading] = React.useState(false);
   const { toast } = useToast();
 
   const refreshData = async () => {
@@ -136,9 +150,98 @@ export function DataTable({ data, setData }: DataTableProps) {
     },
   });
 
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setUploadLoading(true);
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      try {
+        const response = await fetch('/api/officehead-api/officehead-ppmp/preview', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          const simplifiedData = data.map((item: any) => ({
+            ppmp_item: item.ppmp_item,
+            unit_cost: item.unit_cost
+          }));
+          setPreviewData(simplifiedData);
+        } else {
+          toast({ 
+            title: "Error", 
+            description: "Failed to preview file", 
+            type: "background" 
+          });
+        }
+      } catch (error) {
+        toast({ 
+          title: "Error", 
+          description: "Failed to preview file", 
+          type: "background" 
+        });
+      } finally {
+        setUploadLoading(false);
+      }
+    }
+  };
+
+  const handleUpload = async () => {
+    try {
+      // Start loading
+      setUploadLoading(true);
+
+      // Map the preview data to match your schema
+      const itemsToUpload = previewData.map(item => ({
+        ppmp_item: item.ppmp_item,
+        unit_cost: item.unit_cost,
+        ppmp_category: 'Supplies' // Default category, adjust as needed
+      }));
+
+      // Upload each item using your existing POST endpoint
+      const uploadPromises = itemsToUpload.map(item => 
+        fetch("/api/officehead-api/officehead-ppmp/ppmp", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(item),
+        })
+      );
+
+      await Promise.all(uploadPromises);
+
+      // Refresh the table data
+      await refreshData();
+
+      // Close dialog and clear preview
+      setUploadDialogOpen(false);
+      setPreviewData([]);
+
+      toast({ 
+        title: "Success", 
+        description: "Items uploaded successfully!", 
+        type: "background" 
+      });
+
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast({ 
+        title: "Error", 
+        description: "Failed to upload items", 
+        type: "background" 
+      });
+    } finally {
+      setUploadLoading(false);
+    }
+  };
+
   return (
     <div>
-      <div className="flex items-center py-4 ml-4">
+      <div className="flex items-center py-4 ml-6">
         <Input
           placeholder="Search..."
           value={(table.getColumn("ppmp_item")?.getFilterValue() as string) ?? ""}
@@ -148,77 +251,160 @@ export function DataTable({ data, setData }: DataTableProps) {
           className="max-w-sm"
           autoComplete="off"
         />
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="ml-auto">
-              <PackagePlus /> Create PPMP
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>PPMP</DialogTitle>
-              <DialogDescription>
-                This is alternative if importing excel is failed.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="item_description" className="text-center">
-                  Item
-                </Label>
-                <Input
-                  id="item_description"
-                  className="col-span-3"
-                  value={itemDescription}
-                  onChange={(e) => setItemDescription(e.target.value)}
-                  autoComplete="off"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="unit_cost" className="text-right">
-                  Unit Cost
-                </Label>
-                <Input
-                  id="unit_cost"
-                  className="col-span-3"
-                  value={unitCost}
-                  onChange={(e) => setUnitCost(e.target.value)}
-                  autoComplete="off"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="unit_cost" className="text-right">
-                  Category
-                </Label>
-                <Select onValueChange={setCategory}>
-                  <SelectTrigger className="w-[276px]">
-                    <SelectValue placeholder="--" />
-                  </SelectTrigger>
-                  <SelectContent className="text-left">
-                    <SelectItem value="Supplies">Supplies</SelectItem>
-                    <SelectItem value="Equipments">Equipments</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button onClick={handleSubmit} disabled={loading}>
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Adding item...
-                  </>
-                ) : (
-                  "Add Item"
-                )}
+        <div className="ml-auto flex gap-4">
+          <Dialog 
+            open={uploadDialogOpen} 
+            onOpenChange={(open) => {
+              setUploadDialogOpen(open);
+              if (!open) {
+                setPreviewData([]);
+                const fileInput = document.getElementById('ppmp-file') as HTMLInputElement;
+                if (fileInput) fileInput.value = '';
+              }
+            }}
+          >
+            <DialogTrigger asChild>
+              <Button className="bg-red-950 text-white hover:bg-red-900">
+                <FileDown className="mr-2 h-4 w-4" /> Upload PPMP
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[725px]">
+              <DialogHeader className="bg-red-950 text-white p-6 rounded-lg">
+                <DialogTitle className="text-2xl">
+                  Project Procurement Management Plan
+                </DialogTitle>
+                <DialogDescription className="text-white">
+                  Please upload only approved PPMP Excel file.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid w-full max-w-sm items-center gap-1.5">
+                  <Label htmlFor="ppmp-file">PPMP File</Label>
+                  <Input 
+                    id="ppmp-file" 
+                    type="file" 
+                    accept=".xlsx,.xls"
+                    onChange={handleFileChange}
+                  />
+                </div>
+                <ScrollArea className="h-[400px] border rounded-md">
+                  {uploadLoading ? (
+                    <div className="h-[200px] flex items-center justify-center">
+                      <Loader2 className="h-6 w-6 animate-spin" />
+                    </div>
+                  ) : previewData.length > 0 ? (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Item Description</TableHead>
+                          <TableHead>Unit Cost</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {previewData.map((item, index) => (
+                          <TableRow key={index}>
+                            <TableCell>{item.ppmp_item}</TableCell>
+                            <TableCell>{formatCurrency(parseFloat(item.unit_cost))}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  ) : (
+                    <div className="h-[200px] flex items-center justify-center text-sm text-muted-foreground">
+                      Upload an Excel file to preview data
+                    </div>
+                  )}
+                </ScrollArea>
+              </div>
+              <DialogFooter>
+                <Button 
+                  onClick={handleUpload}
+                  disabled={uploadLoading || previewData.length === 0}
+                >
+                  {uploadLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    'Upload'
+                  )}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-red-950 text-white hover:bg-red-900">
+                <PackagePlus className="mr-2 h-4 w-4" /> Create PPMP
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader className="bg-red-950 text-white p-6 rounded-lg">
+                <DialogTitle className="text-2xl">PPMP</DialogTitle>
+                <DialogDescription className="text-white">
+                  This is alternative if importing excel is failed.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="item_description" className="text-center">
+                    Item
+                  </Label>
+                  <Input
+                    id="item_description"
+                    className="col-span-3"
+                    value={itemDescription}
+                    onChange={(e) => setItemDescription(e.target.value)}
+                    autoComplete="off"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="unit_cost" className="text-right">
+                    Unit Cost
+                  </Label>
+                  <Input
+                    id="unit_cost"
+                    className="col-span-3"
+                    value={unitCost}
+                    onChange={(e) => setUnitCost(e.target.value)}
+                    autoComplete="off"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="unit_cost" className="text-right">
+                    Category
+                  </Label>
+                  <Select onValueChange={setCategory}>
+                    <SelectTrigger className="w-[276px]">
+                      <SelectValue placeholder="--" />
+                    </SelectTrigger>
+                    <SelectContent className="text-left">
+                      <SelectItem value="Supplies">Supplies</SelectItem>
+                      <SelectItem value="Equipments">Equipments</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button onClick={handleSubmit} disabled={loading} className="bg-red-950 text-white hover:bg-red-900">
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Adding item...
+                    </>
+                  ) : (
+                    "Add Item"
+                  )}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
       {/* PPMP TABLE */}
-      <div className="rounded-md border ml-4">
-        <Table className="w-[800px]">
+      <div className="rounded-md border ml-6">
+        <Table className="w-[1200px]">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>

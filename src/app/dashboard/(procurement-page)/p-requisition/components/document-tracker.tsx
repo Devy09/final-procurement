@@ -14,10 +14,6 @@ interface DocumentTrackerProps {
 interface ApprovalDetails {
   id: string
   status: string
-  approvedByProcurementOfficer: boolean
-  approvedAtProcurementOfficer?: string | null
-  procurementOfficerName?: string | null
-  procurementOfficerRole?: string | null
   approvedByAccountant: boolean
   approvedAtAccountant?: string | null
   accountantName?: string | null
@@ -56,11 +52,10 @@ export default function DocumentTracker({ purchaseRequestId }: DocumentTrackerPr
   const getProgress = () => {
     if (!approvalDetails) return 0
     const approvedCount = [
-      approvalDetails.approvedByProcurementOfficer,
       approvalDetails.approvedByAccountant,
       approvalDetails.approvedByPresident
     ].filter(Boolean).length
-    return (approvedCount / 3) * 100
+    return (approvedCount / 2) * 100
   }
 
   const handleRequestQuotation = async () => {
@@ -93,14 +88,6 @@ export default function DocumentTracker({ purchaseRequestId }: DocumentTrackerPr
   const approvalStages = [
     {
       id: 1,
-      title: "Procurement Officer",
-      status: approvalDetails?.approvedByProcurementOfficer ? "approved" : "pending",
-      approvedAt: approvalDetails?.approvedAtProcurementOfficer,
-      approverName: approvalDetails?.procurementOfficerName,
-      approverRole: approvalDetails?.procurementOfficerRole,
-    },
-    {
-      id: 2,
       title: "Accountant",
       status: approvalDetails?.approvedByAccountant ? "approved" : "pending",
       approvedAt: approvalDetails?.approvedAtAccountant,
@@ -108,7 +95,7 @@ export default function DocumentTracker({ purchaseRequestId }: DocumentTrackerPr
       approverRole: approvalDetails?.accountantRole,
     },
     {
-      id: 3,
+      id: 2,
       title: "President",
       status: approvalDetails?.approvedByPresident ? "approved" : "pending",
       approvedAt: approvalDetails?.approvedAtPresident,

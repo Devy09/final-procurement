@@ -10,6 +10,7 @@ const config: Config = {
   theme: {
   	extend: {
   		colors: {
+			customMaroon: '#450a0a',
 			customGreen: '#C2D69B',
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',

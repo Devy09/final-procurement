@@ -32,7 +32,6 @@ import {
   CardContent,
 } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
 import DocumentTracker from './document-tracker'
 
 interface PurchaseRequestItem {
@@ -61,8 +60,12 @@ interface PurchaseRequestDetails {
   items: PurchaseRequestItem[]
   createdBy: {
     name: string
+    designation: string
     createdAt: string
   }
+  certificationFile: string;
+  letterFile: string;
+  proposalFile: string;
 }
 
 interface PurchaseRequestColumn {
@@ -109,6 +112,43 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
     }
   }, [open, requisition.id])
 
+  const renderAttachments = () => {
+    if (!prDetails) return null;
+
+    const attachments = [
+      { label: 'Certification', file: prDetails.certificationFile },
+      { label: 'Letter', file: prDetails.letterFile },
+      { label: 'Proposal', file: prDetails.proposalFile },
+    ];
+
+    return (
+      <div>
+        <h3 className="text-lg font-semibold mb-4">Attachments</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {attachments.map((attachment, index) => (
+            <div key={index} className="bg-gray-50 p-4 rounded-lg">
+              <dt className="font-medium text-gray-500 mb-2">{attachment.label}</dt>
+              <dd className="text-lg">
+                {attachment.file ? (
+                  <a
+                    href={`/uploads/${attachment.file}`} // Adjust the path if needed
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline"
+                  >
+                    View File
+                  </a>
+                ) : (
+                  <span className="text-gray-400">No file uploaded</span>
+                )}
+              </dd>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <>
       <DropdownMenu>
@@ -124,7 +164,7 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
           <DropdownMenuItem onClick={() => setOpen(true)}>
             <ExternalLink className="mr-2 h-4 w-4" />View Details
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setTrackerOpen(true)}>
+          <DropdownMenuItem onClick={() => setTrackerOpen(true)} className="text-red-500">
             <MapPin className="mr-2 h-4 w-4" />Document Tracker
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -145,103 +185,101 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
               <Card>
                 <CardContent className="p-6">
                   <div className="space-y-6">
-                    <div>
+                    <div className="bg-red-950 text-white p-6 rounded-lg">
                       <h3 className="text-lg font-semibold mb-4">General Information</h3>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                         <div className="space-y-4">
-                          <div className="flex justify-between">
-                            <span className="font-medium text-gray-500">Department:</span>
-                            <span>{prDetails.department}</span>
+                          <div className="flex flex-col gap-1">
+                            <span className="font-medium text-gray-200">Department</span>
+                            <span className="text-lg">{prDetails.department}</span>
                           </div>
-                          <div className="flex justify-between">
-                            <span className="font-medium text-gray-500">Section:</span>
-                            <span>{prDetails.section}</span>
+                          <div className="flex flex-col gap-1">
+                            <span className="font-medium text-gray-200">Section</span>
+                            <span className="text-lg">{prDetails.section}</span>
                           </div>
                         </div>
                         <div className="space-y-4">
-                          <div className="flex justify-between">
-                            <span className="font-medium text-gray-500">PR No:</span>
-                            <span>{prDetails.prno}</span>
+                          <div className="flex flex-col gap-1">
+                            <span className="font-medium text-gray-200">PR No</span>
+                            <span className="text-lg">{prDetails.prno}</span>
                           </div>
-                          <div className="flex justify-between">
-                            <span className="font-medium text-gray-500">Date:</span>
-                            <span>{isValidDate(prDetails.date) ? format(new Date(prDetails.date), 'PPP') : 'Invalid date'}</span>
+                          <div className="flex flex-col gap-1">
+                            <span className="font-medium text-gray-200">Date</span>
+                            <span className="text-lg">{isValidDate(prDetails.date) ? format(new Date(prDetails.date), 'PPP') : 'Invalid date'}</span>
                           </div>
                         </div>
                         <div className="space-y-4">
-                          <div className="flex justify-between">
-                            <span className="font-medium text-gray-500">SAI No:</span>
-                            <span>{prDetails.saino}</span>
+                          <div className="flex flex-col gap-1">
+                            <span className="font-medium text-gray-200">SAI No</span>
+                            <span className="text-lg">{prDetails.saino}</span>
                           </div>
-                          <div className="flex justify-between">
-                            <span className="font-medium text-gray-500">ALOBS No:</span>
-                            <span>{prDetails.alobsno}</span>
+                          <div className="flex flex-col gap-1">
+                            <span className="font-medium text-gray-200">ALOBS No</span>
+                            <span className="text-lg">{prDetails.alobsno}</span>
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    <Separator />
-
                     <div>
-                      <h3 className="text-lg font-semibold mb-2">Items</h3>
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Item No</TableHead>
-                            <TableHead>Quantity</TableHead>
-                            <TableHead>Unit</TableHead>
-                            <TableHead>Description</TableHead>
-                            <TableHead>Stock No</TableHead>
-                            <TableHead className="text-right">Unit Cost</TableHead>
-                            <TableHead className="text-right">Total Cost</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {prDetails.items.map((item) => (
-                            <TableRow key={item.id}>
-                              <TableCell>{item.itemNo}</TableCell>
-                              <TableCell>{item.quantity}</TableCell>
-                              <TableCell>{item.unit}</TableCell>
-                              <TableCell>{item.description}</TableCell>
-                              <TableCell>{item.stockNo || '-'}</TableCell>
-                              <TableCell className="text-right font-medium">
-                                ₱{parseFloat(item.unitCost).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                              </TableCell>
-                              <TableCell className="text-right">
-                                ₱{parseFloat(item.totalCost).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      <div className="border rounded-lg overflow-hidden">
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="bg-gray-100">
+                              <TableHead className="font-semibold">Item No</TableHead>
+                              <TableHead className="font-semibold">Quantity</TableHead>
+                              <TableHead className="font-semibold">Unit</TableHead>
+                              <TableHead className="font-semibold">Description</TableHead>
+                              <TableHead className="font-semibold">Stock No</TableHead>
+                              <TableHead className="font-semibold text-right">Unit Cost</TableHead>
+                              <TableHead className="font-semibold text-right">Total Cost</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {prDetails.items.map((item) => (
+                              <TableRow key={item.id} className="hover:bg-gray-50">
+                                <TableCell className="font-medium">{item.itemNo}</TableCell>
+                                <TableCell>{item.quantity}</TableCell>
+                                <TableCell>{item.unit}</TableCell>
+                                <TableCell>{item.description}</TableCell>
+                                <TableCell>{item.stockNo || '-'}</TableCell>
+                                <TableCell className="text-right font-medium">
+                                  ₱{parseFloat(item.unitCost).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  ₱{parseFloat(item.totalCost).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                            <TableRow className="bg-gray-50">
+                              <TableCell colSpan={6} className="text-right font-semibold text-green-600">Total Amount:</TableCell>
+                              <TableCell className="text-right font-bold text-green-600">
+                                ₱{parseFloat(prDetails.overallTotal).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                               </TableCell>
                             </TableRow>
-                          ))}
-                          <TableRow>
-                            <TableCell colSpan={6} className="text-right font-medium text-green-500">Total:</TableCell>
-                            <TableCell className="text-right font-medium text-green-500">
-                              ₱{parseFloat(prDetails.overallTotal).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </TableCell>
-                          </TableRow>
-                        </TableBody>
-                      </Table>
+                          </TableBody>
+                        </Table>
+                      </div>
                     </div>
 
-                    <Separator />
-
                     <div>
-                      <h3 className="text-lg font-semibold mb-2">Additional Information</h3>
-                      <dl className="space-y-4">
-                        <div>
-                          <dt className="font-medium text-gray-500">Submitted by</dt>
-                          <dd>
-                            {prDetails.createdBy.name}
+                      <h3 className="text-lg font-semibold mb-4">Additional Information</h3>
+                      <dl className="grid grid-cols-2 gap-4">
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <dt className="font-medium text-gray-500 mb-1">Submitted by</dt>
+                          <dd className="text-lg">
+                            {prDetails.createdBy.name}, {prDetails.createdBy.designation}
                           </dd>
                         </div>
-                        <div>
-                          <dt className="font-medium text-gray-500">Procurement Mode</dt>
-                          <dd>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <dt className="font-medium text-gray-500 mb-1">Procurement Mode</dt>
+                          <dd className="text-lg">
                             {prDetails.procurementMode}
                           </dd>
                         </div>
                       </dl>
                     </div>
+                    {renderAttachments()}
                   </div>
                 </CardContent>
               </Card>

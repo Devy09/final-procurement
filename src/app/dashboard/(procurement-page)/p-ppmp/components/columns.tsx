@@ -134,7 +134,7 @@ export const generateColumns = (
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => setOpenUpdate(true)}
-                className="font-bold"
+                className="font-bold text-blue-500"
               >
                 <SquarePen /> Update
               </DropdownMenuItem>

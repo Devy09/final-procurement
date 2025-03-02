@@ -9,7 +9,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { Loader2, Save } from "lucide-react";
 
-
 interface ProfileSheetProps {
   isOpen: boolean;
   onClose: () => void;
@@ -198,7 +197,6 @@ export function ProfileSheet({ isOpen, onClose }: ProfileSheetProps) {
             </div>
           </div>
 
-          {/* Save Profile Button with Loading - moved outside the space-y-4 div */}
           <div className="flex justify-end mt-6 sticky bottom-4 right-4 bg-background/80 backdrop-blur-sm p-4">
             <Button onClick={handleSaveProfile} disabled={loading}>
               {loading ? (

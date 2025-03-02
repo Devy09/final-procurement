@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { format } from "date-fns"
-import { ExternalLink, MoreHorizontal, Loader2, CheckCircle, MapPin, Printer } from 'lucide-react'
-import { toast } from "sonner"
+import { ExternalLink, MoreHorizontal, Loader2, MapPin, Printer } from 'lucide-react'
 
 import { Button } from "@/components/ui/button"
 import {
@@ -28,11 +27,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Card, CardContent } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+} from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
 import DocumentTracker from './document-tracker'
-import PurchaseRequestPage from "@/components/requisition-print";
+import PurchaseRequestPage from "@/components/requisition-print"
 
 interface PurchaseRequestItem {
   id: string
@@ -56,18 +57,23 @@ interface PurchaseRequestDetails {
   purpose: string
   status: string
   overallTotal: string
+  procurementMode: string
   items: PurchaseRequestItem[]
   createdBy: {
     name: string
+    designation: string
     createdAt: string
+    title: string
+    signatureUrl: string
   }
-  approvedByProcurementOfficer: boolean
-  procurementOfficerName: string
   accountantName: string
+  accountantTitle: string
+  accountantSignatureUrl: string
+  accountantDesignation: string
   presidentName: string
-  procurementOfficerRole: string
-  accountantRole: string
-  presidentRole: string
+  presidentTitle: string
+  presidentSignatureUrl: string
+  presidentDesignation: string
 }
 
 interface PurchaseRequestColumn {
@@ -78,11 +84,16 @@ interface PurchaseRequestActionsProps {
   requisition: PurchaseRequestColumn
 }
 
+// Utility function to validate dates
+function isValidDate(dateString: string): boolean {
+  const date = new Date(dateString);
+  return !isNaN(date.getTime());
+}
+
 export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsProps) {
   const [open, setOpen] = useState(false)
   const [prDetails, setPrDetails] = useState<PurchaseRequestDetails | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [isApproving, setIsApproving] = useState(false)
   const [trackerOpen, setTrackerOpen] = useState(false)
   const [printOpen, setPrintOpen] = useState(false)
 
@@ -98,6 +109,7 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
           }
           
           const data = await response.json()
+          console.log('API Response:', data)
           setPrDetails(data)
         } catch (error) {
           console.error('Error fetching data:', error)
@@ -112,36 +124,6 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
 
   const handlePrint = () => {
     setPrintOpen(true);
-  };
-
-  const handleApprove = async () => {
-    setIsApproving(true)
-    try {
-      const response = await fetch(`/api/approval/officer-approval/requisition-approve/${requisition.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to approve purchase request')
-      }
-
-      toast.success('Purchase request approved successfully')
-      if (open) {
-        const updatedResponse = await fetch(`/api/requisition-view/${requisition.id}`)
-        if (updatedResponse.ok) {
-          const updatedData = await updatedResponse.json()
-          setPrDetails(updatedData)
-        }
-      }
-    } catch (error) {
-      console.error('Error approving purchase request:', error)
-      toast.error('Failed to approve purchase request')
-    } finally {
-      setIsApproving(false)
-    }
   }
 
   return (
@@ -159,26 +141,11 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
           <DropdownMenuItem onClick={() => setOpen(true)}>
             <ExternalLink className="mr-2 h-4 w-4" />View Details
           </DropdownMenuItem>
-          <DropdownMenuItem 
-            onClick={handleApprove}
-            disabled={isApproving || prDetails?.approvedByProcurementOfficer === true}
-          >
-            <CheckCircle className="mr-2 h-4 w-4" />
-            {isApproving ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Approving...
-              </>
-            ) : (
-              'Approve Request'
-            )}
+          <DropdownMenuItem onClick={() => setTrackerOpen(true)} className="text-red-500">
+            <MapPin className="mr-2 h-4 w-4" />Document Tracker
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setTrackerOpen(true)}> 
-            <MapPin className="mr-2 h-4 w-4" />Track Document
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={handlePrint}> 
-            <Printer className="mr-2 h-4 w-4" />
-            Print
+          <DropdownMenuItem onClick={handlePrint} className="text-blue-500">
+            <Printer className="mr-2 h-4 w-4" />Print
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -198,63 +165,60 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
               <Card>
                 <CardContent className="p-6">
                   <div className="space-y-6">
-                    <div>
+                    <div className="bg-red-950 text-white p-6 rounded-lg">
                       <h3 className="text-lg font-semibold mb-4">General Information</h3>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                         <div className="space-y-4">
-                          <div className="flex justify-between">
-                            <span className="font-medium text-gray-500">Department:</span>
-                            <span>{prDetails.department}</span>
+                          <div className="flex flex-col gap-1">
+                            <span className="font-medium text-gray-200">Department</span>
+                            <span className="text-lg">{prDetails.department}</span>
                           </div>
-                          <div className="flex justify-between">
-                            <span className="font-medium text-gray-500">Section:</span>
-                            <span>{prDetails.section}</span>
+                          <div className="flex flex-col gap-1">
+                            <span className="font-medium text-gray-200">Section</span>
+                            <span className="text-lg">{prDetails.section}</span>
                           </div>
                         </div>
                         <div className="space-y-4">
-                          <div className="flex justify-between">
-                            <span className="font-medium text-gray-500">PR No:</span>
-                            <span>{prDetails.prno}</span>
+                          <div className="flex flex-col gap-1">
+                            <span className="font-medium text-gray-200">PR No</span>
+                            <span className="text-lg">{prDetails.prno}</span>
                           </div>
-                          <div className="flex justify-between">
-                            <span className="font-medium text-gray-500">Date:</span>
-                            <span>{format(new Date(prDetails.date), 'PPP')}</span>
+                          <div className="flex flex-col gap-1">
+                            <span className="font-medium text-gray-200">Date</span>
+                            <span className="text-lg">{isValidDate(prDetails.date) ? format(new Date(prDetails.date), 'PPP') : 'Invalid date'}</span>
                           </div>
                         </div>
                         <div className="space-y-4">
-                          <div className="flex justify-between">
-                            <span className="font-medium text-gray-500">SAI No:</span>
-                            <span>{prDetails.saino}</span>
+                          <div className="flex flex-col gap-1">
+                            <span className="font-medium text-gray-200">SAI No</span>
+                            <span className="text-lg">{prDetails.saino}</span>
                           </div>
-                          <div className="flex justify-between">
-                            <span className="font-medium text-gray-500">ALOBS No:</span>
-                            <span>{prDetails.alobsno}</span>
+                          <div className="flex flex-col gap-1">
+                            <span className="font-medium text-gray-200">ALOBS No</span>
+                            <span className="text-lg">{prDetails.alobsno}</span>
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    <Separator />
-
                     <div>
-                      <h3 className="text-lg font-semibold mb-2">Items</h3>
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Item No</TableHead>
-                            <TableHead>Quantity</TableHead>
-                            <TableHead>Unit</TableHead>
-                            <TableHead>Description</TableHead>
-                            <TableHead>Stock No</TableHead>
-                            <TableHead className="text-right">Unit Cost</TableHead>
-                            <TableHead className="text-right">Total Cost</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {prDetails?.items?.length ? (
-                            prDetails.items.map((item) => (
-                              <TableRow key={item.id}>
-                                <TableCell>{item.itemNo}</TableCell>
+                      <div className="border rounded-lg overflow-hidden">
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="bg-gray-100">
+                              <TableHead className="font-semibold">Item No</TableHead>
+                              <TableHead className="font-semibold">Quantity</TableHead>
+                              <TableHead className="font-semibold">Unit</TableHead>
+                              <TableHead className="font-semibold">Description</TableHead>
+                              <TableHead className="font-semibold">Stock No</TableHead>
+                              <TableHead className="font-semibold text-right">Unit Cost</TableHead>
+                              <TableHead className="font-semibold text-right">Total Cost</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {prDetails.items.map((item) => (
+                              <TableRow key={item.id} className="hover:bg-gray-50">
+                                <TableCell className="font-medium">{item.itemNo}</TableCell>
                                 <TableCell>{item.quantity}</TableCell>
                                 <TableCell>{item.unit}</TableCell>
                                 <TableCell>{item.description}</TableCell>
@@ -266,41 +230,32 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
                                   ₱{parseFloat(item.totalCost).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </TableCell>
                               </TableRow>
-                            ))
-                            
-                          ) : (
-                            <TableRow>
-                              <TableCell colSpan={7} className="text-center text-gray-500">
-                                No items found.
+                            ))}
+                            <TableRow className="bg-gray-50">
+                              <TableCell colSpan={6} className="text-right font-semibold text-green-600">Total Amount:</TableCell>
+                              <TableCell className="text-right font-bold text-green-600">
+                                ₱{parseFloat(prDetails.overallTotal).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                               </TableCell>
                             </TableRow>
-                          )}
-                          <TableRow>
-                            <TableCell colSpan={6} className="text-right font-medium text-green-500">Total:</TableCell>
-                            <TableCell className="text-right font-medium text-green-500">
-                              ₱{parseFloat(prDetails.overallTotal).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </TableCell>
-                          </TableRow>
-                        </TableBody>
-                      </Table>
+                          </TableBody>
+                        </Table>
+                      </div>
                     </div>
 
-                    <Separator />
-
                     <div>
-                      <h3 className="text-lg font-semibold mb-2">Additional Information</h3>
-                      <dl className="space-y-4">
-                        <div>
-                          <dt className="font-medium text-gray-500">Purpose</dt>
-                          <dd>{prDetails.purpose}</dd>
+                      <h3 className="text-lg font-semibold mb-4">Additional Information</h3>
+                      <dl className="grid grid-cols-2 gap-4">
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <dt className="font-medium text-gray-500 mb-1">Submitted by</dt>
+                          <dd className="text-lg">
+                            {prDetails.createdBy.name}, {prDetails.createdBy.designation}
+                          </dd>
                         </div>
-                        <div className="flex justify-between">
-                          <div>
-                            <dt className="font-medium text-gray-500">Submitted by</dt>
-                            <dd>
-                              {prDetails.createdBy.name}
-                            </dd>
-                          </div>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <dt className="font-medium text-gray-500 mb-1">Procurement Mode</dt>
+                          <dd className="text-lg">
+                            {prDetails.procurementMode}
+                          </dd>
                         </div>
                       </dl>
                     </div>
@@ -312,61 +267,63 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
         </DialogContent>
       </Dialog>
 
-      <Dialog open={trackerOpen} onOpenChange={setTrackerOpen}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>Document Tracker</DialogTitle>
-          </DialogHeader>
-          <DocumentTracker purchaseRequestId={requisition.id} />
-        </DialogContent>
-      </Dialog>
-
       <Dialog open={printOpen} onOpenChange={setPrintOpen}>
         <DialogContent className="max-w-[22cm] max-h-[95vh] dialog-content">
           <DialogHeader>
             <DialogTitle>Print Preview</DialogTitle>
           </DialogHeader>
           <ScrollArea className="h-[calc(95vh-8rem)]">
-            <div className="print-container bg-white shadow-lg text-black">
+            <div className="print-container bg-white text-black">
               {isLoading ? (
                 <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin" />
-            </div>
-          ) : prDetails ? (
-              <PurchaseRequestPage 
-                data={{
-                  prNo: prDetails.prno,
-                  date: prDetails.date,
-                  department: prDetails.department,
-                  section: prDetails.section,
-                  saino: prDetails.saino,
-                  alobsno: prDetails.alobsno,
-                  purpose: prDetails.purpose,
-                  items: prDetails.items,
-                  overallTotal: prDetails.overallTotal,
-                  createdBy: prDetails.createdBy,
-                  procurementOfficerName: prDetails.procurementOfficerName,
-                  accountantName: prDetails.accountantName,
-                  presidentName: prDetails.presidentName,
-                  procurementOfficerRole: prDetails.procurementOfficerRole,
-                  accountantRole: prDetails.accountantRole,
-                  presidentRole: prDetails.presidentRole,
-                }} 
-              />
-            ) : (
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
+              ) : prDetails ? (
+                <PurchaseRequestPage 
+                  data={{
+                    prNo: prDetails.prno,
+                    date: prDetails.date,
+                    department: prDetails.department,
+                    section: prDetails.section,
+                    saino: prDetails.saino,
+                    alobsno: prDetails.alobsno,
+                    purpose: prDetails.purpose,
+                    items: prDetails.items,
+                    overallTotal: prDetails.overallTotal,
+                    createdBy: prDetails.createdBy,
+                    accountantName: prDetails.accountantName,
+                    accountantTitle: prDetails.accountantTitle,
+                    accountantSignatureUrl: prDetails.accountantSignatureUrl,
+                    accountantDesignation: prDetails.accountantDesignation,
+                    presidentName: prDetails.presidentName,
+                    presidentTitle: prDetails.presidentTitle,
+                    presidentSignatureUrl: prDetails.presidentSignatureUrl,
+                    presidentDesignation: prDetails.presidentDesignation,
+                  }} 
+                />
+              ) : (
                 <div className="text-center py-4">No data available</div>
               )}
             </div>
           </ScrollArea>
           <div className="flex justify-end gap-4 print:hidden">
-            <Button variant="outline" onClick={() => setPrintOpen(false)}>
+            <Button onClick={() => setPrintOpen(false)} className="bg-red-950 text-white hover:bg-red-900">
               Cancel
             </Button>
-            <Button onClick={() => window.print()}>
+            <Button onClick={() => window.print()} className="bg-red-950 text-white hover:bg-red-900">
               <Printer className="mr-2 h-4 w-4" />
               Print
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={trackerOpen} onOpenChange={setTrackerOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Document Tracker</DialogTitle>
+          </DialogHeader>
+          <DocumentTracker purchaseRequestId={requisition.id} />
         </DialogContent>
       </Dialog>
     </>

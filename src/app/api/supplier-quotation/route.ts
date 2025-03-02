@@ -48,12 +48,22 @@ export async function GET(req: Request) {
     const prno = searchParams.get("prno")
 
     const query = {
-      include: { items: true },
+      include: {
+        items: {
+          select: {
+            itemNumber: true,
+            description: true,
+            quantity: true,
+            unit: true,
+            unitCost: true,
+            totalCost: true,
+          }
+        }
+      },
       ...(prno && { where: { prno } })
     }
-
+    console.log(query);
     const quotations = await prisma.supplierQuotation.findMany(query)
-
     return NextResponse.json(quotations)
   } catch (error) {
     console.error("Error fetching supplier quotations:", error)
