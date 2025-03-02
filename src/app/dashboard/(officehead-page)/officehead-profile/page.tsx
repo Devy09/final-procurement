@@ -137,21 +137,21 @@ export default function ProfilePage() {
       const img = new Image();
       
       img.onload = async () => {
-        // Create canvas
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
+        // Create 
+        const  = document.createElement('');
+        .width = img.width;
+        .height = img.height;
+        const ctx = .getContext('2d');
         
         if (!ctx) {
-          throw new Error('Could not get canvas context');
+          throw new Error('Could not get  context');
         }
 
         // Draw image
         ctx.drawImage(img, 0, 0);
         
         // Get image data
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const imageData = ctx.getImageData(0, 0, .width, .height);
         const data = imageData.data;
 
         // Remove white background
@@ -171,7 +171,7 @@ export default function ProfilePage() {
         ctx.putImageData(imageData, 0, 0);
         
         // Get the processed image as base64
-        const processedImage = canvas.toDataURL('image/png', 1.0);
+        const processedImage = .toDataURL('image/png', 1.0);
 
         // Create form data with processed image
         const formData = new FormData();
