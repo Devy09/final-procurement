@@ -24,7 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Clock, CheckCircle, Loader2, XCircle } from "lucide-react";
+import { Clock, CheckCircle, XCircle } from "lucide-react";
 
 
 
@@ -130,15 +130,12 @@ export function DataTable<TData, TValue>({
                           className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium capitalize ${
                             cell.getValue() === "pending"
                               ? "bg-yellow-100 text-yellow-700"
-                              : cell.getValue() === "reviewing"
-                              ? "bg-blue-100 text-blue-700"
                               : cell.getValue() === "approved"
                               ? "bg-green-100 text-green-700"
                               : "bg-red-100 text-red-700"
                           }`}
                         >
                           {cell.getValue() === "pending" && <Clock className="mr-1 h-3 w-3" />}
-                          {cell.getValue() === "reviewing" && <Loader2 className="mr-1 h-3 w-3" />}
                           {cell.getValue() === "approved" && <CheckCircle className="mr-1 h-3 w-3" />}
                           {cell.getValue() === "rejected" && <XCircle className="mr-1 h-3 w-3" />}
                           {cell.getValue() as string}

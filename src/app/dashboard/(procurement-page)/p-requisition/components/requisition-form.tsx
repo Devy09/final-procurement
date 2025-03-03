@@ -28,6 +28,12 @@ interface PPMPDropdownItem {
   unit_cost: number;
 }
 
+interface AttachmentFiles {
+  certification: File | null;
+  letter: File | null;
+  proposal: File | null;
+}
+
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-PH', {
     style: 'currency',
@@ -102,6 +108,11 @@ function PurchaseRequestForm() {
     unit: '',
     stockNo: ''
   });
+  const [files, setFiles] = useState<AttachmentFiles>({
+      certification: null,
+      letter: null,
+      proposal: null
+    });
   const [purpose, setPurpose] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -179,10 +190,11 @@ function PurchaseRequestForm() {
     e.preventDefault();
     setIsLoading(true);
   
-    if (!purpose.trim() || prItems.length === 0) {
+    if (!purpose.trim() || prItems.length === 0 || 
+    !files.certification || !files.letter || !files.proposal) {
       toast({
         title: "Submission Error",
-        description: "Please provide a purpose and at least one item.",
+        description: "Please provide all required fields and attachments",
         variant: "destructive",
       });
       setIsLoading(false);
@@ -190,24 +202,29 @@ function PurchaseRequestForm() {
     }
   
     const total = calculateTotal();
-    const payload = {
-      purpose,
-      items: prItems.map(item => ({
-        description: item.description,
-        quantity: item.quantity,
-        unit: item.unit,
-        stockNo: item.stockNo,
-        unitCost: item.unitCost
-      })),
-      procurementMode: getProcurementMode(total),
-      totalAmount: total
-    };
+    const formData = new FormData();
+
+    // Append form data
+    formData.append('purpose', purpose);
+    formData.append('items', JSON.stringify(prItems.map(item => ({
+      description: item.description,
+      quantity: item.quantity,
+      unit: item.unit,
+      stockNo: item.stockNo,
+      unitCost: item.unitCost
+    }))));
+    formData.append('procurementMode', getProcurementMode(total));
+    formData.append('totalAmount', total.toString());
+    
+    // Append files
+    formData.append('certification', files.certification);
+    formData.append('letter', files.letter);
+    formData.append('proposal', files.proposal);
   
     try {
       const response = await fetch("/api/purchase-request", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: formData,
       });
   
       if (!response.ok) {
@@ -221,6 +238,7 @@ function PurchaseRequestForm() {
       } else {
         setPrItems([]);
         setPurpose('');
+        setFiles({ certification: null, letter: null, proposal: null });
         toast({
           title: "Success",
           description: "Purchase request submitted successfully!",
@@ -238,7 +256,15 @@ function PurchaseRequestForm() {
     } finally {
       setIsLoading(false);
     }
-  }, [prItems, purpose, toast, calculateTotal]);
+  }, [prItems, purpose, files, toast, calculateTotal]);
+
+  const handleFileChange = useCallback(
+      (e: React.ChangeEvent<HTMLInputElement>, key: keyof AttachmentFiles) => {
+        const file = e.target.files?.[0] || null;
+        setFiles(prev => ({ ...prev, [key]: file }));
+      },
+      []
+    );
 
   return (
     <div className="space-y-6">
@@ -379,6 +405,41 @@ function PurchaseRequestForm() {
           className="w-full"
           required
         />
+        <div className="w-full space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Certification (required)
+            </label>
+            <Input
+              type="file"
+              accept=".pdf,.doc,.docx,.jpg,.png"
+              onChange={(e) => handleFileChange(e, 'certification')}
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Letter (required)
+            </label>
+            <Input
+              type="file"
+              accept=".pdf,.doc,.docx,.jpg,.png"
+              onChange={(e) => handleFileChange(e, 'letter')}
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Proposal (required)
+            </label>
+            <Input
+              type="file"
+              accept=".pdf,.doc,.docx,.jpg,.png"
+              onChange={(e) => handleFileChange(e, 'proposal')}
+              required
+            />
+          </div>
+        </div>
         <Button type="submit" className='flex items-center bg-customMaroon' disabled={isLoading}>
           {isLoading ? 'Submitting...' : <><FileDown /> Submit</>}
         </Button>

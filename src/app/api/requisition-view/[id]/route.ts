@@ -1,14 +1,16 @@
-import prisma from "@/lib/prisma"
-import { NextResponse } from "next/server"
+import prisma from "@/lib/prisma";
+import { NextResponse } from "next/server";
 
 export async function GET(
-  req: Request,
+  request: Request,
   { params }: { params: { id: string } }
 ) {
+  const id = params.id;
+
   try {
     const purchaseRequest = await prisma.purchaseRequest.findUnique({
       where: {
-        id: params.id,
+        id: id,
       },
       include: {
         items: true,
@@ -16,19 +18,28 @@ export async function GET(
           select: {
             name: true,
             designation: true,
-            title: true,
-            signatureUrl: true,
+            saino: true,
+            alobsno: true,
           },
         },
       },
-    })
+    });
 
     if (!purchaseRequest) {
-      return new NextResponse("Not found", { status: 404 })
+      return new NextResponse("Not found", { status: 404 });
     }
 
-    return NextResponse.json(purchaseRequest)
+    // Include attachment file paths in the response
+    const responseData = {
+      ...purchaseRequest,
+      certificationFile: purchaseRequest.certificationFile || null,
+      letterFile: purchaseRequest.letterFile || null,
+      proposalFile: purchaseRequest.proposalFile || null,
+    };
+
+    return NextResponse.json(responseData);
   } catch (error) {
-    return new NextResponse("Internal error", { status: 500 })
+    console.error('API Error:', error);
+    return new NextResponse("Internal error", { status: 500 });
   }
 }

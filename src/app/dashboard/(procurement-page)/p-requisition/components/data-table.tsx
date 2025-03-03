@@ -22,7 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import PurchaseRequestFormWrapper from "@/components/requisition-form";
+import PurchaseRequestFormWrapper from "./requisition-form";
 import { Clock, CheckCircle, Loader2, XCircle, FileClock } from "lucide-react";
 
 

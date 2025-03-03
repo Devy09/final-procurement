@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import * as XLSX from 'xlsx';
 
+export const dynamic = "force-dynamic"; // ✅ Disable static rendering
+export const fetchCache = "force-no-store"; // ✅ Disable caching
+
 export async function POST(req: Request) {
   try {
     const formData = await req.formData();
@@ -60,9 +63,3 @@ export async function POST(req: Request) {
     );
   }
 }
-
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-}; 

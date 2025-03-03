@@ -22,17 +22,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { SupplierQuotationItem } from "@prisma/client";
-import { AbstractDialog } from "./abstract-dialog";
 import { SupplierQuotation } from "./columns";
+import { AbstractDialog } from "./abstract-dialog";
 import { Presentation } from "lucide-react";
 
-interface DataTableProps<TData ,TValue> {
+interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
 }
 
-export function DataTable<TData extends SupplierQuotationItem, TValue>({
+export function DataTable<TData extends SupplierQuotation, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
@@ -61,15 +60,13 @@ export function DataTable<TData extends SupplierQuotationItem, TValue>({
       <div className="flex items-center py-4 ml-6 justify-between">
         <Input
           placeholder="Search..."
-          value={(table.getColumn("prno")?.getFilterValue() as string) ?? ""}
+          value={(table.getColumn("supplierName")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn("prno")?.setFilterValue(event.target.value)
+            table.getColumn("supplierName")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />
-        <Button
-          onClick={() => setIsAbstractOpen(true)}
-        >
+        <Button onClick={() => setIsAbstractOpen(true)}>
           <Presentation className="mr-2" /> Start Bidding
         </Button>
       </div>
@@ -112,10 +109,7 @@ export function DataTable<TData extends SupplierQuotationItem, TValue>({
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
+                <TableCell colSpan={columns.length} className="h-24 text-center">
                   No results.
                 </TableCell>
               </TableRow>

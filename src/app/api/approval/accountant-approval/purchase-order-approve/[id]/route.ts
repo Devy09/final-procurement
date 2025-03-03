@@ -1,11 +1,14 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 
-// ✅ Extract params directly inside the function (not in the argument list)
-export async function PUT(req: Request, context: { params: { id: string } }) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } } // ✅ Use `params` as expected in Next.js 14
+) {
   try {
     const { userId } = await auth();
+    const id = params.id; // ✅ Access `id` directly from `params`
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -30,10 +33,8 @@ export async function PUT(req: Request, context: { params: { id: string } }) {
       );
     }
 
-    const id = context.params.id; // ✅ Corrected param extraction
-
     const updatedPO = await prisma.purchaseOrder.update({
-      where: { id },
+      where: { id }, // ✅ Use `id` directly
       data: {
         approvedByAccountant: true,
         approvedAtAccountant: new Date(),
