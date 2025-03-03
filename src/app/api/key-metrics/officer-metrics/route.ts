@@ -1,17 +1,10 @@
-import { auth } from "@clerk/nextjs/server";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Fetch user details from Prisma
-    const user = await prisma.user.findUnique({
-      where: { clerkId: userId },
+    // Fetch user details from Prisma (assuming you still want to filter by section)
+    const user = await prisma.user.findFirst({
       select: { section: true },
     });
 

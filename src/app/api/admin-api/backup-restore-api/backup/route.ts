@@ -1,16 +1,21 @@
-import { NextResponse } from "next/server"
-import { auth } from "@clerk/nextjs/server"
-import prisma from "@/lib/prisma"
+import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
+import prisma from "@/lib/prisma";
+
+// Mark this route as dynamic to avoid static rendering
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const { userId } = await auth()
-    
+    // Authenticate the user using Clerk
+    const { userId } = await auth();
+
+    // If the user is not authenticated, return a 401 Unauthorized response
     if (!userId) {
-      return new NextResponse("Unauthorized", { status: 401 })
+      return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    // Fetch all data from different tables
+    // Fetch all data from different tables concurrently using Promise.all
     const [
       users,
       ppmp,
@@ -22,7 +27,7 @@ export async function GET() {
       supplierQuotations,
       supplierQuotationItems,
       purchaseOrders,
-      purchaseOrderItems
+      purchaseOrderItems,
     ] = await Promise.all([
       prisma.user.findMany(),
       prisma.pPMP.findMany(),
@@ -35,8 +40,9 @@ export async function GET() {
       prisma.supplierQuotationItem.findMany(),
       prisma.purchaseOrder.findMany(),
       prisma.purchaseOrderItem.findMany(),
-    ])
+    ]);
 
+    // Prepare the backup data object
     const backupData = {
       users,
       ppmp,
@@ -49,12 +55,14 @@ export async function GET() {
       supplierQuotationItems,
       purchaseOrders,
       purchaseOrderItems,
-      backupDate: new Date().toISOString(),
-    }
+      backupDate: new Date().toISOString(), // Add a timestamp for the backup
+    };
 
-    return NextResponse.json(backupData)
+    // Return the backup data as a JSON response
+    return NextResponse.json(backupData);
   } catch (error) {
-    console.error("Backup error:", error)
-    return new NextResponse("Internal Server Error", { status: 500 })
+    // Log the error and return a 500 Internal Server Error response
+    console.error("Backup error:", error);
+    return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
