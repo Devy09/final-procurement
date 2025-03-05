@@ -3,8 +3,6 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  output: "standalone",
-  trailingSlash: true,
 };
 
 module.exports = nextConfig;

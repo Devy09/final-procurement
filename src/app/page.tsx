@@ -20,9 +20,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useClerk } from "@clerk/nextjs";
 
 export default function Home() {
   const { setTheme } = useTheme();
+  const clerk = useClerk();
+  console.log("Clerk context:", clerk);
 
   return (
     <div className="flex flex-col min-h-screen">

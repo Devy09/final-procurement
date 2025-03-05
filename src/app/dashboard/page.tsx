@@ -1,6 +1,7 @@
 import WelcomeContent from './components/welcome-content'
 
 export default async function WelcomePage() {
+  
 
   return (
     <div className="min-h-screen bg-white flex items-start justify-center pt-12">

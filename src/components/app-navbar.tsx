@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, ChevronsUpDown, UserCog, Moon, Sun, LogOut, BellOff } from "lucide-react";
+import { Bell,Moon, Sun, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -13,7 +13,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
-import { SignOutButton } from "@/components/signout-button";
+import { SignOutButton } from "@clerk/nextjs";
+import { useClerk } from "@clerk/nextjs";
 
 interface UserProps {
   userData: {
@@ -28,6 +29,8 @@ interface UserProps {
 
 export function AppNavBar({ userData }: UserProps) {
   const { theme, setTheme } = useTheme();
+
+  const { loaded } = useClerk();
 
   return (
     <div className="flex items-center gap-4">
@@ -96,13 +99,21 @@ export function AppNavBar({ userData }: UserProps) {
             )}
             <DropdownMenuSeparator />
             <DropdownMenuItem>
-              <Bell className="mr-2 h-4 w-4" />
-              Notification
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <LogOut className="mr-2 h-4 w-4" />
-              <SignOutButton />
-            </DropdownMenuItem>
+                    <Bell className="mr-2 h-4 w-4" />
+                    Notification
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+            {loaded ? (
+              <SignOutButton>
+                <button className="flex w-full items-center">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sign out
+                </button>
+              </SignOutButton>
+            ) : (
+              <p>Loading...</p>
+            )}
+          </DropdownMenuItem>
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>

@@ -5,6 +5,8 @@ import { Inter } from 'next/font/google';
 import { ClerkProvider, ClerkLoaded, ClerkLoading  } from '@clerk/nextjs'
 import { ThemeProvider } from "@/components/theme-provider";
 
+console.log("ClerkProvider is wrapping the app");
+
 
 const inter = Inter({subsets: ['latin']});
 
