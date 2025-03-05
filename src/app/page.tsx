@@ -55,7 +55,10 @@ export default function Home() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <SignInButton>
+            <SignInButton 
+              fallbackRedirectUrl="/dashboard" 
+              forceRedirectUrl="/dashboard"
+            >
               <Button>Login</Button>
             </SignInButton>
           </div>

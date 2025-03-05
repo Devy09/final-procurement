@@ -16,7 +16,15 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <ClerkProvider>
+    <ClerkProvider
+    appearance={{
+      variables: {
+        colorPrimary: '#800000' // Match your theme
+      }
+    }}
+    signInFallbackRedirectUrl="/dashboard"
+    signInForceRedirectUrl="/dashboard"
+    >
       <html lang="en" suppressHydrationWarning>
         <body className={`${inter.className} antialiased`}>
             <ThemeProvider
