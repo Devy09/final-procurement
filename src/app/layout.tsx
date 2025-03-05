@@ -1,14 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Loader2 }  from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Inter } from 'next/font/google';
-import { ClerkProvider, ClerkLoaded, ClerkLoading  } from '@clerk/nextjs'
+import { ClerkProvider, ClerkLoaded, ClerkLoading } from '@clerk/nextjs'
 import { ThemeProvider } from "@/components/theme-provider";
 
-console.log("ClerkProvider is wrapping the app");
-
-
-const inter = Inter({subsets: ['latin']});
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: "Procurement Management System",
@@ -17,30 +14,27 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
         <body className={`${inter.className} antialiased`}>
-        <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-          <ClerkLoading>
-            <div className="flex h-screen w-full items-center justify-center bg-background">
-              <div className="flex flex-col items-center gap-4">
-                <Loader2 className="h-20 w-20 animate-spin text-red-950 drop-shadow-lg" />
-                <p className="text-2xl text-muted-foreground">Loading, please wait...</p>
-              </div>
-            </div>
-          </ClerkLoading>
-          <ClerkLoaded>{children}</ClerkLoaded>
-        </ThemeProvider>
-        
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <ClerkLoading>
+                <div className="flex h-screen w-full items-center justify-center bg-background">
+                  <Loader2 className="h-20 w-20 animate-spin text-red-950" />
+                </div>
+              </ClerkLoading>
+
+              <ClerkLoaded>
+                {children}
+              </ClerkLoaded>
+            </ThemeProvider>
         </body>
       </html>
     </ClerkProvider>

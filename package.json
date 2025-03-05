@@ -11,7 +11,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@clerk/elements": "^0.18.5",
+    "@clerk/elements": "^0.23.1",
     "@clerk/nextjs": "^6.12.2",
     "@prisma/client": "^6.4.1",
     "@radix-ui/react-avatar": "^1.1.1",
