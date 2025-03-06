@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-export async function GET(req: NextRequest) {
+export async function GET() {
     try {
         const ppmpItems = await prisma.officeHeadPPMP.findMany({
             select: {
@@ -19,4 +19,4 @@ export async function GET(req: NextRequest) {
         console.error("Error fetching PPMP items for dropdown:", error);
         return NextResponse.json({ error: "Failed to fetch PPMP items." }, { status: 500 });
     }
-} 
+}
