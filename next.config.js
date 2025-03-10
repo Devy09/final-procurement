@@ -7,7 +7,6 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  // Remove trailingSlash and assetPrefix settings to use Vercel defaults
 };
 
 module.exports = nextConfig;
