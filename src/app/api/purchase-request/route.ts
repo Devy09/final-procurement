@@ -58,6 +58,7 @@ export async function POST(req: NextRequest) {
       !(letter instanceof File) ||
       !(proposal instanceof File)
     ) {
+      console.log('Invalid file upload');
       return NextResponse.json(
         { error: "Invalid file upload" },
         { status: 400 }
@@ -70,6 +71,7 @@ export async function POST(req: NextRequest) {
     try {
       items = JSON.parse(formData.get("items") as string);
     } catch (error) {
+      console.log('Invalid items format');
       return NextResponse.json(
         { error: "Invalid items format" },
         { status: 400 }
@@ -79,6 +81,7 @@ export async function POST(req: NextRequest) {
 
     // Validate required fields
     if (!purpose || !items?.length || !procurementMode) {
+      console.log('Missing required fields');
       return NextResponse.json(
         { error: "Missing required fields (purpose, items, procurementMode)" },
         { status: 400 }
@@ -89,6 +92,7 @@ export async function POST(req: NextRequest) {
     const authData = await auth();
     const userId = authData.userId;
     if (!userId) {
+      console.log('User authentication failed');
       return NextResponse.json(
         { error: "User authentication failed" },
         { status: 401 }
@@ -97,27 +101,32 @@ export async function POST(req: NextRequest) {
 
     const user = await prisma.user.findUnique({ where: { clerkId: userId } });
     if (!user) {
+      console.log('User not found');
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     // Generate PR number
     const year = new Date().getFullYear();
     const prno = await generatePrNumber(year);
+    console.log('PR number generated:', prno);
 
     // Calculate total
     const overallTotal = items.reduce((total: number, item: any) => {
       return total + (item.quantity || 0) * (item.unitCost || 0);
     }, 0);
+    console.log('Overall total calculated:', overallTotal);
 
     // Save files to disk
     const uploadDir = path.join(process.cwd(), "public/uploads");
     await fs.mkdir(uploadDir, { recursive: true });
+    console.log('Upload directory created:', uploadDir);
 
     const saveFile = async (file: File) => {
       const buffer = await file.arrayBuffer();
       const filename = `${Date.now()}-${file.name}`;
       const filePath = path.join(uploadDir, filename);
       await fs.writeFile(filePath, Buffer.from(buffer));
+      console.log('File saved:', filePath);
       return filename;
     };
 
@@ -154,6 +163,7 @@ export async function POST(req: NextRequest) {
       },
       include: { items: true },
     });
+    console.log('Purchase request created:', purchaseRequest);
 
     return NextResponse.json({
       message: "Purchase request created successfully",
