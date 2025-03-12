@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
-import { promises as fs } from "fs";
-import path from "path";
+import { NextRequest, NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
+import { auth } from '@clerk/nextjs/server';
+import { promises as fs } from 'fs';
+import path from 'path';
 
 async function generatePrNumber(year: number): Promise<string> {
   return await prisma.$transaction(async (transaction) => {
@@ -23,12 +23,10 @@ async function generatePrNumber(year: number): Promise<string> {
       }
 
       const nextNumber = sequence.lastNumber;
-      return `${nextNumber.toString().padStart(3, "0")}-${year
-        .toString()
-        .slice(-2)}`;
+      return `${nextNumber.toString().padStart(3, '0')}-${year.toString().slice(-2)}`;
     } catch (error) {
-      console.error("Error generating PR number:", error);
-      throw new Error("Failed to generate PR number");
+      console.error('Error generating PR number:', error);
+      throw new Error('Failed to generate PR number');
     }
   });
 }
@@ -37,53 +35,31 @@ async function generatePrNumber(year: number): Promise<string> {
 
 export async function POST(req: NextRequest) {
   try {
-    console.log('Request received');
     // Parse form data
     const formData = await req.formData();
-    console.log('Form Data Parsed');
 
     // Extract files
-    const certification = formData.get("certification") as File;
-    const letter = formData.get("letter") as File;
-    const proposal = formData.get("proposal") as File;
-    console.log('Files Extracted:', {
-      certification: certification?.name,
-      letter: letter?.name,
-      proposal: proposal?.name,
-    });
+    const certification = formData.get('certification') as File;
+    const letter = formData.get('letter') as File;
+    const proposal = formData.get('proposal') as File;
 
     // Validate required files
-    if (
-      !(certification instanceof File) ||
-      !(letter instanceof File) ||
-      !(proposal instanceof File)
-    ) {
-      console.log('Invalid file upload');
+    if (!certification || !letter || !proposal) {
       return NextResponse.json(
-        { error: "Invalid file upload" },
+        { error: 'All files (certification, letter, proposal) are required' },
         { status: 400 }
       );
     }
 
     // Extract form fields
-    const purpose = formData.get("purpose") as string;
-    let items;
-    try {
-      items = JSON.parse(formData.get("items") as string);
-    } catch (error) {
-      console.log('Invalid items format');
-      return NextResponse.json(
-        { error: "Invalid items format" },
-        { status: 400 }
-      );
-    }
-    const procurementMode = formData.get("procurementMode") as string;
+    const purpose = formData.get('purpose') as string;
+    const items = JSON.parse(formData.get('items') as string);
+    const procurementMode = formData.get('procurementMode') as string;
 
     // Validate required fields
     if (!purpose || !items?.length || !procurementMode) {
-      console.log('Missing required fields');
       return NextResponse.json(
-        { error: "Missing required fields (purpose, items, procurementMode)" },
+        { error: 'Missing required fields (purpose, items, procurementMode)' },
         { status: 400 }
       );
     }
@@ -92,41 +68,38 @@ export async function POST(req: NextRequest) {
     const authData = await auth();
     const userId = authData.userId;
     if (!userId) {
-      console.log('User authentication failed');
       return NextResponse.json(
-        { error: "User authentication failed" },
+        { error: 'User authentication failed' },
         { status: 401 }
       );
     }
 
     const user = await prisma.user.findUnique({ where: { clerkId: userId } });
     if (!user) {
-      console.log('User not found');
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
     }
 
     // Generate PR number
     const year = new Date().getFullYear();
     const prno = await generatePrNumber(year);
-    console.log('PR number generated:', prno);
 
     // Calculate total
     const overallTotal = items.reduce((total: number, item: any) => {
       return total + (item.quantity || 0) * (item.unitCost || 0);
     }, 0);
-    console.log('Overall total calculated:', overallTotal);
 
     // Save files to disk
-    const uploadDir = path.join(process.cwd(), "public/uploads");
+    const uploadDir = path.join(process.cwd(), 'public/uploads');
     await fs.mkdir(uploadDir, { recursive: true });
-    console.log('Upload directory created:', uploadDir);
 
     const saveFile = async (file: File) => {
       const buffer = await file.arrayBuffer();
       const filename = `${Date.now()}-${file.name}`;
       const filePath = path.join(uploadDir, filename);
       await fs.writeFile(filePath, Buffer.from(buffer));
-      console.log('File saved:', filePath);
       return filename;
     };
 
@@ -138,10 +111,10 @@ export async function POST(req: NextRequest) {
     const purchaseRequest = await prisma.purchaseRequest.create({
       data: {
         prno,
-        department: user.department || "",
-        section: user.section || "",
-        saino: user.saino || "",
-        alobsno: user.alobsno || "",
+        department: user.department || '',
+        section: user.section || '',
+        saino: user.saino || '',
+        alobsno: user.alobsno || '',
         purpose,
         overallTotal,
         procurementMode,
@@ -163,23 +136,16 @@ export async function POST(req: NextRequest) {
       },
       include: { items: true },
     });
-    console.log('Purchase request created:', purchaseRequest);
 
     return NextResponse.json({
-      message: "Purchase request created successfully",
+      message: 'Purchase request created successfully',
       purchaseRequest,
     });
+
   } catch (error) {
-    console.error("Error:", error);
-    if (error instanceof Error) {
-      console.error("Error message:", error.message);
-      console.error("Error stack:", error.stack);
-    }
+    console.error('Error:', error);
     return NextResponse.json(
-      {
-        error: "Failed to process request",
-        details: error instanceof Error ? error.message : "Unknown error",
-      },
+      { error: 'Failed to process request' },
       { status: 500 }
     );
   }
@@ -191,10 +157,7 @@ export async function GET(req: NextRequest) {
     const userId = authData.userId;
 
     if (!userId) {
-      return NextResponse.json(
-        { error: "User authentication failed" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "User authentication failed" }, { status: 401 });
     }
 
     const purchaseRequests = await prisma.purchaseRequest.findMany({
@@ -214,9 +177,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(purchaseRequests);
   } catch (error) {
     console.error("Error fetching purchase requests:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch purchase requests" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch purchase requests" }, { status: 500 });
   }
 }

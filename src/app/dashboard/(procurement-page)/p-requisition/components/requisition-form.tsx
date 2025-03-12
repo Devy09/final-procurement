@@ -124,7 +124,7 @@ function PurchaseRequestForm() {
     const fetchDropdownItems = async () => {
       setIsLoadingItems(true);
       try {
-        const response = await fetch('/api/procurement-officer-api/procurement-officer-ppmp/ppmp-dropdown');
+        const response = await fetch('/api/ppmp-dropdown');
         if (!response.ok) throw new Error('Failed to fetch dropdown items');
         const data = await response.json();
         setDropdownItems(data);
