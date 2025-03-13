@@ -154,15 +154,14 @@ export function PurchaseRequestActions({
               </dt>
               <dd className="text-lg">
                 {attachment.file ? (
-                  <a
-                  href={attachment.file.startsWith("http") ? attachment.file : `/uploads/${attachment.file}`}
+                <a
+                  href={attachment.file}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:underline"
                 >
                   View File
-                </a>
-                
+                </a>                              
                 ) : (
                   <span className="text-gray-400">No file uploaded</span>
                 )}
