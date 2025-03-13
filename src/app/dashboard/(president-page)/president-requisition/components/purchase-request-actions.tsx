@@ -156,17 +156,19 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {attachments.map((attachment, index) => (
             <div key={index} className="bg-gray-50 p-4 rounded-lg">
-              <dt className="font-medium text-gray-500 mb-2">{attachment.label}</dt>
+              <dt className="font-medium text-gray-500 mb-2">
+                {attachment.label}
+              </dt>
               <dd className="text-lg">
                 {attachment.file ? (
-                  <a
-                    href={`/uploads/${attachment.file}`} // Adjust the path if needed
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline"
-                  >
-                    View File
-                  </a>
+                <a
+                  href={attachment.file}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline"
+                >
+                  View File
+                </a>                              
                 ) : (
                   <span className="text-gray-400">No file uploaded</span>
                 )}
