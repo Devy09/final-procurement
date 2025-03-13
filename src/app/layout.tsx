@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Loader2 } from "lucide-react";
-import { Inter } from 'next/font/google';
-import { ClerkProvider, ClerkLoaded, ClerkLoading } from '@clerk/nextjs'
+import { Inter } from "next/font/google";
+import { ClerkProvider, ClerkLoaded, ClerkLoading } from "@clerk/nextjs";
 import { ThemeProvider } from "@/components/theme-provider";
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Procurement Management System",
@@ -16,35 +16,31 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <ClerkProvider
-    appearance={{
-      variables: {
-        colorPrimary: '#800000' // Match your theme
-      }
-    }}
-    signInFallbackRedirectUrl="/dashboard"
-    signInForceRedirectUrl="/dashboard"
-    >
-      <html lang="en" suppressHydrationWarning>
-        <body className={`${inter.className} antialiased`}>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
-            >
-              <ClerkLoading>
-                <div className="flex h-screen w-full items-center justify-center bg-background">
-                  <Loader2 className="h-20 w-20 animate-spin text-red-950" />
-                </div>
-              </ClerkLoading>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.className} antialiased`}>
+        <ClerkProvider
+          appearance={{
+            variables: {
+              colorPrimary: "#800000", // Match your theme
+            },
+          }}
+        >
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <ClerkLoading>
+              <div className="flex h-screen w-full items-center justify-center bg-background">
+                <Loader2 className="h-20 w-20 animate-spin text-red-950" />
+              </div>
+            </ClerkLoading>
 
-              <ClerkLoaded>
-                {children}
-              </ClerkLoaded>
-            </ThemeProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+            <ClerkLoaded>{children}</ClerkLoaded>
+          </ThemeProvider>
+        </ClerkProvider>
+      </body>
+    </html>
   );
 }
