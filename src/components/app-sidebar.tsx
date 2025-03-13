@@ -257,7 +257,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       case 'PROCUREMENT_OFFICER':
         return <>
          <NavMain items={navMain} />
-         <NavBac items={navBac} />
         </>
       case 'BAC':
         return <NavBac items={navBac} />;

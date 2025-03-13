@@ -165,7 +165,7 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
                   href={attachment.file}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline"
+                  className="bg-red-950 text-white px-2 py-1 rounded-md"
                 >
                   View File
                 </a>                              
