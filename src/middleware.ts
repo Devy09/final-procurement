@@ -14,6 +14,6 @@ export const config = {
     '/((?!_next/static|_next/image|favicon\\.ico).*)',
     
     // Exclude specific API routes (fixed format)
-    '/(api/(?!key-metrics/officen-metrics|admin-api/backup-restore-api/backup).*)'
+    '/(api/(?!key-metrics/officer-metrics|admin-api/backup-restore-api/backup).*)'
   ],
 };

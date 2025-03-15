@@ -5,7 +5,8 @@ import { Check, UserCircle, FileInput, Loader2 } from 'lucide-react'
 import { Progress } from "@/components/ui/progress"
 import { format } from "date-fns"
 import { Button } from "@/components/ui/button"
-import { toast } from "sonner"
+import { useToast } from "@/hooks/use-toast";
+import { Toaster } from "@/components/ui/toaster";
 
 interface DocumentTrackerProps {
   purchaseRequestId: string
@@ -29,6 +30,7 @@ export default function DocumentTracker({ purchaseRequestId }: DocumentTrackerPr
   const [approvalDetails, setApprovalDetails] = useState<ApprovalDetails | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isRequesting, setIsRequesting] = useState(false)
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchApprovalDetails = async () => {
@@ -72,10 +74,18 @@ export default function DocumentTracker({ purchaseRequestId }: DocumentTrackerPr
         throw new Error('Failed to create quotation request')
       }
 
-      toast.success('Quotation request created successfully')
+      toast({
+        title: "Success",
+        description: "Quotation created successfully!",
+        variant: "default",
+      });
     } catch (error) {
       console.error('Error creating quotation request:', error)
-      toast.error('Failed to create quotation request')
+      toast({
+        title: "Success",
+        description: "Failed to create quotation request",
+        variant: "default",
+      });
     } finally {
       setIsRequesting(false)
     }
@@ -106,6 +116,7 @@ export default function DocumentTracker({ purchaseRequestId }: DocumentTrackerPr
 
   return (
     <div className="container mx-auto p-4">
+      <Toaster />
         <div className="mb-4">
           <Progress value={getProgress()} className="h-4 w-full" />
         </div>

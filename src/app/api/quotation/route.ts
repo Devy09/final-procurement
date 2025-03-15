@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 
 export async function GET() {
+  console.log('API Route Hit')
+
   try {
     const quotations = await prisma.quotation.findMany({
       select: {
@@ -15,6 +17,7 @@ export async function GET() {
         date: 'desc',
       },
     })
+    console.log('Quotations:', quotations)
 
     return NextResponse.json(quotations)
   } catch (error) {
