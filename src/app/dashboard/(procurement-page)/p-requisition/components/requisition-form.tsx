@@ -100,6 +100,8 @@ export default function PurchaseRequestFormWrapper({ onSuccess }: PurchaseReques
 }
 
 function PurchaseRequestForm() {
+  
+  const { toast } = useToast();
   const [prItems, setPrItems] = useState<PrItem[]>([]);
   const [newPrItem, setNewPrItem] = useState<Omit<PrItem, 'id'>>({
     description: '',
@@ -116,7 +118,6 @@ function PurchaseRequestForm() {
   const [purpose, setPurpose] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
   const [dropdownItems, setDropdownItems] = useState<PPMPDropdownItem[]>([]);
   const [isLoadingItems, setIsLoadingItems] = useState(true);
 

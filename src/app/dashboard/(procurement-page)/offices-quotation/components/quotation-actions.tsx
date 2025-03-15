@@ -10,8 +10,9 @@ import {
   Check,
   Plus,
 } from "lucide-react";
-import { toast } from "sonner";
 
+import { useToast } from "@/hooks/use-toast";
+import { Toaster } from "@/components/ui/toaster";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -78,6 +79,8 @@ const formatCurrency = (value: number) => {
 };
 
 export function QuotationActions({ requisition }: QuotationActionsProps) {
+
+  const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [printDialogOpen, setPrintDialogOpen] = useState(false);
   const [quotationDetails, setQuotationDetails] = useState<QuotationDetails | null>(null);
@@ -101,7 +104,11 @@ export function QuotationActions({ requisition }: QuotationActionsProps) {
           setQuotationDetails(data);
         } catch (error) {
           console.error("Error fetching data:", error);
-          toast.error("Failed to load quotation details");
+          toast({
+            title: "Failed",
+            description: "Failed to load quotation details",
+            variant: "destructive",
+          });
         } finally {
           setIsLoading(false);
         }
@@ -143,7 +150,11 @@ export function QuotationActions({ requisition }: QuotationActionsProps) {
 
   const handleCreateSupplierQuotation = async () => {
     if (!supplierName.trim()) {
-      toast.error("Please enter supplier name");
+      toast({
+        title: "Failed",
+        description: "Please Enter Supplier Name",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -171,12 +182,19 @@ export function QuotationActions({ requisition }: QuotationActionsProps) {
       if (!response.ok) {
         throw new Error(`Network response was not ok: ${response.status}`);
       }
-
-      toast.success("Supplier quotation created successfully");
+      toast({
+        title: "Success",
+        description: "Supplier quotation created successfully",
+        variant: "default",
+      });
       setOpen(false);
     } catch (error) {
       console.error("Error creating supplier quotation:", error);
-      toast.error("Failed to create supplier quotation");
+      toast({
+        title: "Failed",
+        description: "Failed to create supplier quotation",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -195,6 +213,7 @@ export function QuotationActions({ requisition }: QuotationActionsProps) {
 
   return (
     <>
+    <Toaster/>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="h-8 w-8 p-0">
