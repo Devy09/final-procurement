@@ -11,7 +11,6 @@ import { useUser } from "@clerk/nextjs";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
