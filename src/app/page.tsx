@@ -30,7 +30,7 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
       <header className="fixed w-full z-10 bg-[#800000]/80 backdrop-blur-sm">
-        <div className="container max-w-screen-xl mx-auto flex justify-between items-center px-6 py-4">
+        <div className="mx-auto flex justify-between items-center py-4 px-4 md:px-8 lg:px-12">
           {/* Left side: Title */}
           <div className="flex items-center">
             <h1 className="text-2xl font-bold text-white">Procurement System</h1>
@@ -64,6 +64,7 @@ export default function Home() {
           </div>
         </div>
       </header>
+
       <main className="flex-grow">
         <section className="relative bg-muted py-40 px-6 text-center overflow-hidden">
           <div className="absolute inset-0 z-0">

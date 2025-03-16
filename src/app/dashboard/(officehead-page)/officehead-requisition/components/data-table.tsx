@@ -99,7 +99,7 @@ export function DataTable<TData, TValue>({
 
 
   return (
-    <div className="w-[1200px] p-4">
+    <div className="w-full pr-6">
       <div className="flex items-center py-4 justify-between ml-6">
         <Input
           placeholder="Search..."
@@ -111,6 +111,7 @@ export function DataTable<TData, TValue>({
         />
         <PurchaseRequestFormWrapper onSuccess={addNewRequest} />
       </div>
+      
       <div className="overflow-x-auto">
         <div className="rounded-md border ml-6">
           <Table className="min-w-full p-4">

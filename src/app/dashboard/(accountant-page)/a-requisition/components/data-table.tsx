@@ -97,8 +97,8 @@ export function DataTable<TData, TValue>({
 
 
   return (
-    <div>
-      <div className="flex items-center py-4 ml-6 justify-between">
+    <div className="w-full pr-6">
+      <div className="flex items-center py-4 justify-between ml-6">
         <Input
           placeholder="Search..."
           value={(table.getColumn("prno")?.getFilterValue() as string) ?? ""}
@@ -108,8 +108,9 @@ export function DataTable<TData, TValue>({
           className="max-w-sm"
         />
       </div>
+
       <div className="rounded-md border ml-6">
-        <Table className="w-[1200px]">
+        <Table className="min-w-full p-4">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>

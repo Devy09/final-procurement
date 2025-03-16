@@ -230,8 +230,8 @@ export function DataTable({ data, setData }: DataTableProps) {
   });
 
   return (
-    <div>
-      <div className="flex items-center py-4 ml-6">
+    <div className="m-6">
+      <div className="flex items-center py-4">
         <Input
           placeholder="Search..."
           value={(table.getColumn("ppmp_item")?.getFilterValue() as string) ?? ""}
@@ -254,13 +254,13 @@ export function DataTable({ data, setData }: DataTableProps) {
             }}
           >
             <DialogTrigger asChild>
-              <Button className="bg-red-950 text-white">
+              <Button className="bg-red-950 text-white hover:bg-red-900">
                 <FileDown className="mr-2 h-4 w-4" /> Upload PPMP
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[725px]">
-              <DialogHeader className="bg-red-950 text-white p-4 rounded-lg">
-                <DialogTitle>
+              <DialogHeader className="bg-red-950 text-white p-6 rounded-lg">
+                <DialogTitle className="text-2xl">
                   Project Procurement Management Plan
                 </DialogTitle>
                 <DialogDescription className="text-white">
@@ -395,8 +395,8 @@ export function DataTable({ data, setData }: DataTableProps) {
         </div>
       </div>
       {/* PPMP TABLE */}
-      <div className="rounded-md border ml-6">
-        <Table className="w-[1200px]">
+      <div className="rounded-md border">
+        <Table className="w-full">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>

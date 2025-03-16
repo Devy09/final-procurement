@@ -186,7 +186,7 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
               <Card>
                 <CardContent className="p-6">
                   <div className="space-y-6">
-                    <div className="bg-yellow-500 text-white p-6 rounded-lg">
+                    <div className="bg-red-950 text-white p-6 rounded-lg">
                       <h3 className="text-lg font-semibold mb-4">General Information</h3>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                         <div className="space-y-4">
@@ -224,7 +224,7 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
                     <div>
                       <Table>
                         <TableHeader>
-                          <TableRow className="bg-yellow-100">
+                          <TableRow className="bg-red-100">
                             <TableHead>Item No.</TableHead>
                             <TableHead>Quantity</TableHead>
                             <TableHead>Unit</TableHead>
@@ -251,8 +251,8 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
                             </TableRow>
                           ))}
                           <TableRow>
-                            <TableCell colSpan={6} className="text-right font-medium text-green-500 bg-yellow-100">Total:</TableCell>
-                            <TableCell className="text-right font-medium text-green-500 bg-yellow-100">
+                            <TableCell colSpan={6} className="text-right font-medium text-green-500 bg-gray-100">Total:</TableCell>
+                            <TableCell className="text-right font-medium text-green-500 bg-gray-100">
                               ₱{parseFloat(prDetails.overallTotal).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </TableCell>
                           </TableRow>
@@ -263,11 +263,11 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
                     <div>
                       <h3 className="text-lg font-semibold mb-4">Additional Information</h3>
                       <dl className="grid grid-cols-2 gap-4">
-                        <div className="bg-yellow-50 p-4 rounded-lg">
+                        <div className="bg-red-50 p-4 rounded-lg">
                           <dt className="font-medium text-gray-500 mb-1">Purpose</dt>
                           <dd>{prDetails.purpose}</dd>
                         </div>
-                        <div className="bg-yellow-50 p-4 rounded-lg">
+                        <div className="bg-red-50 p-4 rounded-lg">
                           <dt className="font-medium text-gray-500 mb-1">Certified by</dt>
                           <dd>{prDetails.createdBy.name}</dd>
                         </div>

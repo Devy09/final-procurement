@@ -164,7 +164,7 @@ export function PurchaseOrderActions({ purchaseOrder }: PurchaseOrderActionsProp
               <Card>
                 <CardContent className="p-6">
                   <div className="space-y-6">
-                    <div className="bg-yellow-500 text-white p-6 rounded-lg">
+                    <div className="bg-red-950 text-white p-6 rounded-lg">
                       <h3 className="text-lg font-semibold mb-4">General Information</h3>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                         <div className="space-y-4">
@@ -192,7 +192,7 @@ export function PurchaseOrderActions({ purchaseOrder }: PurchaseOrderActionsProp
                     <div>
                       <Table>
                         <TableHeader>
-                          <TableRow className="bg-yellow-100">
+                          <TableRow className="bg-red-100">
                             <TableHead>Item No</TableHead>
                             <TableHead>Quantity</TableHead>
                             <TableHead>Unit</TableHead>
@@ -225,8 +225,8 @@ export function PurchaseOrderActions({ purchaseOrder }: PurchaseOrderActionsProp
                             </TableRow>
                           )}
                           <TableRow>
-                            <TableCell colSpan={5} className="text-right font-medium text-green-500 bg-yellow-100">Total:</TableCell>
-                            <TableCell className="text-right font-medium text-green-500 bg-yellow-100">
+                            <TableCell colSpan={5} className="text-right font-medium text-green-500 bg-gray-100">Total:</TableCell>
+                            <TableCell className="text-right font-medium text-green-500 bg-gray-100">
                               ₱{poDetails.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </TableCell>
                           </TableRow>

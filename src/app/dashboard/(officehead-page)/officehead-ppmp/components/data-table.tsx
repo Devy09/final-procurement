@@ -240,8 +240,8 @@ export function DataTable({ data, setData }: DataTableProps) {
   };
 
   return (
-    <div>
-      <div className="flex items-center py-4 ml-6">
+    <div className="m-6">
+      <div className="flex items-center py-4">
         <Input
           placeholder="Search..."
           value={(table.getColumn("ppmp_item")?.getFilterValue() as string) ?? ""}
@@ -403,8 +403,8 @@ export function DataTable({ data, setData }: DataTableProps) {
         </div>
       </div>
       {/* PPMP TABLE */}
-      <div className="rounded-md border ml-6">
-        <Table className="w-[1200px]">
+      <div className="rounded-md border">
+        <Table className="w-full">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>

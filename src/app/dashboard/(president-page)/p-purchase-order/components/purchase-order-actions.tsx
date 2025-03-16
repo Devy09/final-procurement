@@ -150,7 +150,7 @@ export function PurchaseOrderActions({ purchaseOrder }: PurchaseOrderActionsProp
       </DropdownMenu>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh]">
+        <DialogContent className="max-w-6xl max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>Purchase Order Details</DialogTitle>
           </DialogHeader>

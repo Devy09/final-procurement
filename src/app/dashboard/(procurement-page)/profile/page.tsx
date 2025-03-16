@@ -208,9 +208,17 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="w-[1200px] p-6">
-      <div className="flex flex-col space-y-8">
-        <div className="flex items-center gap-6 bg-red-950 text-white p-6 rounded-lg w-full">
+    <div className="w-full flex items-center justify-center"
+      style={{
+        backgroundImage: "url('/csugate.jpg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        minHeight: "100vh",
+      }}
+    >
+      <div className="flex flex-col space-y-8 bg-white bg-opacity-70 rounded-lg p-6">
+        <div className="flex items-center gap-6 pt-4 rounded-lg w-full">
           <div className="w-24 h-24 rounded-full bg-secondary flex items-center justify-center">
             {user?.imageUrl ? (
               <img
@@ -219,17 +227,17 @@ export default function ProfilePage() {
                 className="w-24 h-24 rounded-full object-cover"
               />
             ) : (
-              <span className="text-2xl text-white">
+              <span className="text-2xl text-black font-bold">
                 {user?.fullName?.charAt(0) || "A"}
               </span>
             )}
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-white">{user?.fullName}</h2>
+            <h2 className="text-2xl font-bold ">{user?.fullName}</h2>
             <p className="text-muted-foreground">
               {user?.primaryEmailAddress?.emailAddress}
             </p>
-            <p className="text-sm mt-1 font-bold text-white">
+            <p className="text-sm mt-1 font-bold">
               ROLE: {(user?.publicMetadata as { role?: string })?.role ||
                 "No role available"}
             </p>

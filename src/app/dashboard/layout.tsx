@@ -30,22 +30,16 @@ export default async function Layout({ children }: { children: React.ReactNode }
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen flex-col md:flex-row">
-        <div className="hidden md:block">
-          <AppSidebar />
-        </div>
-
+      <div className="flex min-h-screen w-full">
+        <AppSidebar />
         <main className="flex-1 relative">
           <div className="flex justify-between items-center pt-4 px-4">
-            <div className="md:hidden">
-              <SidebarTrigger />
-            </div>
+            <SidebarTrigger />
             <AppNavBar userData={userData!} />
           </div>
-
-          <div className="pt-2 px-2 md:px-4">
+          <div className="pt-2">
             <ClerkLoading>
-              <div className="flex h-[80vh] w-full items-center justify-center bg-background">
+              <div className="flex h-screen w-full items-center justify-center bg-background">
                 <div className="flex flex-col items-center gap-4">
                   <Loader2 className="h-20 w-20 animate-spin text-red-950 drop-shadow-lg" />
                   <p className="text-2xl text-muted-foreground">Loading, please wait...</p>

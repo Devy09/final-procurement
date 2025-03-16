@@ -24,14 +24,14 @@ export default function WelcomeContent() {
       title: 'Analytics', 
       description: 'Track your activity and progress', 
       icon: BarChart3,
-      href: '/dashboard/officehead-dashboard'
+      href: '#'
     },
     { 
       id: 'settings', 
       title: 'Settings', 
       description: 'Customize your dashboard preferences', 
       icon: Settings,
-      href: '/dashboard/office-head/settings'
+      href: '#'
     },
   ]
 

@@ -148,12 +148,12 @@ export default function ProcurementDashboard() {
       </div>
 
       <div className="mt-8 grid gap-2 lg:grid-cols-7">
-        <Card className="w-[1200px]">
+        <Card className="col-span-full w-full">
           <CardHeader>
             <CardTitle>Overview</CardTitle>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="h-[400px]">
+            <div className="h-[400px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={metrics?.spendingData || []}>
                   <XAxis dataKey="month" />
@@ -162,7 +162,7 @@ export default function ProcurementDashboard() {
                   <Bar dataKey="totalExpenses" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
-            </ChartContainer>
+            </div>
           </CardContent>
         </Card>
       </div>
