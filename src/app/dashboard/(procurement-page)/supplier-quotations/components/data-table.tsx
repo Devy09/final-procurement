@@ -55,8 +55,7 @@ export function DataTable<TData extends SupplierQuotation, TValue>({
   });
 
   return (
-    <div>
-      {/* Search and Action Buttons */}
+    <div className="w-full pr-6">
       <div className="flex items-center py-4 ml-6 justify-between">
         <Input
           placeholder="Search..."
@@ -73,7 +72,7 @@ export function DataTable<TData extends SupplierQuotation, TValue>({
 
       {/* Main Table */}
       <div className="rounded-md border ml-6">
-        <Table className="w-[1200px]">
+        <Table className="min-w-full p-4">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>

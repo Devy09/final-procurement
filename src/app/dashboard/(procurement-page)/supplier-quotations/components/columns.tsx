@@ -2,7 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, ExternalLink, Printer } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -59,9 +59,13 @@ export const columns: ColumnDef<SupplierQuotation>[] = [
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => setShowDetails(true)}>
+              <ExternalLink className="mr-2 h-4 w-4" />
                 View Details
               </DropdownMenuItem>
-              <DropdownMenuItem>Print Preview</DropdownMenuItem>
+              <DropdownMenuItem className="text-blue-500">
+                <Printer className="mr-2 h-4 w-4" />
+                Print Preview
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 

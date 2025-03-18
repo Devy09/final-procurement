@@ -138,10 +138,10 @@ export function AbstractDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[90vw] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Opening of Quotations</DialogTitle>
-          <DialogDescription>
-            Compare supplier quotation details
+        <DialogHeader className="bg-red-950 p-4 rounded-t-md">
+          <DialogTitle className="text-white">Opening of Quotations</DialogTitle>
+          <DialogDescription className="text-white">
+            Compare supplier quotation details and select the winning bidder
           </DialogDescription>
         </DialogHeader>
 

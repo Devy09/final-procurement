@@ -19,7 +19,12 @@ export async function GET() {
     })
     console.log('Quotations:', quotations)
 
-    return NextResponse.json(quotations)
+    // Add cache-control headers
+    const response = NextResponse.json(quotations)
+    response.headers.set('Cache-Control', 'no-store, max-age=0')
+    response.headers.set('Pragma', 'no-cache')
+    
+    return response
   } catch (error) {
     console.error('Error fetching quotations:', error)
     return NextResponse.json(
@@ -27,4 +32,4 @@ export async function GET() {
       { status: 500 }
     )
   }
-} 
+}

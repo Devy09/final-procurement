@@ -1,7 +1,12 @@
+import { Metadata } from "next";
 import { FileText } from "lucide-react";
 import { columns } from "./components/columns";
 import { DataTable } from "./components/data-table";
 
+export const metadata: Metadata = {
+  title: "Requisition",
+  description: "Manage purchase requests",
+};
 
 export default function OfficeHeadRequisitionPage() {
   return (
