@@ -25,6 +25,7 @@ import {
 import PurchaseRequestFormWrapper from "../../components/requisition-form";
 import { Clock, CheckCircle, Loader2, XCircle, FileClock } from "lucide-react";
 import { format, parseISO } from "date-fns";
+import { useUser } from "@clerk/nextjs";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -41,6 +42,8 @@ export function DataTable<TData, TValue>({
   const [isLoading, setIsLoading] = React.useState(true);
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const { user } = useUser();
+  const userSection = user?.publicMetadata?.section as string;
 
   React.useEffect(() => {
     const fetchData = async () => {
@@ -49,17 +52,22 @@ export function DataTable<TData, TValue>({
         const response = await fetch("/api/officehead-api/officehead-requisition/requisition");
         if (!response.ok) throw new Error("Failed to fetch data");
         const result = await response.json();
-        setData(
-          result.map((item: any) => ({
-            id: item.id,
-            prno: item.prno,
-            department: item.department,
-            section: item.section,
-            date_submitted: format(parseISO(item.date), 'PPP'),
-            procurement_mode: item.procurementMode,
-            pr_status: item.status,
-          }))
-        );
+        const formattedData = result.map((item: any) => ({
+          id: item.id,
+          prno: item.prno,
+          department: item.department,
+          section: item.section,
+          date_submitted: format(parseISO(item.date), 'PPP'),
+          procurement_mode: item.procurementMode,
+          pr_status: item.status,
+        }));
+
+        // Filter data based on user's section
+        const filteredData = userSection
+          ? formattedData.filter((item: any) => item.section === userSection)
+          : formattedData;
+
+        setData(filteredData);
       } catch (error) {
         console.error(error);
       } finally {
@@ -68,7 +76,7 @@ export function DataTable<TData, TValue>({
     };
 
     if (!initialData) fetchData();
-  }, [initialData]);
+  }, [initialData, userSection]);
 
   const table = useReactTable({
     data,
@@ -86,9 +94,12 @@ export function DataTable<TData, TValue>({
   });
 
   const addNewRequest = (newRequest: TData) => {
-    const updatedData = [newRequest, ...data];
-    setData(updatedData);
-    onDataUpdate?.(updatedData);
+    // Only add the new request if it matches the user's section
+    if (!userSection || (newRequest as any).section === userSection) {
+      const updatedData = [newRequest, ...data];
+      setData(updatedData);
+      onDataUpdate?.(updatedData);
+    }
   };
 
   if (isLoading) return (
@@ -96,7 +107,6 @@ export function DataTable<TData, TValue>({
       <Loader2 className="h-16 w-16 animate-spin" />
     </div>
   );
-
 
   return (
     <div className="w-full pr-6">

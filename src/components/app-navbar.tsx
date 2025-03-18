@@ -34,23 +34,6 @@ export function AppNavBar({ userData }: UserProps) {
 
   return (
     <div className="flex items-center gap-4">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-500">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
-            </span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-[300px]">
-          <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <div className="flex flex-col gap-2 p-2">
-            <p className="text-sm text-muted-foreground text-center">No new notifications</p>
-          </div>
-        </DropdownMenuContent>
-      </DropdownMenu>
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
