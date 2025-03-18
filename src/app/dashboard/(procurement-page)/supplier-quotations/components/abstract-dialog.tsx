@@ -18,6 +18,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { FileBadge } from "lucide-react";
 import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { Toaster } from "@/components/ui/toaster";
 
 interface AbstractDialogProps {
   open: boolean;
@@ -32,6 +34,7 @@ export function AbstractDialog({
   const [selectedPR, setSelectedPR] = useState<string>("");
   const [selectedWinner, setSelectedWinner] = useState<string>("");
   const [isCreatingPO, setIsCreatingPO] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (open) {
@@ -123,13 +126,20 @@ export function AbstractDialog({
 
       if (!response.ok) throw new Error('Failed to create Purchase Order');
 
-      // Close dialog and show success message
       onOpenChange(false);
-      // You might want to add a toast notification here
+      toast({
+        title: "Success",
+        description: "Purchase order created successfully",
+        variant: "default",
+      });
       
     } catch (error) {
       console.error('Error creating Purchase Order:', error);
-      alert('Failed to create Purchase Order. Please try again.');
+      toast({
+        title: "Error",
+        description: "Failed to create Purchase Order",
+        variant: "destructive",
+      });
     } finally {
       setIsCreatingPO(false);
     }

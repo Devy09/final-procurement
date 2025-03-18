@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/table"
 import { Card, CardContent } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -27,7 +26,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { toast } from "sonner"
+import { useToast } from "@/hooks/use-toast";
+import { Toaster } from "@/components/ui/toaster";
 
 interface PurchaseOrderItem {
   id: string
@@ -65,7 +65,8 @@ export function PurchaseOrderActions({ purchaseOrder }: PurchaseOrderActionsProp
   const [open, setOpen] = useState(false)
   const [poDetails, setPoDetails] = useState<PurchaseOrderDetails | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [isApproving, setIsApproving] = useState(false) // Add this
+  const [isApproving, setIsApproving] = useState(false)
+  const { toast } = useToast();
 
   useEffect(() => {
     if (open) {
@@ -102,7 +103,11 @@ export function PurchaseOrderActions({ purchaseOrder }: PurchaseOrderActionsProp
         throw new Error('Failed to approve purchase order')
       }
 
-      toast.success('Purchase order approved successfully')
+      toast({
+        title: "Success",
+        description: "Purchase order approved successfully",
+        variant: "default",
+      });
       if (open) {
         const updatedResponse = await fetch(`/api/purchase-order/${purchaseOrder.id}`)
         if (updatedResponse.ok) {
@@ -112,7 +117,11 @@ export function PurchaseOrderActions({ purchaseOrder }: PurchaseOrderActionsProp
       }
     } catch (error) {
       console.error('Error approving purchase order:', error)
-      toast.error('Failed to approve purchase order')
+      toast({
+        title: "Error",
+        description: "Failed to approve purchase order",
+        variant: "destructive",
+      });
     } finally {
       setIsApproving(false)
     }
@@ -120,6 +129,7 @@ export function PurchaseOrderActions({ purchaseOrder }: PurchaseOrderActionsProp
 
   return (
     <>
+      <Toaster />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="h-8 w-8 p-0">

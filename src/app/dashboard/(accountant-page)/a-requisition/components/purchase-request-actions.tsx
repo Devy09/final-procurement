@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react"
 import { format } from "date-fns"
 import { ExternalLink, MoreHorizontal, Loader2, CheckCircle } from 'lucide-react'
-import { toast } from "sonner"
+import { useToast } from "@/hooks/use-toast";
+import { Toaster } from "@/components/ui/toaster";
 
 import { Button } from "@/components/ui/button"
 import {
@@ -33,7 +34,6 @@ import {
   CardContent,
 } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
 
 interface PurchaseRequestItem {
   id: string
@@ -82,6 +82,7 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
   const [prDetails, setPrDetails] = useState<PurchaseRequestDetails | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isApproving, setIsApproving] = useState(false)
+  const { toast } = useToast();
 
   useEffect(() => {
     if (open) {
@@ -121,7 +122,11 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
         throw new Error('Failed to approve purchase request')
       }
 
-      toast.success('Purchase request approved successfully')
+      toast({
+        title: "Success",
+        description: "Purchase request approved successfully",
+        variant: "default",
+      });
       // Refresh the data
       if (open) {
         const updatedResponse = await fetch(`/api/requisition-view/${requisition.id}`)
@@ -132,7 +137,11 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
       }
     } catch (error) {
       console.error('Error approving purchase request:', error)
-      toast.error('Failed to approve purchase request')
+      toast({
+        title: "Error",
+        description: "Failed to approve purchase request",
+        variant: "destructive",
+      });
     } finally {
       setIsApproving(false)
     }
@@ -140,6 +149,7 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
 
   return (
     <>
+      <Toaster />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="h-8 w-8 p-0">
