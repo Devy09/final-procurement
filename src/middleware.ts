@@ -13,7 +13,7 @@ export const config = {
     // Skip Next.js internals and static files
     '/((?!_next/static|_next/image|favicon\\.ico).*)',
 
-    // Exclude specific API routes
-    '/(api/(?!key-metrics/officer-metrics|admin-api/backup-restore-api/backup|quotation).*)',
+    // Only exclude specific API routes that need to bypass auth
+    '/(api/(?!key-metrics/officer-metrics|admin-api/backup-restore-api/backup).*)',
   ],
 };
