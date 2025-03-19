@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, MoreHorizontal, Trash2, SquarePen } from "lucide-react";
+import { PPMPTableColumn } from "./types";
 import { Button } from "@/components/ui/button";
+import { ArrowUpDown, MoreHorizontal, Trash2, SquarePen } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,20 +22,9 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { PPMPTableColumn } from "./types";
-
-const formatCurrency = (value: number) => {
-  if (typeof value !== 'number' || isNaN(value)) return '0.00';
-  const fixedValue = parseFloat(value.toFixed(2));
-  return fixedValue.toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-    useGrouping: true
-  });
-};
 
 export const generateColumns = (
-  refreshData: () => void
+  refreshData: () => Promise<void>
 ): ColumnDef<PPMPTableColumn>[] => [
   {
     accessorKey: "ppmp_item",
@@ -47,28 +37,90 @@ export const generateColumns = (
           Item Description
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
-      )
+      );
     },
   },
   {
     accessorKey: "unit_cost",
-    header: () => <div className="text-right">Unit Cost</div>,
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Unit Cost
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
     cell: ({ row }) => {
-      const value = parseFloat(row.getValue("unit_cost"));
-      return <div className="text-right font-medium">{formatCurrency(value)}</div>;
+      const amount = parseFloat(row.getValue("unit_cost"));
+      const formatted = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "PHP",
+      }).format(amount);
+      return formatted;
     },
   },
   {
     accessorKey: "ppmp_category",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Category
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Category
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+  },
+  {
+    accessorKey: "user.name",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Submitted By
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+  },
+  {
+    accessorKey: "user.section",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Section
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+  },
+  {
+    accessorKey: "createdAt",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Date Added
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    cell: ({ row }) => {
+      const date = new Date(row.getValue("createdAt"));
+      return date.toLocaleDateString();
+    },
   },
   {
     id: "actions",

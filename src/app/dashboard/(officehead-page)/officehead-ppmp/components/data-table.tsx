@@ -1,5 +1,3 @@
-"use client";
-
 import * as React from "react";
 import {
   ColumnDef,
@@ -25,6 +23,7 @@ import { PPMPTableColumn } from "./types";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useUser } from "@clerk/nextjs";
 
 interface DataTableProps {
   data: PPMPTableColumn[];
@@ -42,6 +41,7 @@ const formatCurrency = (value: number) => {
 };
 
 export function DataTable({ data, setData }: DataTableProps) {
+  const { user } = useUser();
   const [itemDescription, setItemDescription] = React.useState("");
   const [unitCost, setUnitCost] = React.useState("");
   const [category, setCategory] = React.useState("");
@@ -57,31 +57,62 @@ export function DataTable({ data, setData }: DataTableProps) {
     setLoadingTable(true);
     try {
       const response = await fetch("/api/officehead-api/officehead-ppmp/ppmp");
+      if (!response.ok) throw new Error("Failed to fetch data");
       const newData = await response.json();
       setData(newData);
     } catch (error) {
-      console.error("Failed to fetch data:", error);
-      toast({ title: "Error", description: "Failed to refresh data", type: "background" });
+      console.error("Error refreshing data:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to refresh data"
+      });
     } finally {
       setLoadingTable(false);
     }
   };
 
   React.useEffect(() => {
-    refreshData();
-  }, []);
+    const fetchUserSection = async () => {
+      if (user?.id) {
+        try {
+          const response = await fetch(`/api/user/profile/${user.id}`);
+          if (!response.ok) throw new Error("Failed to fetch user section");
+          const userData = await response.json();
+          // setUserSection(userData.section || "");
+        } catch (error) {
+          console.error("Error fetching user section:", error);
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to fetch user section"
+          });
+        }
+      }
+    };
 
-  const columns: ColumnDef<PPMPTableColumn>[] = generateColumns(refreshData);
+    fetchUserSection();
+    refreshData();
+  }, [user?.id]);
 
   const handleSubmit = async () => {
-    setLoading(true);
+    if (!user?.id) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please sign in to submit PPMP items"
+      });
+      return;
+    }
+
     const newItem = {
       ppmp_item: itemDescription,
       unit_cost: parseFloat(unitCost),
-      ppmp_category: category,
+      ppmp_category: category
     };
 
     try {
+      setLoading(true);
       const response = await fetch("/api/officehead-api/officehead-ppmp/ppmp", {
         method: "POST",
         headers: {
@@ -90,22 +121,100 @@ export function DataTable({ data, setData }: DataTableProps) {
         body: JSON.stringify(newItem),
       });
 
-      if (response.ok) {
-        const savedItem = await response.json();
-        setData((prevData) => [...prevData, savedItem]);
-        setItemDescription("");
-        setUnitCost("");
-        setCategory("");
-        setDialogOpen(false);
-        toast({ title: "Success", description: "Item added successfully!", type: "background" });
-      } else {
+      if (!response.ok) {
         throw new Error("Failed to add item");
       }
+
+      const addedItem = await response.json();
+      setData((prev) => [...prev, addedItem]);
+      setItemDescription("");
+      setUnitCost("");
+      setCategory("");
+      toast({
+        title: "Success",
+        description: "Item added successfully"
+      });
     } catch (error) {
-      toast({ title: "Error", description: "Failed to add item", type: "background" });
+      console.error("Error adding item:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to add item"
+      });
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const text = e.target?.result;
+        const rows = text?.toString().split("\n");
+        if (!rows) return;
+
+        const headers = rows[0].split(",");
+        const itemIndex = headers.findIndex((h) => 
+          h.toLowerCase().includes("item") || h.toLowerCase().includes("description")
+        );
+        const costIndex = headers.findIndex((h) => 
+          h.toLowerCase().includes("cost") || h.toLowerCase().includes("amount")
+        );
+
+        if (itemIndex === -1 || costIndex === -1) {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Invalid CSV format. Please ensure it contains item and cost columns.",
+          });
+          return;
+        }
+
+        const previewData = rows.slice(1)
+          .filter(row => row.trim())
+          .map(row => {
+            const columns = row.split(",");
+            return {
+              ppmp_item: columns[itemIndex].trim(),
+              unit_cost: parseFloat(columns[costIndex].trim()),
+            };
+          })
+          .filter(item => !isNaN(item.unit_cost));
+
+        const itemsToUpload = previewData.map(item => ({
+          ppmp_item: item.ppmp_item,
+          unit_cost: item.unit_cost,
+          ppmp_category: 'Supplies'
+        }));
+
+        const uploadPromises = itemsToUpload.map(item => 
+          fetch("/api/officehead-api/officehead-ppmp/ppmp", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(item),
+          })
+        );
+
+        await Promise.all(uploadPromises);
+        refreshData();
+        toast({
+          title: "Success",
+          description: "Items uploaded successfully",
+        });
+      } catch (error) {
+        console.error("Error processing file:", error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to process file",
+        });
+      }
+    };
+    reader.readAsText(file);
   };
 
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -114,7 +223,7 @@ export function DataTable({ data, setData }: DataTableProps) {
 
   const table = useReactTable({
     data,
-    columns,
+    columns: generateColumns(refreshData),
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
@@ -400,7 +509,7 @@ export function DataTable({ data, setData }: DataTableProps) {
           <TableBody>
             {loadingTable ? (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell colSpan={table.getAllColumns().length} className="h-24 text-center">
                   <Loader2 className="h-6 w-6 animate-spin mx-auto" />
                 </TableCell>
               </TableRow>
@@ -420,7 +529,7 @@ export function DataTable({ data, setData }: DataTableProps) {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={columns.length} className="h-24 text-center">
+                  <TableCell colSpan={table.getAllColumns().length} className="h-24 text-center">
                     No results.
                   </TableCell>
                 </TableRow>
