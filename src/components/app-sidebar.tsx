@@ -100,7 +100,6 @@ const navMain = [
     icon: Settings,
     items: [
       { title: "Profile", url: "../../dashboard/profile"},
-      { title: "Maintenance", url: "#" },
     ],
   },
 ];

@@ -13,30 +13,9 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -191,17 +170,14 @@ export function DataTable({ data, setData }: DataTableProps) {
 
   const handleUpload = async () => {
     try {
-      // Start loading
       setUploadLoading(true);
 
-      // Map the preview data to match your schema
       const itemsToUpload = previewData.map(item => ({
         ppmp_item: item.ppmp_item,
         unit_cost: item.unit_cost,
-        ppmp_category: 'Supplies' // Default category, adjust as needed
+        ppmp_category: 'Supplies'
       }));
 
-      // Upload each item using your existing POST endpoint
       const uploadPromises = itemsToUpload.map(item => 
         fetch("/api/officehead-api/officehead-ppmp/ppmp", {
           method: "POST",
@@ -214,10 +190,8 @@ export function DataTable({ data, setData }: DataTableProps) {
 
       await Promise.all(uploadPromises);
 
-      // Refresh the table data
       await refreshData();
 
-      // Close dialog and clear preview
       setUploadDialogOpen(false);
       setPreviewData([]);
 
