@@ -23,27 +23,50 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import PurchaseRequestFormWrapper from "../../components/requisition-form";
-import { Clock, CheckCircle, Loader2, XCircle, FileClock } from "lucide-react";
+import { Clock, CheckCircle, Loader2, XCircle } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { useUser } from "@clerk/nextjs";
+import { useToast } from "@/hooks/use-toast";
+import { Toaster } from "@/components/ui/toaster";
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
-  data?: TData[];
-  onDataUpdate?: (newData: TData[]) => void;
+interface DataTableProps {
+  columns: ColumnDef<any, any>[];
+  data?: any[];
+  onDataUpdate?: (newData: any[]) => void;
 }
 
-export function DataTable<TData, TValue>({
+export function DataTable({
   columns,
   data: initialData,
   onDataUpdate,
-}: DataTableProps<TData, TValue>) {
-  const [data, setData] = React.useState<TData[]>(initialData || []);
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+}: DataTableProps) {
+  const [data, setData] = React.useState<any[]>([]);
+  const [isLoading, setIsLoading] = React.useState(false);
   const { user } = useUser();
-  const userSection = user?.publicMetadata?.section as string;
+  const [userSection, setUserSection] = React.useState<string>("");
+  const { toast } = useToast();
+
+  React.useEffect(() => {
+    const fetchUserSection = async () => {
+      if (user?.id) {
+        try {
+          const response = await fetch(`/api/user/profile/${user.id}`);
+          if (!response.ok) throw new Error("Failed to fetch user section");
+          const userData = await response.json();
+          setUserSection(userData.section || "");
+        } catch (error) {
+          console.error("Error fetching user section:", error);
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to fetch user section"
+          });
+        }
+      }
+    };
+
+    fetchUserSection();
+  }, [user?.id, toast]);
 
   React.useEffect(() => {
     const fetchData = async () => {
@@ -62,38 +85,39 @@ export function DataTable<TData, TValue>({
           pr_status: item.status,
         }));
 
-        // Filter data based on user's section
+        // Filter data based on user's section from database
         const filteredData = userSection
           ? formattedData.filter((item: any) => item.section === userSection)
           : formattedData;
 
         setData(filteredData);
       } catch (error) {
-        console.error(error);
+        console.error("Error fetching requisition data:", error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to fetch requisition data"
+        });
       } finally {
         setIsLoading(false);
       }
     };
 
     if (!initialData) fetchData();
-  }, [initialData, userSection]);
+  }, [initialData, userSection, toast]);
 
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    onSortingChange: setSorting,
-    getSortedRowModel: getSortedRowModel(),
-    onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
     state: {
-      sorting,
-      columnFilters,
+      sorting: [],
+      columnFilters: [],
     },
   });
 
-  const addNewRequest = (newRequest: TData) => {
+  const addNewRequest = (newRequest: any) => {
     // Only add the new request if it matches the user's section
     if (!userSection || (newRequest as any).section === userSection) {
       const updatedData = [newRequest, ...data];
@@ -109,7 +133,9 @@ export function DataTable<TData, TValue>({
   );
 
   return (
+
     <div className="w-full pr-6">
+      <Toaster />
       <div className="flex items-center py-4 justify-between ml-6">
         <Input
           placeholder="Search..."
