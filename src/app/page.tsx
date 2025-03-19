@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import Image from "next/image";
 import { SignInButton } from "@clerk/nextjs";
 import {
   Moon,
@@ -68,20 +69,23 @@ export default function Home() {
       <main className="flex-grow">
         <section className="relative bg-muted py-40 px-6 text-center overflow-hidden">
           <div className="absolute inset-0 z-0">
-            <img
+            <Image
               src="/csugate.jpg"
               alt="University Campus Background"
+              fill
+              priority
               className="object-cover opacity-50"
             />
           </div>
 
           <div className="relative z-10 max-w-3xl mx-auto space-y-6">
             <div className="flex items-center space-x-3 ml-80">
-              <img
+              <Image
                 src="/transcsu.png"
                 alt="CSU Logo"
                 width={100}
                 height={100}
+                priority
               />
             </div>
             <p className="text-2xl font-extrabold tracking-tight">
@@ -183,7 +187,7 @@ export default function Home() {
                   key={i}
                   className="bg-background rounded-lg p-4 shadow-md flex flex-col items-center"
                 >
-                  <img
+                  <Image
                     src={dept.logo}
                     alt={`${dept.name} Logo`}
                     width={180}
