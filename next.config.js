@@ -5,14 +5,10 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    domains: ['csu-procurement.vercel.app'],
-    minimumCacheTTL: 60,
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '**',
-      },
-    ],
+    unoptimized: true,
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
 };
 
