@@ -49,7 +49,7 @@ export default function WelcomeContent() {
           transition={{ delay: 0.2, duration: 0.5 }}
           className="text-3xl sm:text-4xl font-bold text-white mb-4"
         >
-          Welcome to your Dashboard
+          Welcome to Procurement Management System
         </motion.h1>
         <motion.p
           initial={{ opacity: 0, y: -20 }}

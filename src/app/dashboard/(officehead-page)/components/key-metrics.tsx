@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
-import { ChartConfig, ChartContainer, ChartTooltip } from "@/components/ui/chart";
+import { ChartConfig, ChartTooltip } from "@/components/ui/chart";
 import { Package, Gauge, HandCoins, Clock, CheckCircle } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
 
