@@ -56,34 +56,6 @@ interface PurchaseRequestFormWrapperProps {
 export default function PurchaseRequestFormWrapper({ onSuccess }: PurchaseRequestFormWrapperProps) {
   const [isMainDialogOpen, setIsMainDialogOpen] = useState(false);
 
-  const handleSubmit = async (formData: any) => {
-    try {
-      const optimisticRequest = {
-        id: crypto.randomUUID(),
-        prno: formData.prno,
-        department: formData.department,
-        section: formData.section,
-        date_submitted: new Date().toLocaleDateString(),
-        pr_status: "pending"
-      };
-      
-      onSuccess?.(optimisticRequest);
-
-      const response = await fetch("/api/purchase-request", {
-        method: "POST",
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to create purchase request");
-      }
-      const result = await response.json();
-      
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
   return (
     <Dialog open={isMainDialogOpen} onOpenChange={setIsMainDialogOpen}>
       <DialogTrigger asChild>
@@ -93,13 +65,13 @@ export default function PurchaseRequestFormWrapper({ onSuccess }: PurchaseReques
         <DialogHeader className='bg-red-950 text-white p-4 rounded-md w-full'>
           <DialogTitle className='text-2xl font-bold'>Purchase Request Form</DialogTitle>
         </DialogHeader>
-        <PurchaseRequestForm />
+        <PurchaseRequestForm onSuccess={onSuccess} />
       </DialogContent>
     </Dialog>
   );
 }
 
-function PurchaseRequestForm() {
+function PurchaseRequestForm({ onSuccess }: PurchaseRequestFormWrapperProps) {
   
   const { toast } = useToast();
   const [prItems, setPrItems] = useState<PrItem[]>([]);
@@ -237,6 +209,8 @@ function PurchaseRequestForm() {
           variant: "destructive",
         });
       } else {
+        const result = await response.json();
+        onSuccess?.(result);
         setPrItems([]);
         setPurpose('');
         setFiles({ certification: null, letter: null, proposal: null });
@@ -257,7 +231,7 @@ function PurchaseRequestForm() {
     } finally {
       setIsLoading(false);
     }
-  }, [prItems, purpose, files, toast, calculateTotal]);
+  }, [prItems, purpose, files, toast, calculateTotal, onSuccess]);
 
   const handleFileChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>, key: keyof AttachmentFiles) => {
