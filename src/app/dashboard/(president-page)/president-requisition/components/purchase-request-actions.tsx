@@ -334,6 +334,7 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
           ) : null}
         </DialogContent>
       </Dialog>
+      <Toaster />
     </>
   )
 } 

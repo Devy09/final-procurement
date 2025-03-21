@@ -40,39 +40,57 @@ export async function PUT(
 
     const id = params.id
 
-    // First, get the current request to check other approvals
+    // Get the current request with creator info for notification
     const currentRequest = await prisma.purchaseRequest.findUnique({
       where: { id },
-    })
-
-    const updatedRequest = await prisma.purchaseRequest.update({
-      where: {
-        id: id,
-      },
-      data: {
-        approvedByPresident: true,
-        approvedAtPresident: new Date(),
-        presidentName: user.name,
-        presidentRole: user.role,
-        presidentTitle: user.title,
-        presidentSignatureUrl: user.signatureUrl,
-        presidentDesignation: user.designation,
-        // Update status to approved only if accountant has also approved
-        ...(currentRequest?.approvedByAccountant && {
-          status: 'approved'
-        }),
-      },
       include: {
-        createdBy: {
-          select: {
-            name: true,
-            email: true,
-          },
-        },
-      },
-    })
+        createdBy: true
+      }
+    });
 
-    return NextResponse.json(updatedRequest)
+    if (!currentRequest) {
+      return NextResponse.json(
+        { error: 'Purchase request not found' },
+        { status: 404 }
+      );
+    }
+
+    // Check if accountant has approved
+    if (!currentRequest.approvedByAccountant) {
+      return NextResponse.json(
+        { error: 'Purchase request needs accountant approval first' },
+        { status: 400 }
+      );
+    }
+
+    const updatedRequest = await prisma.$transaction([
+      // Update the purchase request
+      prisma.purchaseRequest.update({
+        where: { id },
+        data: {
+          approvedByPresident: true,
+          approvedAtPresident: new Date(),
+          presidentName: user.name,
+          presidentRole: user.role,
+          presidentTitle: user.title,
+          presidentSignatureUrl: user.signatureUrl,
+          presidentDesignation: user.designation,
+          status: 'approved'
+        },
+      }),
+      // Create notification for the request creator
+      prisma.notification.create({
+        data: {
+          message: `Your purchase request (PR#: ${currentRequest.prno}) has been fully approved! Both Accountant and President have approved your request.`,
+          type: 'UPDATE',
+          section: currentRequest.section,
+          userId: currentRequest.createdById,
+          createdById: user.id
+        }
+      })
+    ]);
+
+    return NextResponse.json(updatedRequest[0])
   } catch (error) {
     console.error('Error approving purchase request:', error)
     return NextResponse.json(

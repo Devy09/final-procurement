@@ -125,23 +125,27 @@ function PurchaseRequestForm() {
       setIsLoadingItems(true);
       try {
         const response = await fetch('/api/officehead-api/officehead-ppmp/officehead-ppmp-dropdown');
-        if (!response.ok) throw new Error('Failed to fetch dropdown items');
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to fetch dropdown items');
+        }
         const data = await response.json();
         setDropdownItems(data);
       } catch (error) {
         console.error('Error fetching dropdown items:', error);
         toast({
           title: "Error",
-          description: "Failed to load items for selection",
+          description: error instanceof Error ? error.message : "Failed to load items for selection",
           variant: "destructive",
         });
+        setDropdownItems([]); // Reset to empty array on error
       } finally {
         setIsLoadingItems(false);
       }
     };
 
     fetchDropdownItems();
-  }, []);
+  }, [toast]);
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

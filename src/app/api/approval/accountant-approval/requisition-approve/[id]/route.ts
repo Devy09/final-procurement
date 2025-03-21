@@ -39,31 +39,49 @@ export async function PUT(
 
     const id = params.id
 
-    const updatedRequest = await prisma.purchaseRequest.update({
-      where: {
-        id: id,
-      },
-      data: {
-        approvedByAccountant: true,
-        approvedAtAccountant: new Date(),
-        accountantName: user.name,
-        accountantRole: user.role,
-        accountantTitle: user.title,
-        accountantSignatureUrl: user.signatureUrl,
-        accountantDesignation: user.designation,
-        status: 'pending',
-      },
+    // Get the purchase request with creator info for notification
+    const purchaseRequest = await prisma.purchaseRequest.findUnique({
+      where: { id },
       include: {
-        createdBy: {
-          select: {
-            name: true,
-            email: true,
-          },
-        },
-      },
-    })
+        createdBy: true
+      }
+    });
 
-    return NextResponse.json(updatedRequest)
+    if (!purchaseRequest) {
+      return NextResponse.json(
+        { error: 'Purchase request not found' },
+        { status: 404 }
+      );
+    }
+
+    const updatedRequest = await prisma.$transaction([
+      // Update the purchase request
+      prisma.purchaseRequest.update({
+        where: { id },
+        data: {
+          approvedByAccountant: true,
+          approvedAtAccountant: new Date(),
+          accountantName: user.name,
+          accountantRole: user.role,
+          accountantTitle: user.title,
+          accountantSignatureUrl: user.signatureUrl,
+          accountantDesignation: user.designation,
+          status: 'pending'
+        },
+      }),
+      // Create notification for the request creator
+      prisma.notification.create({
+        data: {
+          message: `Your purchase request (PR#: ${purchaseRequest.prno}) has been approved by the Accountant.`,
+          type: 'UPDATE',
+          section: purchaseRequest.section,
+          userId: purchaseRequest.createdById,
+          createdById: user.id
+        }
+      })
+    ]);
+
+    return NextResponse.json(updatedRequest[0])
   } catch (error) {
     console.error('Error approving purchase request:', error)
     return NextResponse.json(

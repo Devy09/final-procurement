@@ -35,6 +35,8 @@ model User {
 
   purchaseRequests PurchaseRequest[]
   ppmpSubmissions  OfficeHeadPPMP[]
+  notifications    Notification[]    @relation("UserNotifications")
+  createdNotifications Notification[] @relation("NotificationCreator")
 }
 
 model PPMP {
@@ -251,4 +253,30 @@ model Report {
   officeQuotationsCount   Int
   supplierQuotationsCount Int
   createdAt               DateTime @default(now())
+}
+
+enum NotificationType {
+  REQUEST
+  UPDATE
+  ALERT
+}
+
+model Notification {
+  id        String          @id @default(cuid())
+  message   String
+  type      NotificationType
+  section   String          // For section-based filtering
+  read      Boolean         @default(false)
+  createdAt DateTime        @default(now())
+  
+  // Relations
+  user      User            @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  
+  createdBy User            @relation("NotificationCreator", fields: [createdById], references: [id])
+  createdById String
+
+  @@index([userId])
+  @@index([section])
+  @@index([createdAt])
 }

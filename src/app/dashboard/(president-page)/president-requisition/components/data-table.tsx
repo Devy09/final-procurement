@@ -83,12 +83,6 @@ export function DataTable<TData, TValue>({
     },
   });
 
-  const addNewRequest = (newRequest: TData) => {
-    const updatedData = [newRequest, ...data];
-    setData(updatedData);
-    onDataUpdate?.(updatedData);
-  };
-
   if (isLoading) return (
     <div className="flex items-center justify-center py-8 ml-10">
       <Loader2 className="h-16 w-16 animate-spin" />
@@ -108,7 +102,7 @@ export function DataTable<TData, TValue>({
           className="max-w-sm"
         />
       </div>
-      <div className="rounded-md border ml-4">
+      <div className="rounded-md border ml-6">
         <Table className="min-w-full p-4">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
