@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Building, Building2, UserRoundCog, Loader2, Save, SquareArrowOutUpRight, Signature, User, Scale } from "lucide-react";
+import { Building2, UserRoundCog, Loader2, Save, SquareArrowOutUpRight, Signature, Building, Building2Icon } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
@@ -16,7 +16,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-export default function ProfilePage() {
+export default function AccountantProfilePage() {
   const { user } = useUser();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
@@ -41,7 +41,7 @@ export default function ProfilePage() {
 
         if (response.ok) {
           const profile = await response.json();
-          setUserData({
+            setUserData({
             title: profile.title || "",
             department: profile.department || "",
             section: profile.section || "",
@@ -209,16 +209,16 @@ export default function ProfilePage() {
 
   return (
     <div className="w-full flex items-center justify-center"
-      style={{
-        backgroundImage: "url('/csugate.jpg')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-        minHeight: "100vh",
-      }}
+    style={{
+      backgroundImage: "url('/csugate.jpg')", // Path to your image in the public folder
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      backgroundRepeat: "no-repeat",
+      minHeight: "100vh", // Ensures the background covers the full viewport height
+    }}
     >
       <div className="flex flex-col space-y-8 bg-white bg-opacity-70 rounded-lg p-6">
-        <div className="flex items-center gap-6 pt-4 rounded-lg w-full">
+        <div className="flex items-center gap-6 p-6 rounded-lg w-full">
           <div className="w-24 h-24 rounded-full bg-secondary flex items-center justify-center">
             {user?.imageUrl ? (
               <img
@@ -233,7 +233,7 @@ export default function ProfilePage() {
             )}
           </div>
           <div>
-            <h2 className="text-2xl font-bold ">{user?.fullName}</h2>
+            <h2 className="text-2xl font-bold">{user?.fullName}</h2>
             <p className="text-muted-foreground">
               {user?.primaryEmailAddress?.emailAddress}
             </p>
@@ -331,7 +331,7 @@ export default function ProfilePage() {
           ) : (
             <div className="space-y-2">
               <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
-                <User className="h-5 w-5 text-muted-foreground" />
+                <Building2 className="h-5 w-5 text-muted-foreground" />
                 <span className="text-muted-foreground">Title :</span>
                 <span className="text-foreground">{userData.title || "No title set"}</span>
               </div>
@@ -341,7 +341,7 @@ export default function ProfilePage() {
                 <span className="text-foreground">{userData.department || "No department set"}</span>
               </div>
               <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
-                <Building2 className="h-5 w-5 text-muted-foreground" />
+                <Building2Icon className="h-5 w-5 text-muted-foreground" />
                 <span className="text-muted-foreground">Section :</span>
                 <span className="text-foreground">{userData.section || "No section set"}</span>
               </div>
@@ -353,7 +353,6 @@ export default function ProfilePage() {
               <p className="text-sm text-muted-foreground mt-4">
                 It is recommended to use a transparent background for the signature. Visit <a href="https://www.remove.bg/" target="_blank" className="text-blue-500 underline">remove.bg</a> to remove the background of your signature.
               </p>
-              
               <Dialog>
                 <DialogTrigger asChild>
                   <Button className="bg-red-950 text-white hover:bg-red-900">
@@ -401,7 +400,7 @@ export default function ProfilePage() {
                               </>
                             ) : (
                               <>
-                                <Save className="mr-2 h-4 w-4 " />
+                                <Save className="mr-2 h-4 w-4" />
                                 Replace Signature
                               </>
                             )}
@@ -419,40 +418,13 @@ export default function ProfilePage() {
                           disabled={isUploading}
                         />
                         {isUploading && (
-                          <div className="flex items-center justify-center">
-                            <Loader2 className="h-6 w-6 animate-spin" />
+                          <div className="flex items-center gap-2 justify-center text-sm text-muted-foreground">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span>Uploading signature...</span>
                           </div>
                         )}
                       </div>
                     )}
-                  </div>
-                </DialogContent>
-              </Dialog>
-              {/* ATTACH LEGAL BASIS */}
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button  className="ml-4 bg-red-950 text-white hover:bg-red-900">
-                    <Scale className="mr-2 h-4 w-4" />
-                    Attach Legal Basis
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                  <DialogHeader className="bg-red-950 text-white p-6 rounded-lg">
-                    <DialogTitle>Upload Legal Basis</DialogTitle>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4 mt-2">
-                    <div className="grid gap-2">
-                      <Label htmlFor="legal-basis">Legal Basis Document</Label>
-                      <Input
-                        id="legal-basis"
-                        type="file"
-                        accept="application/pdf"
-                      />
-                    </div>
-                    <Button className="bg-red-950 text-white hover:bg-red-900">
-                      <Save className="mr-2 h-4 w-4" />
-                      Attach
-                    </Button>
                   </div>
                 </DialogContent>
               </Dialog>

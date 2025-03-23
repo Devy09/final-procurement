@@ -18,6 +18,8 @@ export async function GET(
           select: {
             name: true,
             designation: true,
+            title: true,
+            signatureUrl: true,
             saino: true,
             alobsno: true,
           },

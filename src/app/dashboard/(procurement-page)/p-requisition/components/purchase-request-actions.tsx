@@ -116,15 +116,32 @@ export function PurchaseRequestActions({
             `/api/requisition-view/${requisition.id}`
           );
 
+          console.error('Fetch Response:', {
+            status: response.status,
+            statusText: response.statusText,
+            url: response.url
+          });
+
           if (!response.ok) {
-            throw new Error(`Network response was not ok: ${response.status}`);
+            throw new Error(`HTTP error! status: ${response.status}`);
           }
 
           const data = await response.json();
-          console.log("API Response:", data);
+
+          console.error('Fetched Requisition Data:', JSON.stringify(data, null, 2));
+          console.error('Specific Fields:', {
+            createdBy: data.createdBy,
+            accountantName: data.accountantName,
+            accountantTitle: data.accountantTitle,
+            accountantSignatureUrl: data.accountantSignatureUrl,
+            presidentName: data.presidentName,
+            presidentTitle: data.presidentTitle,
+            presidentSignatureUrl: data.presidentSignatureUrl
+          });
+
           setPrDetails(data);
         } catch (error) {
-          console.error("Error fetching data:", error);
+          console.error('Fetch Error:', error);
         } finally {
           setIsLoading(false);
         }
@@ -373,7 +390,7 @@ export function PurchaseRequestActions({
                             Submitted by
                           </dt>
                           <dd className="text-lg">
-                            {prDetails.createdBy.name},{" "}
+                            {prDetails.createdBy.name},{prDetails.createdBy.title}
                             {prDetails.createdBy.designation}
                           </dd>
                         </div>

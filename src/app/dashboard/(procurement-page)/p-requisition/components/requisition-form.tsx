@@ -61,7 +61,7 @@ export default function PurchaseRequestFormWrapper({ onSuccess }: PurchaseReques
       <DialogTrigger asChild>
         <Button variant="customMaroon"><ClipboardPlus /> Purchase Request</Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className='bg-red-950 text-white p-4 rounded-md w-full'>
           <DialogTitle className='text-2xl font-bold'>Purchase Request Form</DialogTitle>
         </DialogHeader>

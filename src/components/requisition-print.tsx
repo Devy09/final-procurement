@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 
 interface PurchaseRequestProps {
   data: {
@@ -41,6 +41,7 @@ interface PurchaseRequestProps {
 }
 
 export default function PurchaseRequestPage({ data }: PurchaseRequestProps) {
+
   return (
     <div
       className="print-container"
