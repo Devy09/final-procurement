@@ -194,11 +194,10 @@ function PurchaseRequestForm() {
     e.preventDefault();
     setIsLoading(true);
   
-    if (!purpose.trim() || prItems.length === 0 || 
-    !files.certification || !files.letter || !files.proposal) {
+    if (!purpose.trim() || prItems.length === 0 || !files.letter) {
       toast({
         title: "Submission Error",
-        description: "Please provide all required fields and attachments",
+        description: "Please provide all required fields and the approved letter",
         variant: "destructive",
       });
       setIsLoading(false);
@@ -221,9 +220,13 @@ function PurchaseRequestForm() {
     formData.append('totalAmount', total.toString());
     
     // Append files
-    formData.append('certification', files.certification);
+    if (files.certification) {
+      formData.append('certification', files.certification);
+    }
     formData.append('letter', files.letter);
-    formData.append('proposal', files.proposal);
+    if (files.proposal) {
+      formData.append('proposal', files.proposal);
+    }
   
     try {
       const response = await fetch("/api/officehead-api/officehead-requisition/requisition", {
@@ -411,18 +414,17 @@ function PurchaseRequestForm() {
         <div className="w-full space-y-4">
           <div>
             <label className="block text-sm font-medium mb-2">
-              Certification (required)
+              Certification (optional)
             </label>
             <Input
               type="file"
               accept=".pdf,.doc,.docx,.jpg,.png"
               onChange={(e) => handleFileChange(e, 'certification')}
-              required
             />
           </div>
           <div>
             <label className="block text-sm font-medium mb-2">
-              Letter (required)
+              Approved Letter (required)
             </label>
             <Input
               type="file"
@@ -433,13 +435,12 @@ function PurchaseRequestForm() {
           </div>
           <div>
             <label className="block text-sm font-medium mb-2">
-              Proposal (required)
+              Proposal (optional)
             </label>
             <Input
               type="file"
               accept=".pdf,.doc,.docx,.jpg,.png"
               onChange={(e) => handleFileChange(e, 'proposal')}
-              required
             />
           </div>
         </div>

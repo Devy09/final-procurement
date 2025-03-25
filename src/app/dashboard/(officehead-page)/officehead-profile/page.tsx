@@ -433,34 +433,6 @@ export default function ProfilePage() {
                   </div>
                 </DialogContent>
               </Dialog>
-              {/* ATTACH LEGAL BASIS */}
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button className="ml-4 bg-red-950 text-white hover:bg-red-900">
-                    <Scale className="mr-2 h-4 w-4" />
-                    Attach Legal Basis
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                  <DialogHeader className="bg-red-950 text-white p-6 rounded-lg">
-                    <DialogTitle>Upload Legal Basis</DialogTitle>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4 mt-2">
-                    <div className="grid gap-2">
-                      <Label htmlFor="legal-basis">Legal Basis Document</Label>
-                      <Input
-                        id="legal-basis"
-                        type="file"
-                        accept="application/pdf"
-                      />
-                    </div>
-                    <Button className="bg-red-950 text-white hover:bg-red-900">
-                      <Save className="mr-2 h-4 w-4" />
-                      Attach
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
             </div>
           )}
         </div>

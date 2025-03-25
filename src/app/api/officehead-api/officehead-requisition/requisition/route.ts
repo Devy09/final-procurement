@@ -66,28 +66,24 @@ export async function POST(req: NextRequest) {
     console.log("Form Data Parsed");
 
     // Extract files
-    const certification = formData.get("certification") as File;
+    const certification = formData.get("certification") as File | null;
     const letter = formData.get("letter") as File;
-    const proposal = formData.get("proposal") as File;
+    const proposal = formData.get("proposal") as File | null;
 
     // Validate required files
-    if (
-      !(certification instanceof File) ||
-      !(letter instanceof File) ||
-      !(proposal instanceof File)
-    ) {
-      console.log("Invalid file upload");
+    if (!(letter instanceof File)) {
+      console.log("Missing required letter file");
       return NextResponse.json(
-        { error: "Invalid file upload" },
+        { error: "Approved letter file is required" },
         { status: 400 }
       );
     }
 
     // Upload files to S3
-    const [certificationUrl, letterUrl, proposalUrl] = await Promise.all([
-      uploadToS3(certification),
+    const [letterUrl, certificationUrl, proposalUrl] = await Promise.all([
       uploadToS3(letter),
-      uploadToS3(proposal),
+      certification instanceof File ? uploadToS3(certification) : Promise.resolve(""),
+      proposal instanceof File ? uploadToS3(proposal) : Promise.resolve(""),
     ]);
     console.log("Files uploaded to S3:", { certificationUrl, letterUrl, proposalUrl });
 
@@ -153,9 +149,9 @@ export async function POST(req: NextRequest) {
         purpose,
         overallTotal,
         procurementMode,
-        certificationFile: certificationUrl, // Store S3 URL instead of local path
-        letterFile: letterUrl, // Store S3 URL instead of local path
-        proposalFile: proposalUrl, // Store S3 URL instead of local path
+        certificationFile: certificationUrl || "", // Store S3 URL or empty string
+        letterFile: letterUrl, // Store S3 URL
+        proposalFile: proposalUrl || "", // Store S3 URL or empty string
         createdById: user.id,
         items: {
           create: items.map((item: any, index: number) => ({
