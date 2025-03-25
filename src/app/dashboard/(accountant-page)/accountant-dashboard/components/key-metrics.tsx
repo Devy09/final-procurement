@@ -75,7 +75,7 @@ export default function ProcurementDashboard() {
         <div className="flex flex-col bg-red-950 text-white p-4 rounded-lg w-full">
           <div className="flex items-center gap-2 text-2xl">
             <Gauge className="h-6 w-6" />
-            <span className="font-bold">Procurement Dashboard</span>
+            <span className="font-bold">Accountant Dashboard</span>
           </div>
           <p className="text-muted-foreground text-sm text-white">Monitor and manage your procurement activities</p>
         </div>
