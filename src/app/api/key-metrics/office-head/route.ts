@@ -3,37 +3,37 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    // Fetch procurement metrics for all sections (or a default section)
-    const totalSpend = await prisma.purchaseRequest.aggregate({
-      _sum: { overallTotal: true },
+    // Fetch procurement metrics for purchase orders
+    const totalSpend = await prisma.purchaseOrder.aggregate({
+      _sum: { totalAmount: true },
     });
 
-    const purchaseRequestCount = await prisma.purchaseRequest.count();
+    const purchaseOrderCount = await prisma.purchaseOrder.count();
 
-    // Get count of pending purchase requests
-    const pendingCount = await prisma.purchaseRequest.count({
+    // Get count of pending purchase orders
+    const pendingCount = await prisma.purchaseOrder.count({
       where: { status: "pending" },
     });
 
-    // Get count of approved purchase requests
-    const approvedCount = await prisma.purchaseRequest.count({
+    // Get count of approved purchase orders
+    const approvedCount = await prisma.purchaseOrder.count({
       where: { status: "approved" },
     });
 
-    const spendingData = await prisma.purchaseRequest.groupBy({
+    const spendingData = await prisma.purchaseOrder.groupBy({
       by: ["date"],
-      _sum: { overallTotal: true },
+      _sum: { totalAmount: true },
       orderBy: { date: "asc" },
     });
 
     return NextResponse.json({
-      totalSpend: totalSpend._sum.overallTotal || 0,
-      purchaseRequestCount,
+      totalSpend: totalSpend._sum.totalAmount || 0,
+      purchaseOrderCount,
       pendingCount,
       approvedCount,
       spendingData: spendingData.map((entry) => ({
         month: new Date(entry.date).toLocaleString("en-US", { month: "short" }),
-        totalExpenses: entry._sum.overallTotal || 0,
+        totalExpenses: entry._sum.totalAmount || 0,
       })),
     });
   } catch (error) {

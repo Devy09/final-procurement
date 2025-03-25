@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    // Fetch user details from Prisma (assuming you still want to filter by section)
     const user = await prisma.user.findFirst({
       select: { section: true },
     });
