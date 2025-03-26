@@ -34,7 +34,7 @@ export default function Home() {
         <div className="mx-auto flex justify-between items-center py-4 px-4 md:px-8 lg:px-12">
           {/* Left side: Title */}
           <div className="flex items-center">
-            <h1 className="text-2xl font-bold text-white">Procurement System</h1>
+            <h1 className="text-2xl font-bold text-white">Procurement Management System</h1>
           </div>
 
           {/* Right side: Theme Toggle and Login Button */}
