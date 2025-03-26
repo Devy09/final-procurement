@@ -419,7 +419,7 @@ export function DataTable({ data, setData }: DataTableProps) {
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button className="bg-red-950 text-white hover:bg-red-900">
-                <PackagePlus className="mr-2 h-4 w-4" /> Create PPMP
+                <PackagePlus className="mr-2 h-4 w-4" /> Add Item
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
