@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import { Inter } from "next/font/google";
 import { ClerkProvider, ClerkLoaded, ClerkLoading } from "@clerk/nextjs";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "react-hot-toast";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -40,7 +41,10 @@ export default function RootLayout({
               </div>
             </ClerkLoading>
 
-            <ClerkLoaded>{children}</ClerkLoaded>
+            <ClerkLoaded>
+              <Toaster />
+              {children}
+            </ClerkLoaded>
           </ThemeProvider>
         </ClerkProvider>
       </body>
