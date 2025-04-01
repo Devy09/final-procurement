@@ -33,15 +33,15 @@ export default function Home() {
     const privacyNotification = toast(
       "This system collects and processes personal data in compliance with the Data Privacy Act of 2012 (RA 10173). Your information is handled with strict confidentiality and used solely for authorized purposes. By using this system, you acknowledge and consent to our data privacy policies.",
       {
-        duration: 5000,
+        duration: 3000,
         position: "top-center",
         style: {
           background: "rgba(245, 213, 127, 0.8)",
           color: "#000",
           border: "2px solid white",
           padding: "16px",
-          width: "100%",
-          maxWidth: "100%",
+          width: "50%",
+          maxWidth: "50%",
           textAlign: "center",
         },
       }
