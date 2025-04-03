@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { format } from "date-fns"
-import { ExternalLink, MoreHorizontal, Loader2, CheckCircle, Printer } from "lucide-react"
-import { toast } from "sonner"
+import { ExternalLink, MoreHorizontal, Loader2, Printer } from "lucide-react"
 import {
   Dialog,
   DialogContent,

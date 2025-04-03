@@ -23,57 +23,28 @@ import {
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import React, { useEffect } from "react"
+import React from "react"
 import { Clock } from "lucide-react"
 import { CheckCircle } from "lucide-react"
 import { XCircle } from "lucide-react"
-import { useUser } from "@clerk/nextjs"
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
-  userSection?: string
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
-  userSection,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-  const [userSectionState, setUserSection] = React.useState<string>("")
-  const { user } = useUser()
   const { toast } = useToast()
 
-  useEffect(() => {
-    const fetchUserSection = async () => {
-      if (!user) return
-      try {
-        const response = await fetch(`/api/user/profile/${user.id}`)
-        if (!response.ok) throw new Error("Failed to fetch user section")
-        const data = await response.json()
-        setUserSection(data.section)
-      } catch (error) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to fetch user section. Please try again.",
-        })
-      }
-    }
-    fetchUserSection()
-  }, [user, toast])
-
-  const filteredData = React.useMemo(() => {
-    if (!userSectionState) return data
-    return (data as any[]).filter(item => item.section === userSectionState)
-  }, [data, userSectionState])
-
   const table = useReactTable({
-    data: filteredData,
+    data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),

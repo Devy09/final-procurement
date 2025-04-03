@@ -3,15 +3,15 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
-import { ChartConfig, ChartContainer, ChartTooltip } from "@/components/ui/chart";
+import { ChartConfig, ChartTooltip } from "@/components/ui/chart";
 import { Package, Gauge, HandCoins, Clock, CheckCircle } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
 
 interface MetricsData {
   totalSpend: number;
-  purchaseRequestCount: number;
-  pendingRequests: number;
-  approvedRequests: number;
+  purchaseOrderCount: number;
+  pendingCount: number;
+  approvedCount: number;
   spendingData: SpendingData[];
 }
 
@@ -50,12 +50,12 @@ export default function ProcurementDashboard() {
   
         console.log("Fetched Metrics Data:", data);
   
-        // Adjust mapping
+        // Map directly to match API response
         setMetrics({
           totalSpend: parseFloat(data.totalSpend), // Ensure it's a number
-          purchaseRequestCount: data.purchaseRequestCount,
-          pendingRequests: data.pendingCount,  // Fix property name
-          approvedRequests: data.approvedCount,  // Fix property name
+          purchaseOrderCount: data.purchaseOrderCount,
+          pendingCount: data.pendingCount,
+          approvedCount: data.approvedCount,
           spendingData: data.spendingData || []
         });
       } catch (error) {
@@ -79,23 +79,23 @@ export default function ProcurementDashboard() {
 
       <div className="grid gap-6 md:grid-cols-4 lg:grid-cols-4">
         <StatsCard
-          title="Expenditure"
+          title="Total Expenditure"
           value={metrics ? formatCurrency(metrics.totalSpend) : "Loading..."}
           icon={<HandCoins className="h-4 w-4" />}
         />
         <StatsCard
-          title="Purchase Requests"
-          value={metrics ? metrics.purchaseRequestCount.toString() : "Loading..."}
+          title="Purchase Orders"
+          value={metrics ? metrics.purchaseOrderCount.toString() : "Loading..."}
           icon={<Package className="h-4 w-4" />}
         />
         <StatsCard
-          title="Pending Requests"
-          value={metrics?.pendingRequests !== undefined ? metrics.pendingRequests.toString() : "0"}
+          title="Pending Orders"
+          value={metrics?.pendingCount !== undefined ? metrics.pendingCount.toString() : "0"}
           icon={<Clock className="h-4 w-4" />}
         />
         <StatsCard
-          title="Approved Requests"
-          value={metrics?.approvedRequests !== undefined ? metrics.approvedRequests.toString() : "0"}
+          title="Approved Orders"
+          value={metrics?.approvedCount !== undefined ? metrics.approvedCount.toString() : "0"}
           icon={<CheckCircle className="h-4 w-4" />}
         />
       </div>
