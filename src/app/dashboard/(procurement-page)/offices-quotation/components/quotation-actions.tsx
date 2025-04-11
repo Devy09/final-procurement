@@ -156,6 +156,15 @@ export function QuotationActions({ requisition }: QuotationActionsProps) {
       return;
     }
 
+    if (!quotationDetails) {
+      toast({
+        title: "Failed",
+        description: "Quotation details not found",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const response = await fetch('/api/supplier-quotation', {
@@ -165,20 +174,23 @@ export function QuotationActions({ requisition }: QuotationActionsProps) {
         },
         body: JSON.stringify({
           supplierName,
-          prno: quotationDetails?.prno,
+          prno: quotationDetails.prno,
+          department: quotationDetails.department,
+          section: quotationDetails.section,
           items: items.map(item => ({
             itemNo: item.itemNo,
             description: item.description,
             quantity: item.quantity,
             unit: item.unit,
-            unitCost: item.unitCost || 0,
-            totalCost: (item.unitCost || 0) * item.quantity,
+            unitCost: parseFloat(String(item.unitCost || 0)),
+            totalCost: parseFloat(String(item.unitCost || 0)) * item.quantity,
           })),
         }),
       });
 
       if (!response.ok) {
-        throw new Error(`Network response was not ok: ${response.status}`);
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Network response was not ok: ${response.status}`);
       }
       toast({
         title: "Success",
@@ -205,8 +217,8 @@ export function QuotationActions({ requisition }: QuotationActionsProps) {
   };
 
   const preventWheelChange = (e: React.WheelEvent<HTMLInputElement>) => {
-    e.currentTarget.blur(); // Remove focus from input
-    e.stopPropagation(); // Stop event from bubbling up
+    e.currentTarget.blur();
+    e.stopPropagation();
   };
 
   return (

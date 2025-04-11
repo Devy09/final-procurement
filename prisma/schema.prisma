@@ -101,11 +101,17 @@ model PurchaseRequest {
   createdBy   User                  @relation(fields: [createdById], references: [id])
   createdById String
   items       PurchaseRequestItem[]
+  quotations  Quotation[]
+  supplierQuotations SupplierQuotation[]
+  abstract    Abstract?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  quotations Quotation[]
+  @@index([prno])
+  @@index([department])
+  @@index([section])
+  @@index([createdAt])
 }
 
 model PurchaseRequestItem {
@@ -169,10 +175,20 @@ model SupplierQuotation {
   id           String                  @id @default(cuid())
   supplierName String
   prno         String
+  department   String
+  section      String
   date         DateTime
+  requestDate  DateTime
+  overallTotal Decimal                @db.Decimal(10, 2)
   items        SupplierQuotationItem[]
+  
+  // Add relation to PurchaseRequest
+  purchaseRequest PurchaseRequest @relation(fields: [prno], references: [prno])
+
   createdAt    DateTime                @default(now())
   updatedAt    DateTime                @updatedAt
+
+  @@index([prno])
 }
 
 model SupplierQuotationItem {
@@ -279,4 +295,39 @@ model Notification {
   @@index([userId])
   @@index([section])
   @@index([createdAt])
+}
+
+model Abstract {
+  id            String   @id @default(cuid())
+  prno          String   @unique
+  requestDate   DateTime
+  overallTotal  Decimal  @db.Decimal(10, 2)
+  date          DateTime
+  winningBidder String?
+  suppliers     String[]
+  items         AbstractItem[]
+  
+  // Add relation to PurchaseRequest
+  purchaseRequest PurchaseRequest @relation(fields: [prno], references: [prno])
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([prno])
+}
+
+model AbstractItem {
+  id          String   @id @default(cuid())
+  abstract    Abstract @relation(fields: [abstractId], references: [id], onDelete: Cascade)
+  abstractId  String
+  itemNo      Int
+  description String
+  qty         Int
+  unit        String
+  bids        Json     // Store the bids as JSON {supplierId: {unitCost, total}}
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([abstractId])
 }

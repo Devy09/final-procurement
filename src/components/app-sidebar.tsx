@@ -221,12 +221,14 @@ const navBac = [
     ],
   },
   {
-    title: "Abstract Of Bids",
+    title: "BAC",
     url: "#",
     icon: FileBadge,
     items: [
       { title: "Supplier Quotations", url: "../../dashboard/supplier-quotations" },
+      { title: "Abstract of Bids", url: "../../dashboard/abstract-of-bids" },
     ],
+
   },
 ]
 

@@ -66,7 +66,7 @@ export function DataTable<TData extends SupplierQuotation, TValue>({
           className="max-w-sm"
         />
         <Button onClick={() => setIsAbstractOpen(true)}>
-          <Presentation className="mr-2" /> Start Bidding
+          <Presentation className="mr-2" /> Open Bidding
         </Button>
       </div>
 

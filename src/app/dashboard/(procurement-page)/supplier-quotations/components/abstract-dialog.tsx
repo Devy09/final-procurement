@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { FileBadge } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Toaster } from "@/components/ui/toaster";
+import { Toast } from "@/components/ui/toast";
 
 interface AbstractDialogProps {
   open: boolean;
@@ -34,6 +34,8 @@ export function AbstractDialog({
   const [selectedPR, setSelectedPR] = useState<string>("");
   const [selectedWinner, setSelectedWinner] = useState<string>("");
   const [isCreatingPO, setIsCreatingPO] = useState(false);
+  const [overallTotal, setOverallTotal] = useState<number | null>(null);
+  const [requestDate, setRequestDate] = useState<Date | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -44,7 +46,22 @@ export function AbstractDialog({
         
       fetch(url)
         .then((response) => response.json())
-        .then((data) => setQuotations(data))
+        .then((data) => {
+          setQuotations(data);
+          // Get overall total and request date from the first quotation if available
+          if (data.length > 0) {
+            if (data[0].overallTotal) {
+              setOverallTotal(parseFloat(data[0].overallTotal));
+            } else {
+              setOverallTotal(null);
+            }
+            if (data[0].requestDate) {
+              setRequestDate(new Date(data[0].requestDate));
+            } else {
+              setRequestDate(null);
+            }
+          }
+        })
         .catch((error) => console.error("Error fetching quotations:", error));
     }
   }, [open, selectedPR]);
@@ -54,10 +71,63 @@ export function AbstractDialog({
 
   const handleCreateAbstract = async () => {
     if (!selectedPR || selectedPR === "all") {
-      alert("Please select a PR number first");
+      toast({
+        title: "Error",
+        description: "Please select a PR number first",
+        variant: "destructive"
+      });
       return;
     }
-    console.log("Creating abstract for PR:", selectedPR);
+
+    if (getBidders().length === 0) {
+      toast({
+        title: "Error",
+        description: "No suppliers found for this PR",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // Get all the data from the table
+      const abstractData = {
+        prno: selectedPR,
+        requestDate: requestDate?.toISOString(),
+        overallTotal: overallTotal,
+        items: transformQuotationsToAbstractFormat(),
+        suppliers: getBidders(),
+        winningBidder: selectedWinner || null,
+        date: new Date().toISOString()
+      };
+
+      const response = await fetch('/api/abstract', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(abstractData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save abstract');
+      }
+
+      toast({
+        title: "Success",
+        description: "Abstract saved successfully",
+        variant: "default"
+      });
+
+      // Close the dialog
+    onOpenChange(false);
+  } catch (error) {
+      console.error('Error saving abstract:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save abstract",
+        variant: "destructive"
+      });
+    }
   };
 
   const transformQuotationsToAbstractFormat = (): BidItem[] => {
@@ -155,28 +225,51 @@ export function AbstractDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <div className="mb-4 flex items-center gap-4">
-            <Select value={selectedPR} onValueChange={setSelectedPR}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Filter by PR Number" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All PR Numbers</SelectItem>
-                {uniquePRNumbers.map((prno) => (
-                  <SelectItem key={prno} value={prno}>
-                    {prno}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        <div className="space-y-4"> 
+          <div className="mb-4 space-y-2">
+            <div className="flex items-center gap-4 mb-4">
+              <Select value={selectedPR} onValueChange={setSelectedPR}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Filter by PR Number" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All PR Numbers</SelectItem>
+                  {uniquePRNumbers.map((prno) => (
+                    <SelectItem key={prno} value={prno}>
+                      {prno}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-            <Button 
-              onClick={handleCreateAbstract}
-              disabled={!selectedPR || selectedPR === "all"}
-            >
-              <FileBadge className="mr-2" /> Create Abstract
-            </Button>
+              <Button 
+                onClick={handleCreateAbstract}
+                disabled={!selectedPR || selectedPR === "all" || !selectedWinner || selectedWinner === "all"}
+              >
+                <FileBadge className="mr-2" /> Create Abstract
+              </Button>
+            </div>
+            {selectedPR && selectedPR !== "all" && (
+              <div className="space-y-1">
+                {requestDate && (
+                  <div className="text-md font-medium">
+                    Dated: {requestDate.toLocaleDateString('en-US', {
+                      month: 'long',
+                      day: '2-digit',
+                      year: 'numeric'
+                    })}
+                  </div>
+                )}
+                {overallTotal !== null && (
+                  <div className="text-md font-medium">
+                    ABC = {overallTotal.toLocaleString('en-US', {
+                      style: 'currency',
+                      currency: 'PHP'
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="rounded-md border">

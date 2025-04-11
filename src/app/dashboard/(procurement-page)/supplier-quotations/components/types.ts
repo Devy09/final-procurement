@@ -11,7 +11,11 @@ export interface SupplierQuotation {
   id: string;
   prno: string;
   supplierName: string;
+  department: string;
+  section: string;
   date: string;
+  requestDate: string;
+  overallTotal: number;
   items?: QuotationItem[];
 }
 

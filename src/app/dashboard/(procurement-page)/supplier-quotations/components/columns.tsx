@@ -35,7 +35,7 @@ export const columns: ColumnDef<SupplierQuotation>[] = [
   },
   {
     accessorKey: "date",
-    header: "Date",
+    header: "Date Created",
     cell: ({ row }) => {
       return format(new Date(row.getValue("date")), "MMM d, yyyy");
     },
