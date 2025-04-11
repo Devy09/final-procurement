@@ -1,4 +1,5 @@
 import { DataTable } from "./components/data-table";
+import { columns } from "./components/columns";
 import { FileText } from "lucide-react";
 
 export default function AbstractOfBidsPage() {
@@ -13,7 +14,7 @@ export default function AbstractOfBidsPage() {
           List of Abstract of Bids that are ready to print
         </p>
       </h1>
-      <DataTable initialData={[]} />
+      <DataTable columns={columns} />
     </div>
   );
 }

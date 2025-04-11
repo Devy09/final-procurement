@@ -20,12 +20,17 @@ import {
   ColumnFiltersState,
   flexRender,
 } from "@tanstack/react-table";
-import { columns, AbstractColumn } from "./columns";
+import { AbstractColumn } from "./columns";
 import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { ColumnDef } from "@tanstack/react-table";
 
-export function DataTable() {
+interface DataTableProps {
+  columns: ColumnDef<AbstractColumn>[];
+}
+
+export function DataTable({ columns }: DataTableProps) {
   const [data, setData] = useState<AbstractColumn[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [sorting, setSorting] = useState<SortingState>([]);
