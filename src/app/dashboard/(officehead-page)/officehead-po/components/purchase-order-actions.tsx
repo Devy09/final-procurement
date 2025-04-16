@@ -96,9 +96,6 @@ export function PurchaseOrderActions({ purchaseOrder }: PurchaseOrderActionsProp
     }
   }, [open, printOpen, purchaseOrder.id])
 
-  const handlePrint = () => {
-    setPrintOpen(true);
-  };
 
   return (
     <>
@@ -112,10 +109,6 @@ export function PurchaseOrderActions({ purchaseOrder }: PurchaseOrderActionsProp
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={() => setOpen(true)}>
             <ExternalLink className="mr-2 h-4 w-4" />View Details
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={handlePrint} className="text-blue-500"> 
-            <Printer className="mr-2 h-4 w-4" />
-            <span>Print</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -210,60 +203,6 @@ export function PurchaseOrderActions({ purchaseOrder }: PurchaseOrderActionsProp
               </Card>
             </ScrollArea>
           ) : null}
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={printOpen} onOpenChange={setPrintOpen}>
-        <DialogContent className="max-w-[22cm] max-h-[95vh] dialog-content">
-          <DialogHeader>
-            <DialogTitle>Print Preview</DialogTitle>
-          </DialogHeader>
-          <ScrollArea className="h-[calc(95vh-8rem)]">
-            <div className="print-container bg-white text-black">
-              {isLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-8 w-8 animate-spin" />
-                </div>
-              ) : poDetails ? (
-                <PurchaseOrderPage 
-                  data={{
-                    prNo: poDetails.prno,
-                    date: poDetails.date,
-                    supplierName: poDetails.supplierName,
-                    items: poDetails.items.map(item => ({
-                      itemNo: parseInt(item.itemNumber),
-                      quantity: item.quantity,
-                      unit: item.unit,
-                      description: item.description,
-                      stockNo: null,
-                      unitCost: item.unitCost.toString(),
-                      totalCost: item.totalCost.toString(),
-                    })),
-                    overallTotal: poDetails.totalAmount.toString(),
-                    accountantName: poDetails.accountantName,
-                    presidentName: poDetails.presidentName,
-                    accountantTitle: poDetails.accountantTitle,
-                    presidentTitle: poDetails.presidentTitle,
-                    accountantSignatureUrl: poDetails.accountantSignatureUrl || '',
-                    presidentSignatureUrl: poDetails.presidentSignatureUrl || '',
-                    accountantDesignation: poDetails.accountantDesignation,
-                    presidentDesignation: poDetails.presidentDesignation,
-                  }} 
-                />
-              ) : (
-                <div className="text-center py-4">No data available</div>
-              )}
-            </div>
-          </ScrollArea>
-          <div className="flex justify-end gap-4 print:hidden">
-            <Button variant="outline" onClick={() => setPrintOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={() => window.print()} className="bg-red-950 text-white hover:bg-red-900">
-              <Printer className="mr-2 h-4 w-4" />
-              Print
-            </Button>
-          </div>
         </DialogContent>
       </Dialog>
     </>
