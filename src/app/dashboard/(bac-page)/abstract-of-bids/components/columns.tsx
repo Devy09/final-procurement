@@ -11,6 +11,7 @@ export interface AbstractColumn {
   date: string;
   overallTotal: string;
   winningBidder: string | null;
+  winningTotal: string | null;
   suppliers: string[];
   items?: {
     itemNo: number;
@@ -45,6 +46,14 @@ export const columns: ColumnDef<AbstractColumn>[] = [
     header: "Winning Bidder",
     cell: ({ row }) => {
       return row.original.winningBidder || "Not selected"
+    }
+  },
+  {
+    accessorKey: "winningTotal",
+    header: "Bid Amount",
+    cell: ({ row }) => {
+      if (row.original.winningTotal === null) return "Not selected";
+      return `₱${parseFloat(row.original.winningTotal).toLocaleString('en-PH')}`;
     }
   },
   {

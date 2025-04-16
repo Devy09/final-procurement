@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
+import { Decimal } from "@prisma/client/runtime/library";
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -14,6 +15,11 @@ export async function POST(request: Request) {
 
     const data = await request.json();
     
+    // Convert winningTotal to Decimal if it's a number
+    const winningTotal = typeof data.winningTotal === 'number' 
+      ? new Decimal(data.winningTotal)
+      : data.winningTotal;
+    
     const abstract = await prisma.abstract.create({
       data: {
         prno: data.prno,
@@ -21,6 +27,8 @@ export async function POST(request: Request) {
         overallTotal: data.overallTotal,
         date: new Date(data.date),
         winningBidder: data.winningBidder,
+        winningTotal: winningTotal,
+        section: data.section, // Add section to the creation data
         suppliers: data.suppliers,
         items: {
           create: data.items.map((item: any) => ({
@@ -77,6 +85,7 @@ export async function GET() {
     const formattedAbstracts = abstracts.map(abstract => ({
       ...abstract,
       overallTotal: abstract.overallTotal.toString(),
+      winningTotal: abstract.winningTotal ? abstract.winningTotal.toString() : null,
       items: abstract.items.map(item => ({
         ...item,
         bids: typeof item.bids === 'string' ? JSON.parse(item.bids) : item.bids

@@ -36,6 +36,7 @@ export function AbstractDialog({
   const [isCreatingPO, setIsCreatingPO] = useState(false);
   const [overallTotal, setOverallTotal] = useState<number | null>(null);
   const [requestDate, setRequestDate] = useState<Date | null>(null);
+  const [userSection, setUserSection] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -59,6 +60,11 @@ export function AbstractDialog({
               setRequestDate(new Date(data[0].requestDate));
             } else {
               setRequestDate(null);
+            }
+            if (data[0].purchaseRequest?.section) {
+              setUserSection(data[0].purchaseRequest.section);
+            } else {
+              setUserSection(null);
             }
           }
         })
@@ -88,7 +94,23 @@ export function AbstractDialog({
       return;
     }
 
+    if (!selectedWinner) {
+      toast({
+        title: "Error",
+        description: "Please select a winning supplier",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
+      // Calculate winning supplier's total amount
+      let winningTotal = 0;
+      const winningSupplierQuotation = quotations.find(q => q.supplierName === selectedWinner);
+      if (winningSupplierQuotation?.items) {
+        winningTotal = winningSupplierQuotation.items.reduce((sum, item) => sum + (item.quantity * item.unitCost), 0);
+      }
+
       // Get all the data from the table
       const abstractData = {
         prno: selectedPR,
@@ -96,8 +118,10 @@ export function AbstractDialog({
         overallTotal: overallTotal,
         items: transformQuotationsToAbstractFormat(),
         suppliers: getBidders(),
-        winningBidder: selectedWinner || null,
-        date: new Date().toISOString()
+        winningBidder: selectedWinner,
+        date: new Date().toISOString(),
+        winningTotal: winningTotal,
+        section: userSection // Add section to the abstract data
       };
 
       const response = await fetch('/api/abstract', {
@@ -119,8 +143,8 @@ export function AbstractDialog({
       });
 
       // Close the dialog
-    onOpenChange(false);
-  } catch (error) {
+      onOpenChange(false);
+    } catch (error) {
       console.error('Error saving abstract:', error);
       toast({
         title: "Error",
@@ -268,6 +292,11 @@ export function AbstractDialog({
                     })}
                   </div>
                 )}
+                {userSection && (
+                  <div className="text-md font-medium">
+                    Section: {userSection}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -308,7 +337,7 @@ export function AbstractDialog({
               <TableBody>
                 {transformQuotationsToAbstractFormat().map((item) => (
                   <TableRow key={item.itemNo}>
-                    <TableCell className="border-r p-2 text-sm">{item.itemNo}</TableCell>
+                    <TableCell className="border-r text-center p-2 text-sm">{item.itemNo}</TableCell>
                     <TableCell className="border-r text-right p-2 text-sm">{item.qty}</TableCell>
                     <TableCell className="border-r p-2 text-sm">{item.unit}</TableCell>
                     <TableCell className="border-r p-2 text-sm">{item.description}</TableCell>

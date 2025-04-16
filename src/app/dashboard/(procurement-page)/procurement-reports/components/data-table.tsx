@@ -8,7 +8,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
   useReactTable,
@@ -20,56 +19,19 @@ import {
   ColumnFiltersState,
   flexRender,
 } from "@tanstack/react-table";
-import { AbstractColumn } from "./columns";
 import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { ColumnDef } from "@tanstack/react-table";
+import { SavedReport } from "./columns";
 
-interface DataTableProps {
-  columns: ColumnDef<AbstractColumn>[];
-}
 
-export function DataTable({ columns }: DataTableProps) {
-  const [data, setData] = useState<AbstractColumn[]>([]);
+export function DataTable({ columns }: { columns: any }) {
+  const [data, setData] = useState<SavedReport[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const response = await fetch("/api/abstract");
-        if (!response.ok) {
-          throw new Error("Failed to fetch data");
-        }
-        const result = await response.json();
-        console.log('API Response:', result);
-        
-        // Transform the data to match our table format
-        const formattedData = result.map((item: any) => ({
-          id: item.id,
-          prno: item.prno,
-          requestDate: item.requestDate,
-          overallTotal: item.overallTotal.toString(),
-          winningBidder: item.winningBidder || null,
-          winningTotal: item.winningTotal ? item.winningTotal.toString() : null,
-          date: item.date,
-          suppliers: item.suppliers,
-          items: item.items
-        }));
-
-        setData(formattedData);
-      } catch (error) {
-        console.error("Error fetching abstracts:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
+  
 
   const table = useReactTable({
     data,
@@ -86,11 +48,21 @@ export function DataTable({ columns }: DataTableProps) {
     },
   });
 
-  const [printDialogOpen, setPrintDialogOpen] = useState(false);
-
-  const handlePrint = () => {
-    setPrintDialogOpen(true);
-  };
+  useEffect(() => {
+    const fetchReports = async () => {
+      setIsLoading(true);
+      try {
+        const res = await fetch("/api/reports/saved");
+        const result = await res.json();
+        setData(result.data);
+      } catch (e) {
+        setData([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchReports();
+  }, []);
   
   if (isLoading) return (
     <div className="flex items-center justify-center min-h-[200px]">
@@ -160,14 +132,6 @@ export function DataTable({ columns }: DataTableProps) {
           </TableBody>
         </Table>
       </div>
-
-      <Dialog open={printDialogOpen} onOpenChange={setPrintDialogOpen}>
-        <DialogContent className="max-w-6xl max-h-[100vh]">
-          <DialogHeader className="bg-red-950 text-white p-4 rounded-md">
-            <DialogTitle>Abstract of Bids</DialogTitle>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
       
       <div className="flex items-center justify-end space-x-2 py-4">
         <Button

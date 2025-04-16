@@ -310,6 +310,10 @@ function PurchaseRequestForm() {
                   <SelectItem value="Set">Set</SelectItem>
                   <SelectItem value="Bottle">Bottle</SelectItem>
                   <SelectItem value="Roll">Roll</SelectItem>
+                  <SelectItem value="Gallon">Gallon</SelectItem>
+                  <SelectItem value="Ampule">Ampule</SelectItem>
+                  <SelectItem value="Vial">Vial</SelectItem>
+                  <SelectItem value="Cup">Cup</SelectItem>
                 </SelectContent>
               </Select>
 

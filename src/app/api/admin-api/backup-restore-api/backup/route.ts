@@ -22,24 +22,32 @@ export async function GET() {
       officeHeadPPMP,
       purchaseRequests,
       purchaseRequestItems,
+      purchaseRequestSequence,
       quotations,
       quotationItems,
       supplierQuotations,
       supplierQuotationItems,
       purchaseOrders,
       purchaseOrderItems,
+      abstracts,
+      abstractItems,
+      notifications
     ] = await Promise.all([
       prisma.user.findMany(),
       prisma.pPMP.findMany(),
       prisma.officeHeadPPMP.findMany(),
       prisma.purchaseRequest.findMany(),
       prisma.purchaseRequestItem.findMany(),
+      prisma.purchaseRequestSequence.findMany(),
       prisma.quotation.findMany(),
       prisma.quotationItem.findMany(),
       prisma.supplierQuotation.findMany(),
       prisma.supplierQuotationItem.findMany(),
       prisma.purchaseOrder.findMany(),
       prisma.purchaseOrderItem.findMany(),
+      prisma.abstract.findMany(),
+      prisma.abstractItem.findMany(),
+      prisma.notification.findMany()
     ]);
 
     // Prepare the backup data object
@@ -49,13 +57,17 @@ export async function GET() {
       officeHeadPPMP,
       purchaseRequests,
       purchaseRequestItems,
+      purchaseRequestSequence,
       quotations,
       quotationItems,
       supplierQuotations,
       supplierQuotationItems,
       purchaseOrders,
       purchaseOrderItems,
-      backupDate: new Date().toISOString(), // Add a timestamp for the backup
+      abstracts,
+      abstractItems,
+      notifications,
+      backupDate: new Date().toISOString(),
     };
 
     // Return the backup data as a JSON response

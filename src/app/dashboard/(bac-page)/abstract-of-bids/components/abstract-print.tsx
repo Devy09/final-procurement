@@ -29,6 +29,11 @@ interface AbstractPrintProps {
     }[];
     overallTotal: string;
     winningBidder: string | null;
+    committees: {
+      name: string;
+      title: string;
+      designation: string;
+    }[];
   };
 }
 
@@ -125,12 +130,28 @@ export function AbstractPrint({ data }: AbstractPrintProps) {
             .print-container * {
               font-family: inherit !important;
             }
+            .table-container {
+              break-inside: avoid;
+              page-break-inside: avoid;
+            }
+            .table-header {
+              break-after: avoid;
+              page-break-after: avoid;
+            }
+            .table-body {
+              break-inside: auto;
+              page-break-inside: auto;
+            }
+            .table-row {
+              break-inside: avoid;
+              page-break-inside: avoid;
+            }
           }
         `}
       </style>
       <div className="print-container p-4">
         <div className="w-full">
-          <div className="flex items-center justify-center gap-4">
+          <div className="flex items-center justify-center gap-2">
             <div className="flex items-center gap-4">
               <img
                 src="/transcsu.png"
@@ -151,13 +172,13 @@ export function AbstractPrint({ data }: AbstractPrintProps) {
               </div>
             </div>
           </div>
-          <h4 className="text-black">
+          <h5 className="text-black text-sm">
             <u>Date and Time Opened: {formatDateWithTime(data.date)}</u>
-          </h4>
-          <h2 className="text-black">
+          </h5>
+          <h5 className="text-black text-sm">
             <u>PR No. {data.prNo} dated: {formatDate(data.requestDate)}</u>
-          </h2>
-          <h4 className="text-black mb-4">
+          </h5>
+          <h4 className="text-black mb-4 text-sm">
             <u>ABC = ₱{parseFloat(data.overallTotal).toLocaleString('en-US', {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2
@@ -165,121 +186,123 @@ export function AbstractPrint({ data }: AbstractPrintProps) {
           </h4>
         </div>
         <div className="border border-black">
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                <TableHead
-                  colSpan={3}
-                  rowSpan={2}
-                  className="border-r border-b border-black text-center p-1 text-xs text-black"
-                >
-                  Items
-                </TableHead>
-                <TableHead
-                  rowSpan={3}
-                  className="border-r border-b border-black text-center p-1 text-xs text-black"
-                >
-                  Description of Articles
-                </TableHead>
-                <TableHead
-                  colSpan={supplierData.length * 2}
-                  className="border-b border-black customFont text-center p-1 text-xs text-black"
-                >
-                  Name of Bidders
-                </TableHead>
-              </TableRow>
-              <TableRow className="hover:bg-transparent">
-                {supplierData.map((supplier) => (
+          <div className="table-container">
+            <Table>
+              <TableHeader className="table-header">
+                <TableRow className="table-row hover:bg-transparent">
                   <TableHead
-                    key={supplier.name}
-                    colSpan={2}
-                    className="border-b border-r border-black text-center p-1 text-xs text-black"
+                    colSpan={3}
+                    rowSpan={2}
+                    className="border-r border-b border-black text-center p-0.5 h-6 text-[10px] text-black"
                   >
-                    {supplier.name}
+                    Items
                   </TableHead>
-                ))}
-              </TableRow>
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="border-r border-b border-black p-1 text-xs text-black text-center">
-                  Item#
-                </TableHead>
-                <TableHead className="border-r border-b border-black p-1 text-xs text-black text-center">
-                  Qty
-                </TableHead>
-                <TableHead className="border-r border-b border-black p-1 text-xs text-black text-center">
-                  Unit
-                </TableHead>
-                {supplierData.map((supplier) => (
-                  <React.Fragment key={supplier.name}>
-                    <TableHead className="border-r border-b border-black text-right p-1 text-xs text-black">
-                      Unit Cost
-                    </TableHead>
-                    <TableHead className="border-r border-b border-black text-right p-1 text-xs text-black">
-                      Total
-                    </TableHead>
-                  </React.Fragment>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.items.map((item) => (
-                <TableRow key={item.itemNo} className="hover:bg-transparent">
-                  <TableCell className="border-r border-b border-black p-1 text-xs text-black text-center">
-                    {item.itemNo}
-                  </TableCell>
-                  <TableCell className="border-r border-b border-black p-1 text-xs text-black text-center">
-                    {item.quantity}
-                  </TableCell>
-                  <TableCell className="border-r border-b border-black p-1 text-xs text-black text-center">
-                    {item.unit}
-                  </TableCell>
-                  <TableCell className="border-r border-b border-black p-1 text-xs text-black">
-                    {item.description}
-                  </TableCell>
-                  {supplierData.map((supplier) => {
-                    const bid = supplier.bids.find(
-                      (b: any) => b.itemNo === item.itemNo
-                    );
-
-                    return (
-                      <React.Fragment key={supplier.name}>
-                        <TableCell className="border-r border-b border-black text-right p-1 text-xs text-black">
-                          {bid ? `₱${bid.unitCost.toLocaleString()}` : "-"}
-                        </TableCell>
-                        <TableCell className="border-r border-b border-black text-right p-1 text-xs text-black">
-                          {bid ? `₱${bid.total.toLocaleString()}` : "-"}
-                        </TableCell>
-                      </React.Fragment>
-                    );
-                  })}
+                  <TableHead
+                    rowSpan={3}
+                    className="border-r border-b border-black text-center p-0.5 h-6 text-[10px] text-black"
+                  >
+                    Description of Articles
+                  </TableHead>
+                  <TableHead
+                    colSpan={supplierData.length * 2}
+                    className="border-b border-black text-center p-0.5 h-6 text-[10px] text-black"
+                  >
+                    Name of Bidders
+                  </TableHead>
                 </TableRow>
-              ))}
-              <TableRow className="font-bold hover:bg-transparent">
-                <TableCell
-                  colSpan={4}
-                  className="border-r border-black p-1 text-xs text-center text-black"
-                >
-                  TOTAL
-                </TableCell>
-                {supplierData.map((supplier) => (
-                  <React.Fragment key={supplier.name}>
-                    <TableCell className="border-r border-black text-right p-1 text-xs text-black">
-                      -
+                <TableRow className="table-row hover:bg-transparent">
+                  {supplierData.map((supplier) => (
+                    <TableHead
+                      key={supplier.name}
+                      colSpan={2}
+                      className="border-b border-r border-black text-center p-0.5 h-6 text-[10px] text-black"
+                    >
+                      {supplier.name}
+                    </TableHead>
+                  ))}
+                </TableRow>
+                <TableRow className="table-row hover:bg-transparent">
+                  <TableHead className="border-r border-b border-black text-center p-0.5 h-6 text-[10px] text-black">
+                    Item#
+                  </TableHead>
+                  <TableHead className="border-r border-b border-black text-center p-0.5 h-6 text-[10px] text-black">
+                    Qty
+                  </TableHead>
+                  <TableHead className="border-r border-b border-black text-center p-0.5 h-6 text-[10px] text-black">
+                    Unit
+                  </TableHead>
+                  {supplierData.map((supplier) => (
+                    <React.Fragment key={supplier.name}>
+                      <TableHead className="border-r border-b border-black text-right p-0.5 h-6 text-[10px] text-black">
+                        Unit Cost
+                      </TableHead>
+                      <TableHead className="border-r border-b border-black text-right p-0.5 h-6 text-[10px] text-black">
+                        Total
+                      </TableHead>
+                    </React.Fragment>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody className="table-body">
+                {data.items.map((item) => (
+                  <TableRow key={item.itemNo} className="table-row hover:bg-transparent">
+                    <TableCell className="border-r border-b border-black p-0.5 h-6 text-[10px] text-black text-center">
+                      {item.itemNo}
                     </TableCell>
-                    <TableCell className="border-r border-black text-right p-1 text-xs text-black">
-                      {supplier.total > 0
-                        ? `₱${supplier.total.toLocaleString()}`
-                        : "-"}
+                    <TableCell className="border-r border-b border-black p-0.5 h-6 text-[10px] text-black text-center">
+                      {item.quantity}
                     </TableCell>
-                  </React.Fragment>
+                    <TableCell className="border-r border-b border-black p-0.5 h-6 text-[10px] text-black text-center">
+                      {item.unit}
+                    </TableCell>
+                    <TableCell className="border-r border-b border-black p-0.5 h-6 text-[10px] text-black">
+                      {item.description}
+                    </TableCell>
+                    {supplierData.map((supplier) => {
+                      const bid = supplier.bids.find(
+                        (b: any) => b.itemNo === item.itemNo
+                      );
+
+                      return (
+                        <React.Fragment key={supplier.name}>
+                          <TableCell className="border-r border-b border-black text-right p-0.5 h-6 text-[10px] text-black">
+                            {bid ? `₱${bid.unitCost.toLocaleString()}` : "-"}
+                          </TableCell>
+                          <TableCell className="border-r border-b border-black text-right p-0.5 h-6 text-[10px] text-black">
+                            {bid ? `₱${bid.total.toLocaleString()}` : "-"}
+                          </TableCell>
+                        </React.Fragment>
+                      );
+                    })}
+                  </TableRow>
                 ))}
-              </TableRow>
-            </TableBody>
-          </Table>
+                <TableRow className="table-row font-bold hover:bg-transparent">
+                  <TableCell
+                    colSpan={4}
+                    className="border-r border-black p-0.5 h-6 text-[10px] text-center text-black"
+                  >
+                    TOTAL
+                  </TableCell>
+                  {supplierData.map((supplier) => (
+                    <React.Fragment key={supplier.name}>
+                      <TableCell className="border-r border-black text-right p-0.5 h-6 text-[10px] text-black">
+                        -
+                      </TableCell>
+                      <TableCell className="border-r border-black text-right p-0.5 h-6 text-[10px] text-black">
+                        {supplier.total > 0
+                          ? `₱${supplier.total.toLocaleString()}`
+                          : "-"}
+                      </TableCell>
+                    </React.Fragment>
+                  ))}
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
         </div>
 
         <div className="mt-4">
-          <h3 className="text-md text-black mb-4">
+          <h3 className="text-sm text-black mb-2">
             Award recommended to:{" "}
             <b>
               <u>{data.winningBidder || "Not selected"}</u>
@@ -288,9 +311,36 @@ export function AbstractPrint({ data }: AbstractPrintProps) {
           </h3>
         </div>
         <div className="mt-2">
-          <h3 className="text-md text-black mb-4">
+          <h3 className="text-sm text-black mb-4">
             CSU Bids and Awards Committee:
           </h3>
+          <div className="columns-3">
+            {data.committees.map((committee, index) => (
+              <div key={index} className="column pr-4 pb-4">
+                <div className="justify-start">
+                  <p className="text-sm font-semibold">
+                    {committee.name}, {committee.title}<br />
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {committee.designation}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 absolute right-0 bottom-0">
+            <div className="text-center">
+              <p className="text-sm pr-52">
+                Approved:<br />
+              </p>
+              <p className="text-sm font-semibold">
+                SEMA G. DILNA, EdD<br />
+              </p>
+              <p className="text-sm text-gray-600 mt-1">
+                University President
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

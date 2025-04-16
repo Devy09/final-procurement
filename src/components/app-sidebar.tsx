@@ -25,6 +25,7 @@ import {
   FileBadge,
   Package,
   FileText,
+  Users,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -59,7 +60,8 @@ const navMain = [
     icon: LayoutDashboard,
     isActive: true,
     items: [
-      { title: "Overview", url: "../../dashboard/procurement-dashboard" },
+      { title: "Analytics", url: "../../dashboard/procurement-dashboard" },
+      { title: "Reports", url: "../../dashboard/procurement-reports" },
     ],
   },
   {
@@ -221,12 +223,21 @@ const navBac = [
     ],
   },
   {
-    title: "BAC",
+    title: "BAC Transactions",
     url: "#",
     icon: FileBadge,
     items: [
       { title: "Supplier Quotations", url: "../../dashboard/supplier-quotations" },
       { title: "Abstract of Bids", url: "../../dashboard/abstract-of-bids" },
+    ],
+
+  },
+  {
+    title: "BAC Members",
+    url: "#",
+    icon: Users,
+    items: [
+      { title: "Add Committee", url: "../../dashboard/committees" },
     ],
 
   },

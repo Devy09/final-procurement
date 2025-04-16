@@ -102,7 +102,8 @@ export async function GET(req: Request) {
         purchaseRequest: {
           select: {
             date: true,
-            overallTotal: true
+            overallTotal: true,
+            section: true
           }
         }
       },

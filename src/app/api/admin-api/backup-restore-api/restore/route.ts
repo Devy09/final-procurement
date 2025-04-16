@@ -25,6 +25,7 @@ const backupDataSchema = z
           ppmp_category: z.string(),
           createdAt: z.string(),
           updatedAt: z.string().optional(),
+          userId: z.string(),
         })
       )
       .optional(),
@@ -61,11 +62,151 @@ const backupDataSchema = z
         })
       )
       .optional(),
+    purchaseRequestSequence: z
+      .array(
+        z.object({
+          id: z.string(),
+          year: z.number(),
+          lastNumber: z.number(),
+          createdAt: z.string().optional(),
+          updatedAt: z.string().optional(),
+        })
+      )
+      .optional(),
+    quotations: z
+      .array(
+        z.object({
+          id: z.string(),
+          prno: z.string(),
+          department: z.string(),
+          section: z.string(),
+          date: z.string(),
+          createdAt: z.string(),
+          updatedAt: z.string(),
+        })
+      )
+      .optional(),
+    quotationItems: z
+      .array(
+        z.object({
+          id: z.string(),
+          itemNo: z.number(),
+          quantity: z.number(),
+          unit: z.string(),
+          description: z.string(),
+          unitCost: z.union([z.string(), z.number()]),
+          totalCost: z.union([z.string(), z.number()]),
+          quotationId: z.string(),
+          createdAt: z.string(),
+          updatedAt: z.string(),
+        })
+      )
+      .optional(),
+    supplierQuotations: z
+      .array(
+        z.object({
+          id: z.string(),
+          supplierName: z.string(),
+          prno: z.string(),
+          department: z.string(),
+          section: z.string(),
+          date: z.string(),
+          requestDate: z.string(),
+          overallTotal: z.union([z.string(), z.number()]),
+          createdAt: z.string(),
+          updatedAt: z.string(),
+        })
+      )
+      .optional(),
+    supplierQuotationItems: z
+      .array(
+        z.object({
+          id: z.string(),
+          supplierQuotationId: z.string(),
+          itemNumber: z.string(),
+          description: z.string(),
+          quantity: z.number(),
+          unit: z.string(),
+          createdAt: z.string(),
+          updatedAt: z.string(),
+        })
+      )
+      .optional(),
+    purchaseOrders: z
+      .array(
+        z.object({
+          id: z.string(),
+          createdAt: z.string(),
+          updatedAt: z.string(),
+        })
+      )
+      .optional(),
+    purchaseOrderItems: z
+      .array(
+        z.object({
+          id: z.string(),
+          createdAt: z.string(),
+          updatedAt: z.string(),
+        })
+      )
+      .optional(),
+    abstracts: z
+      .array(
+        z.object({
+          id: z.string(),
+          prno: z.string(),
+          requestDate: z.string(),
+          overallTotal: z.union([z.string(), z.number()]),
+          date: z.string(),
+          winningBidder: z.string().optional(),
+          createdAt: z.string(),
+          updatedAt: z.string(),
+        })
+      )
+      .optional(),
+    abstractItems: z
+      .array(
+        z.object({
+          id: z.string(),
+          abstractId: z.string(),
+          itemNo: z.number(),
+          description: z.string(),
+          qty: z.number(),
+          unit: z.string(),
+          bids: z.any(),
+          createdAt: z.string(),
+          updatedAt: z.string(),
+        })
+      )
+      .optional(),
+    notifications: z
+      .array(
+        z.object({
+          id: z.string(),
+          createdAt: z.string(),
+          updatedAt: z.string(),
+        })
+      )
+      .optional(),
     backupDate: z.string(),
   })
   .passthrough();
 
-type TableName = "pPMP" | "officeHeadPPMP" | "purchaseRequest" | "purchaseRequestItem";
+type TableName = 
+  | "pPMP" 
+  | "officeHeadPPMP" 
+  | "purchaseRequest" 
+  | "purchaseRequestItem"
+  | "purchaseRequestSequence"
+  | "quotation"
+  | "quotationItem"
+  | "supplierQuotation"
+  | "supplierQuotationItem"
+  | "purchaseOrder"
+  | "purchaseOrderItem"
+  | "abstract"
+  | "abstractItem"
+  | "notification";
 
 type BackupDataItem = Record<string, unknown>;
 
@@ -94,17 +235,24 @@ export async function POST(req: Request) {
 
     // Start a transaction to ensure data consistency
     await prisma.$transaction(async (tx) => {
-      await tx.purchaseOrderItem.deleteMany({});
-      await tx.purchaseOrder.deleteMany({});
-      await tx.supplierQuotationItem.deleteMany({});
-      await tx.supplierQuotation.deleteMany({});
-      await tx.quotationItem.deleteMany({});
-      await tx.quotation.deleteMany({});
-      await tx.purchaseRequestItem.deleteMany({});
-      await tx.purchaseRequest.deleteMany({});
-      await tx.officeHeadPPMP.deleteMany({});
-      await tx.pPMP.deleteMany({});
-      await tx.user.deleteMany({});
+      // Delete existing data in all tables
+      await Promise.all([
+        tx.purchaseOrderItem.deleteMany({}),
+        tx.purchaseOrder.deleteMany({}),
+        tx.supplierQuotationItem.deleteMany({}),
+        tx.supplierQuotation.deleteMany({}),
+        tx.quotationItem.deleteMany({}),
+        tx.quotation.deleteMany({}),
+        tx.purchaseRequestItem.deleteMany({}),
+        tx.purchaseRequest.deleteMany({}),
+        tx.officeHeadPPMP.deleteMany({}),
+        tx.pPMP.deleteMany({}),
+        tx.user.deleteMany({}),
+        tx.abstractItem.deleteMany({}),
+        tx.abstract.deleteMany({}),
+        tx.notification.deleteMany({}),
+        tx.purchaseRequestSequence.deleteMany({}),
+      ]);
 
       if (data.users?.length) {
         await tx.user.createMany({
@@ -122,9 +270,39 @@ export async function POST(req: Request) {
         officeHeadPPMP: { model: tx.officeHeadPPMP, dataKey: "officeHeadPPMP" },
         purchaseRequest: { model: tx.purchaseRequest, dataKey: "purchaseRequests" },
         purchaseRequestItem: { model: tx.purchaseRequestItem, dataKey: "purchaseRequestItems" },
+        purchaseRequestSequence: { model: tx.purchaseRequestSequence, dataKey: "purchaseRequestSequence" },
+        quotation: { model: tx.quotation, dataKey: "quotations" },
+        quotationItem: { model: tx.quotationItem, dataKey: "quotationItems" },
+        supplierQuotation: { model: tx.supplierQuotation, dataKey: "supplierQuotations" },
+        supplierQuotationItem: { model: tx.supplierQuotationItem, dataKey: "supplierQuotationItems" },
+        purchaseOrder: { model: tx.purchaseOrder, dataKey: "purchaseOrders" },
+        purchaseOrderItem: { model: tx.purchaseOrderItem, dataKey: "purchaseOrderItems" },
+        abstract: { model: tx.abstract, dataKey: "abstracts" },
+        abstractItem: { model: tx.abstractItem, dataKey: "abstractItems" },
+        notification: { model: tx.notification, dataKey: "notifications" },
       };
 
-      for (const table of Object.keys(tableMap) as TableName[]) {
+      // Process each table in order
+      const tableOrder = [
+        "user", // Process users first since they're referenced by other tables
+        "pPMP",
+        "officeHeadPPMP",
+        "purchaseRequestSequence",
+        "purchaseRequest",
+        "purchaseRequestItem",
+        "quotation",
+        "quotationItem",
+        "supplierQuotation",
+        "supplierQuotationItem",
+        "purchaseOrder",
+        "purchaseOrderItem",
+        "abstract",
+        "abstractItem",
+        "notification",
+      ];
+
+      for (const tableName of tableOrder) {
+        const table = tableName as TableName;
         const { model, dataKey } = tableMap[table];
         if (data[dataKey]?.length) {
           const cleanData = data[dataKey].filter(
@@ -142,6 +320,8 @@ export async function POST(req: Request) {
                 ...(item.totalCost ? { totalCost: Number(item.totalCost) } : {}),
                 ...(item.unitCost ? { unitCost: Number(item.unitCost) } : {}),
                 ...(item.overallTotal ? { overallTotal: Number(item.overallTotal) } : {}),
+                ...(item.year ? { year: Number(item.year) } : {}),
+                ...(item.lastNumber ? { lastNumber: Number(item.lastNumber) } : {}),
               })),
             });
           }

@@ -89,7 +89,7 @@ export default function PurchaseRequestFormWrapper({ onSuccess }: PurchaseReques
       <DialogTrigger asChild>
         <Button className="bg-red-950 text-white hover:bg-red-900"><ClipboardPlus /> Purchase Request</Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className='bg-red-950 text-white p-6 rounded-lg'>
           <DialogTitle className='text-2xl'>Purchase Request Form</DialogTitle>
         </DialogHeader>
@@ -341,6 +341,10 @@ function PurchaseRequestForm() {
                   <SelectItem value="Set">Set</SelectItem>
                   <SelectItem value="Bottle">Bottle</SelectItem>
                   <SelectItem value="Roll">Roll</SelectItem>
+                  <SelectItem value="Gallon">Gallon</SelectItem>
+                  <SelectItem value="Ampule">Ampule</SelectItem>
+                  <SelectItem value="Vial">Vial</SelectItem>
+                  <SelectItem value="Cup">Cup</SelectItem>
                 </SelectContent>
               </Select>
 

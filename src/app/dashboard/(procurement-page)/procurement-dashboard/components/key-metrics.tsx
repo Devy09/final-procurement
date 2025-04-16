@@ -62,7 +62,7 @@ export default function ProcurementDashboard() {
   
 
   async function handleGenerateReport() {
-    if (!metrics) return;
+    if (!period) return;
   
     setLoading(true);
   
@@ -71,25 +71,65 @@ export default function ProcurementDashboard() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          totalSpend: metrics.totalSpend,
-          purchaseRequestCount: metrics.purchaseRequestCount,
-          officeQuotationsCount: metrics.officeQuotationsCount,
-          supplierQuotationsCount: metrics.supplierQuotationsCount,
-          period: "thisMonth",
+          period,
         }),
       });
   
       if (!response.ok) {
-        throw new Error(`Failed to save report: ${response.statusText}`);
+        throw new Error(`Failed to generate report: ${response.statusText}`);
       }
-  
+
+      const data = await response.json();
+      
+      // Format the data for display
+      interface ReportItem {
+        prno: string;
+        requestDate: string;
+        overallTotal: number;
+        date: string;
+        winningBidder: string;
+        winningTotal: number;
+      }
+
+      interface FormattedReportItem {
+        prno: string;
+        requestDate: string;
+        totalAmount: string;
+        date: string;
+        winningBidder: string;
+        winningTotal: string;
+      }
+
+      const formattedData = data.data.map((item: ReportItem) => ({
+        prno: item.prno,
+        requestDate: new Date(item.requestDate).toLocaleDateString(),
+        totalAmount: formatCurrency(item.overallTotal),
+        date: new Date(item.date).toLocaleDateString(),
+        winningBidder: item.winningBidder,
+        winningTotal: item.winningTotal ? formatCurrency(item.winningTotal) : "Not selected"
+      }));
+
+      // Show success message with first few records
+      const sampleRecords = formattedData.slice(0, 3);
+      const recordsText = sampleRecords.map((record: FormattedReportItem) => `
+        PR No: ${record.prno}, 
+        Request Date: ${record.requestDate}, 
+        Total: ${record.totalAmount}, 
+        Winning Bidder: ${record.winningBidder},
+        Winning Total: ${record.winningTotal}
+      `).join('\n');
+
       toast({
-        title: "Success",
-        description: "Report Generated successfully!",
+        title: "Report Generated Successfully!",
+        description: `Generated ${formattedData.length} records. Sample records:\n${recordsText}`,
       });
     } catch (error) {
       console.error('Failed to generate report:', error);
-      alert("Failed to generate report.");
+      toast({
+        title: "Error",
+        description: "Failed to generate report. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -113,7 +153,6 @@ export default function ProcurementDashboard() {
               <SelectValue placeholder="Select period" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="today">Today</SelectItem>
               <SelectItem value="thisMonth">This Month</SelectItem>
               <SelectItem value="thisYear">This Year</SelectItem>
             </SelectContent>

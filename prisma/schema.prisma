@@ -261,15 +261,6 @@ model PurchaseOrderItem {
   @@index([poId])
 }
 
-model Report {
-  id                      String   @id @default(uuid())
-  period                  String
-  totalSpend              Float
-  purchaseRequestCount    Int
-  officeQuotationsCount   Int
-  supplierQuotationsCount Int
-  createdAt               DateTime @default(now())
-}
 
 enum NotificationType {
   REQUEST
@@ -304,8 +295,10 @@ model Abstract {
   overallTotal  Decimal  @db.Decimal(10, 2)
   date          DateTime
   winningBidder String?
+  winningTotal  Decimal  @db.Decimal(10, 2)
   suppliers     String[]
   items         AbstractItem[]
+  section       String
   
   // Add relation to PurchaseRequest
   purchaseRequest PurchaseRequest @relation(fields: [prno], references: [prno])
@@ -324,10 +317,32 @@ model AbstractItem {
   description String
   qty         Int
   unit        String
-  bids        Json     // Store the bids as JSON {supplierId: {unitCost, total}}
+  bids        Json
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([abstractId])
+}
+
+model Committee {
+  id                  String   @id @default(cuid())
+  committee_name      String
+  committee_title     String
+  committee_designation String
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([committee_name])
+  @@index([createdAt])
+  
+}
+
+model SavedReport {
+  id        String   @id @default(cuid())
+  title     String
+  period    String
+  data      Json
+  createdAt DateTime @default(now())
+  createdBy String
 }
