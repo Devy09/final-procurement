@@ -129,19 +129,12 @@ export function ReportViewDialog({ report }: { report: any }) {
                   </Table>
                 </div>
 
-                <div className="grid grid-cols-3 mt-8 gap-4 px-4 mb-8">
+                <div className="flex justify-between mt-8 gap-4 px-4 mb-8">
                   <div className="flex flex-col items-center">
                     <div className="text-sm text-gray-600 mb-10">Prepared by:</div>
                     <Separator className="w-48 border-black" />
                     <div className="font-semibold mt-1">{report.createdBy || "-"}</div>
                     <div className="text-sm text-gray-600">Procurement Officer</div>
-                  </div>
-
-                  <div className="flex flex-col items-center">
-                    <div className="text-sm text-gray-600 mb-10">Recommend for Approval by:</div>
-                    <Separator className="w-48 border-black" />
-                    <div className="font-semibold mt-1">CSU Procurement Office</div>
-                    <div className="text-sm text-gray-600">Procurement Committee</div>
                   </div>
 
                   <div className="flex flex-col items-center">

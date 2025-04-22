@@ -328,9 +328,9 @@ export function AbstractPrint({ data }: AbstractPrintProps) {
               </div>
             ))}
           </div>
-          <div className="mt-4 absolute right-0 bottom-0">
-            <div className="text-center">
-              <p className="text-sm pr-52">
+          <div className="mt-8 flex justify-end">
+            <div className="w-64">
+              <p className="text-sm">
                 Approved:<br />
               </p>
               <p className="text-sm font-semibold">
