@@ -2,14 +2,16 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { Eye } from "lucide-react";
+import { Eye, Printer } from "lucide-react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
 
 export function ReportViewDialog({ report }: { report: any }) {
   const [open, setOpen] = useState(false);
+  const { toast } = useToast();
 
   // Format date for display
   const formatDate = (date: string | null | undefined, isTableDate = false) => {
@@ -29,6 +31,7 @@ export function ReportViewDialog({ report }: { report: any }) {
     return amount;
   };
 
+
   return (
     <>
       <Button variant="outline" className="bg-red-950 text-white" size="sm" onClick={() => setOpen(true)}>
@@ -40,7 +43,28 @@ export function ReportViewDialog({ report }: { report: any }) {
             <DialogTitle>
               <div className="text-2xl font-bold text-red-950">Procurement Monitoring Report</div>
             </DialogTitle>
-            <Card className="w-full border-0 shadow-none">
+            <Card className="w-full border-0 shadow-none print-container" style={{ maxWidth: "11in", margin: "0 auto" }}>
+              <style jsx global>{`
+                @media print {
+                  @page {
+                    size: Legal landscape;
+                    margin: 0;
+                  }
+                  .print-container {
+                    width: 100%;
+                    height: 100%;
+                    margin: 0;
+                    padding: 0;
+                    background: white;
+                  }
+                  body * {
+                    visibility: hidden;
+                  }
+                  .print-container, .print-container * {
+                    visibility: visible;
+                  }
+                }
+              `}</style>
               <CardHeader className="p-0">
                 <div className="flex justify-between items-center mb-2">
                   <div className="text-sm text-gray-600">
@@ -105,7 +129,7 @@ export function ReportViewDialog({ report }: { report: any }) {
                   </Table>
                 </div>
 
-                <div className="grid grid-cols-3 mt-8 gap-4 px-4">
+                <div className="grid grid-cols-3 mt-8 gap-4 px-4 mb-8">
                   <div className="flex flex-col items-center">
                     <div className="text-sm text-gray-600 mb-10">Prepared by:</div>
                     <Separator className="w-48 border-black" />
@@ -123,12 +147,22 @@ export function ReportViewDialog({ report }: { report: any }) {
                   <div className="flex flex-col items-center">
                     <div className="text-sm text-gray-600 mb-10">Approved by:</div>
                     <Separator className="w-48 border-black" />
-                    <div className="font-semibold mt-1">CSU President</div>
-                    <div className="text-sm text-gray-600">President</div>
+                    <div className="font-semibold mt-1">SEMA G. DILNA, EdD</div>
+                    <div className="text-sm text-gray-600">University President</div>
                   </div>
                 </div>
               </CardContent>
             </Card>
+            <div className="flex justify-end gap-2 mt-4">
+              <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+              <Button onClick={() => {
+                window.print();
+                setOpen(false);
+              }} className="bg-red-950 text-white hover:bg-red-900">
+                <Printer className="mr-2 h-4 w-4" />
+                Print
+              </Button>
+            </div>
           </DialogHeader>
         </DialogContent>
       </Dialog>

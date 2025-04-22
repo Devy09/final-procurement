@@ -82,6 +82,9 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
   const [prDetails, setPrDetails] = useState<PurchaseRequestDetails | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isApproving, setIsApproving] = useState(false)
+  const [showApprovalDialog, setShowApprovalDialog] = useState(false)
+  const [showRejectionDialog, setShowRejectionDialog] = useState(false)
+  const [rejectionReason, setRejectionReason] = useState("")
   const { toast } = useToast();
 
   useEffect(() => {
@@ -135,11 +138,54 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
           setPrDetails(updatedData)
         }
       }
+      setShowApprovalDialog(false)
     } catch (error) {
       console.error('Error approving purchase request:', error)
       toast({
         title: "Error",
         description: "Failed to approve purchase request",
+        variant: "destructive",
+      });
+    } finally {
+      setIsApproving(false)
+    }
+  }
+
+  const handleReject = async () => {
+    setIsApproving(true)
+    try {
+      const response = await fetch(`/api/approval/accountant-approval/requisition-reject/${requisition.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ reason: rejectionReason })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to reject purchase request')
+      }
+
+      toast({
+        title: "Success",
+        description: "Purchase request rejected successfully",
+        variant: "default",
+      });
+      
+      // Refresh the data
+      if (open) {
+        const updatedResponse = await fetch(`/api/requisition-view/${requisition.id}`)
+        if (updatedResponse.ok) {
+          const updatedData = await updatedResponse.json()
+          setPrDetails(updatedData)
+        }
+      }
+      setShowRejectionDialog(false)
+    } catch (error) {
+      console.error('Error rejecting purchase request:', error)
+      toast({
+        title: "Error",
+        description: "Failed to reject purchase request",
         variant: "destructive",
       });
     } finally {
@@ -164,22 +210,54 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
             <ExternalLink className="mr-2 h-4 w-4" />View Details
           </DropdownMenuItem>
           <DropdownMenuItem 
-            onClick={handleApprove}
-            disabled={isApproving || prDetails?.approvedByAccountant === true}
+            onClick={() => setShowApprovalDialog(true)}
+            disabled={prDetails?.approvedByAccountant === true}
             className="text-green-700"
           >
             <CheckCircle className="mr-2 h-4 w-4" />
-            {isApproving ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Approving...
-              </>
-            ) : (
-              'Approve Request'
-            )}
+            Approve Request
+          </DropdownMenuItem>
+          <DropdownMenuItem 
+            onClick={() => setShowRejectionDialog(true)}
+            disabled={prDetails?.approvedByAccountant === true}
+            className="text-red-700"
+          >
+            <span className="mr-2">❌</span>
+            Reject Request
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <Dialog open={showRejectionDialog} onOpenChange={setShowRejectionDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Reject Purchase Request</DialogTitle>
+            <div className="mt-2 text-sm text-gray-500">
+              Please provide a reason for rejecting this purchase request.
+            </div>
+          </DialogHeader>
+          <div className="py-4">
+            <textarea
+              placeholder="Enter rejection reason..."
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              className="w-full h-32 p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div className="flex justify-end gap-4">
+            <Button variant="outline" onClick={() => setShowRejectionDialog(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleReject}
+              disabled={!rejectionReason}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Reject
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-6xl max-h-[90vh]">
@@ -192,102 +270,142 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
               <Loader2 className="h-8 w-8 animate-spin" />
             </div>
           ) : prDetails ? (
-            <ScrollArea className="h-[calc(90vh-8rem)]">
-              <Card>
-                <CardContent className="p-6">
-                  <div className="space-y-6">
-                    <div className="bg-red-950 text-white p-6 rounded-lg">
-                      <h3 className="text-lg font-semibold mb-4">General Information</h3>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        <div className="space-y-4">
-                          <div className="flex flex-col gap-1">
-                            <span className="font-medium text-gray-500">Department:</span>
-                            <span>{prDetails.department}</span>
+            <div className="space-y-6">
+              <ScrollArea className="h-[calc(90vh-12rem)]">
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="space-y-6">
+                      <div className="bg-red-950 text-white p-6 rounded-lg">
+                        <h3 className="text-lg font-semibold mb-4">General Information</h3>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                          <div className="space-y-4">
+                            <div className="flex flex-col gap-1">
+                              <span className="font-medium text-gray-500">Department:</span>
+                              <span>{prDetails.department}</span>
+                            </div>
+                            <div className="flex flex-col gap-1">
+                              <span className="font-medium text-gray-500">Section:</span>
+                              <span>{prDetails.section}</span>
+                            </div>
                           </div>
-                          <div className="flex flex-col gap-1">
-                            <span className="font-medium text-gray-500">Section:</span>
-                            <span>{prDetails.section}</span>
+                          <div className="space-y-4">
+                            <div className="flex flex-col gap-1">
+                              <span className="font-medium text-gray-500">PR No:</span>
+                              <span>{prDetails.prno}</span>
+                            </div>
+                            <div className="flex flex-col gap-1">
+                              <span className="font-medium text-gray-500">Date:</span>
+                              <span>{format(new Date(prDetails.date), 'PPP')}</span>
+                            </div>
                           </div>
-                        </div>
-                        <div className="space-y-4">
-                          <div className="flex flex-col gap-1">
-                            <span className="font-medium text-gray-500">PR No:</span>
-                            <span>{prDetails.prno}</span>
-                          </div>
-                          <div className="flex flex-col gap-1">
-                            <span className="font-medium text-gray-500">Date:</span>
-                            <span>{format(new Date(prDetails.date), 'PPP')}</span>
-                          </div>
-                        </div>
-                        <div className="space-y-4">
-                          <div className="flex justify-between">
-                            <span className="font-medium text-gray-500">SAI No:</span>
-                            <span>{prDetails.saino}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="font-medium text-gray-500">ALOBS No:</span>
-                            <span>{prDetails.alobsno}</span>
+                          <div className="space-y-4">
+                            <div className="flex justify-between">
+                              <span className="font-medium text-gray-500">SAI No:</span>
+                              <span>{prDetails.saino}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="font-medium text-gray-500">ALOBS No:</span>
+                              <span>{prDetails.alobsno}</span>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                    <div>
-                      <Table>
-                        <TableHeader>
-                          <TableRow className="bg-red-100">
-                            <TableHead>Item No.</TableHead>
-                            <TableHead>Quantity</TableHead>
-                            <TableHead>Unit</TableHead>
-                            <TableHead>Description</TableHead>
-                            <TableHead>Stock No.</TableHead>
-                            <TableHead className="text-right">Unit Cost</TableHead>
-                            <TableHead className="text-right">Total Cost</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {prDetails.items.map((item) => (
-                            <TableRow key={item.id}>
-                              <TableCell>{item.itemNo}</TableCell>
-                              <TableCell>{item.quantity}</TableCell>
-                              <TableCell>{item.unit}</TableCell>
-                              <TableCell>{item.description}</TableCell>
-                              <TableCell>{item.stockNo || '-'}</TableCell>
-                              <TableCell className="text-right font-medium">
-                                ₱{parseFloat(item.unitCost).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                              </TableCell>
-                              <TableCell className="text-right">
-                                ₱{parseFloat(item.totalCost).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      <div>
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="bg-red-100">
+                              <TableHead>Item No.</TableHead>
+                              <TableHead>Quantity</TableHead>
+                              <TableHead>Unit</TableHead>
+                              <TableHead>Description</TableHead>
+                              <TableHead>Stock No.</TableHead>
+                              <TableHead className="text-right">Unit Cost</TableHead>
+                              <TableHead className="text-right">Total Cost</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {prDetails.items.map((item) => (
+                              <TableRow key={item.id}>
+                                <TableCell>{item.itemNo}</TableCell>
+                                <TableCell>{item.quantity}</TableCell>
+                                <TableCell>{item.unit}</TableCell>
+                                <TableCell>{item.description}</TableCell>
+                                <TableCell>{item.stockNo || '-'}</TableCell>
+                                <TableCell className="text-right font-medium">
+                                  ₱{parseFloat(item.unitCost).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  ₱{parseFloat(item.totalCost).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                            <TableRow>
+                              <TableCell colSpan={6} className="text-right font-medium text-green-500 bg-gray-100">Total:</TableCell>
+                              <TableCell className="text-right font-medium text-green-500 bg-gray-100">
+                                ₱{parseFloat(prDetails.overallTotal).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                               </TableCell>
                             </TableRow>
-                          ))}
-                          <TableRow>
-                            <TableCell colSpan={6} className="text-right font-medium text-green-500 bg-gray-100">Total:</TableCell>
-                            <TableCell className="text-right font-medium text-green-500 bg-gray-100">
-                              ₱{parseFloat(prDetails.overallTotal).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </TableCell>
-                          </TableRow>
-                        </TableBody>
-                      </Table>
-                    </div>
+                          </TableBody>
+                        </Table>
+                      </div>
 
-                    <div>
-                      <h3 className="text-lg font-semibold mb-4">Additional Information</h3>
-                      <dl className="grid grid-cols-2 gap-4">
-                        <div className="bg-red-50 p-4 rounded-lg">
-                          <dt className="font-medium text-gray-500 mb-1">Purpose</dt>
-                          <dd>{prDetails.purpose}</dd>
-                        </div>
-                        <div className="bg-red-50 p-4 rounded-lg">
-                          <dt className="font-medium text-gray-500 mb-1">Certified by</dt>
-                          <dd>{prDetails.createdBy.name}</dd>
-                        </div>
-                      </dl>
+                      <div>
+                        <h3 className="text-lg font-semibold mb-4">Additional Information</h3>
+                        <dl className="grid grid-cols-2 gap-4">
+                          <div className="bg-red-50 p-4 rounded-lg">
+                            <dt className="font-medium text-gray-500 mb-1">Purpose</dt>
+                            <dd>{prDetails.purpose}</dd>
+                          </div>
+                          <div className="bg-red-50 p-4 rounded-lg">
+                            <dt className="font-medium text-gray-500 mb-1">Certified by</dt>
+                            <dd>{prDetails.createdBy.name}</dd>
+                          </div>
+                        </dl>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </ScrollArea>
-          ) : null}
+                  </CardContent>
+                </Card>
+              </ScrollArea>
+            </div>
+          ) : (
+            <p className="text-muted-foreground">No purchase request details available.</p>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Approval Dialog */}
+      <Dialog open={showApprovalDialog} onOpenChange={setShowApprovalDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Approve Purchase Request</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h4 className="font-semibold mb-2">Legal Basis</h4>
+              <p className="text-sm text-gray-600">
+                This digital approval is in accordance with Republic Act No. 9184 (Government Procurement Reform Act) and its Implementing Rules and Regulations (IRR), which recognizes electronic procurement systems as valid means of conducting procurement processes.
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={() => setShowApprovalDialog(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleApprove}
+              disabled={isApproving || prDetails?.approvedByAccountant === true}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              {isApproving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Approving...
+                </>
+              ) : (
+                'Approve'
+              )}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </>

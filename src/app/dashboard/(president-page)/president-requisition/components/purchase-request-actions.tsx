@@ -86,6 +86,9 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
   const [prDetails, setPrDetails] = useState<PurchaseRequestDetails | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isApproving, setIsApproving] = useState(false)
+  const [showApprovalDialog, setShowApprovalDialog] = useState(false)
+  const [showRejectionDialog, setShowRejectionDialog] = useState(false)
+  const [rejectionReason, setRejectionReason] = useState("")
   const { toast } = useToast();
 
   useEffect(() => {
@@ -139,11 +142,54 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
           setPrDetails(updatedData)
         }
       }
+      setShowApprovalDialog(false)
     } catch (error) {
       console.error('Error approving purchase request:', error)
       toast({
         title: "Error",
         description: "Failed to approve purchase request",
+        variant: "destructive",
+      });
+    } finally {
+      setIsApproving(false)
+    }
+  }
+
+  const handleReject = async () => {
+    setIsApproving(true)
+    try {
+      const response = await fetch(`/api/approval/president-approval/requisition-reject/${requisition.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ reason: rejectionReason })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to reject purchase request')
+      }
+
+      toast({
+        title: "Success",
+        description: "Purchase request rejected successfully",
+        variant: "default",
+      });
+      
+      // Refresh the data
+      if (open) {
+        const updatedResponse = await fetch(`/api/requisition-view/${requisition.id}`)
+        if (updatedResponse.ok) {
+          const updatedData = await updatedResponse.json()
+          setPrDetails(updatedData)
+        }
+      }
+      setShowRejectionDialog(false)
+    } catch (error) {
+      console.error('Error rejecting purchase request:', error)
+      toast({
+        title: "Error",
+        description: "Failed to reject purchase request",
         variant: "destructive",
       });
     } finally {
@@ -192,6 +238,7 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
 
   return (
     <>
+      <Toaster />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="h-8 w-8 p-0">
@@ -206,22 +253,89 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
             <ExternalLink className="mr-2 h-4 w-4" />View Details
           </DropdownMenuItem>
           <DropdownMenuItem 
-            onClick={handleApprove}
-            disabled={isApproving || prDetails?.approvedByPresident === true}
-            className="cursor-pointer text-green-500"
+            onClick={() => setShowApprovalDialog(true)}
+            disabled={prDetails?.approvedByPresident === true}
+            className="text-green-700"
           >
             <CheckCircle className="mr-2 h-4 w-4" />
-            {isApproving ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Approving...
-              </>
-            ) : (
-              'Approve Request'
-            )}
+            Approve Request
+          </DropdownMenuItem>
+          <DropdownMenuItem 
+            onClick={() => setShowRejectionDialog(true)}
+            disabled={prDetails?.approvedByPresident === true}
+            className="text-red-700"
+          >
+            <span className="mr-2">❌</span>
+            Reject Request
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <Dialog open={showRejectionDialog} onOpenChange={setShowRejectionDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Reject Purchase Request</DialogTitle>
+            <div className="mt-2 text-sm text-gray-500">
+              Please provide a reason for rejecting this purchase request.
+            </div>
+          </DialogHeader>
+          <div className="py-4">
+            <textarea
+              placeholder="Enter rejection reason..."
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              className="w-full h-32 p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div className="flex justify-end gap-4">
+            <Button variant="outline" onClick={() => setShowRejectionDialog(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleReject}
+              disabled={!rejectionReason}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Reject
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showApprovalDialog} onOpenChange={setShowApprovalDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Approve Purchase Request</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h4 className="font-semibold mb-2">Legal Basis</h4>
+              <p className="text-sm text-gray-600">
+                This digital approval is in accordance with Republic Act No. 9184 (Government Procurement Reform Act) and its Implementing Rules and Regulations (IRR), which recognizes electronic procurement systems as valid means of conducting procurement processes.
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={() => setShowApprovalDialog(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleApprove}
+              disabled={isApproving || prDetails?.approvedByPresident === true}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              {isApproving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Approving...
+                </>
+              ) : (
+                'Approve'
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-6xl max-h-[90vh]">
@@ -334,7 +448,6 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
           ) : null}
         </DialogContent>
       </Dialog>
-      <Toaster />
     </>
   )
 } 

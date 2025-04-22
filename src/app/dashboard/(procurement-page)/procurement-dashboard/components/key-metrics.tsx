@@ -2,20 +2,25 @@
 
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
-import { ChartConfig, ChartContainer, ChartTooltip } from "@/components/ui/chart";
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
+import { ChartConfig } from "@/components/ui/chart";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Package, Gauge, FileText, HandCoins, ShoppingCart } from "lucide-react";
+import { Package, Gauge, FileText, Clock, CheckCircle, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 
 
 interface MetricsData {
-  totalSpend: number;
+  purchaseOrderCount: number;
   purchaseRequestCount: number;
   officeQuotationsCount: number;
   supplierQuotationsCount: number;
+  pendingPurchaseRequestCount: number;
+  approvedPurchaseRequestCount: number;
+  rejectedPurchaseRequestCount: number;
+  pendingPurchaseOrderCount: number;
+  approvedPurchaseOrderCount: number;
   spendingData: SpendingData[];
 }
 
@@ -165,24 +170,45 @@ export default function ProcurementDashboard() {
 
       <div className="grid gap-6 md:grid-cols-4 lg:grid-cols-4">
         <StatsCard
-          title="Expenditure"
-          value={metrics ? formatCurrency(metrics.totalSpend) : "Loading..."}
-          icon={<HandCoins className="h-4 w-4" />}
+          title="Purchase Orders"
+          value={metrics ? metrics.purchaseOrderCount.toString() : "Loading..."}
+          icon={<Package className="h-4 w-4" />}
         />
         <StatsCard
-          title="Purchase Requests"
-          value={metrics ? metrics.purchaseRequestCount.toString() : "Loading..."}
-          icon={<Package className="h-4 w-4" />}
+          title="Pending Purchase Orders"
+          value={metrics ? metrics.pendingPurchaseOrderCount.toString() : "Loading..."}
+          icon={<Clock className="h-4 w-4" />}
+        />
+        <StatsCard
+          title="Approved Purchase Orders"
+          value={metrics ? metrics.approvedPurchaseOrderCount.toString() : "Loading..."}
+          icon={<CheckCircle className="h-4 w-4" />}
         />
         <StatsCard
           title="Offices Quotations"
           value={metrics ? metrics.officeQuotationsCount.toString() : "Loading..."}
           icon={<FileText className="h-4 w-4" />}
         />
+
         <StatsCard
-          title="Supplier Quotations"
-          value={metrics ? metrics.supplierQuotationsCount.toString() : "Loading..."}
-          icon={<ShoppingCart className="h-4 w-4" />}
+          title="Purchase Requests"
+          value={metrics ? metrics.purchaseRequestCount.toString() : "Loading..."}
+          icon={<Package className="h-4 w-4" />}
+        />
+        <StatsCard
+          title="Pending Purchase Requests"
+          value={metrics ? metrics.pendingPurchaseRequestCount.toString() : "Loading..."}
+          icon={<Clock className="h-4 w-4" />}
+        />
+        <StatsCard
+          title="Approved Purchase Requests"
+          value={metrics ? metrics.approvedPurchaseRequestCount.toString() : "Loading..."}
+          icon={<CheckCircle className="h-4 w-4" />}
+        />
+        <StatsCard
+          title="Rejected Purchase Requests"
+          value={metrics ? metrics.rejectedPurchaseRequestCount.toString() : "Loading..."}
+          icon={<XCircle className="h-4 w-4" />}
         />
       </div>
 
@@ -195,10 +221,26 @@ export default function ProcurementDashboard() {
             <div className="h-[400px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={metrics?.spendingData || []}>
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <ChartTooltip />
-                  <Bar dataKey="totalExpenses" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  <XAxis 
+                    dataKey="month" 
+                    stroke="red-950" 
+                    tick={{ fontSize: 12 }}
+                  />
+                  <YAxis 
+                    stroke="red-950" 
+                    tickFormatter={(value) => `${value.toLocaleString()}`}
+                  />
+                  <CartesianGrid strokeDasharray="3 3" stroke="red-950" />
+                  <Tooltip 
+                    formatter={(value) => `${value.toLocaleString()}`}
+                    labelFormatter={(label) => label}
+                  />
+                  <Bar 
+                    dataKey="totalExpenses" 
+                    fill="red-950" 
+                    radius={[4, 4, 0, 0]} 
+                    name="Total Expenses"
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </div>

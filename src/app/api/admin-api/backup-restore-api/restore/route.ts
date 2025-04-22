@@ -206,7 +206,6 @@ type TableName =
   | "purchaseOrderItem"
   | "abstract"
   | "abstractItem"
-  | "notification";
 
 type BackupDataItem = Record<string, unknown>;
 
@@ -279,7 +278,6 @@ export async function POST(req: Request) {
         purchaseOrderItem: { model: tx.purchaseOrderItem, dataKey: "purchaseOrderItems" },
         abstract: { model: tx.abstract, dataKey: "abstracts" },
         abstractItem: { model: tx.abstractItem, dataKey: "abstractItems" },
-        notification: { model: tx.notification, dataKey: "notifications" },
       };
 
       // Process each table in order
@@ -298,7 +296,6 @@ export async function POST(req: Request) {
         "purchaseOrderItem",
         "abstract",
         "abstractItem",
-        "notification",
       ];
 
       for (const tableName of tableOrder) {

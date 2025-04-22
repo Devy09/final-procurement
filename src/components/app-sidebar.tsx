@@ -114,7 +114,7 @@ const navAccountant = [
     icon: LayoutDashboard,
     isActive: true,
     items: [
-      { title: "Overview", url: "../../dashboard/accountant-dashboard" },
+      { title: "Analytics", url: "../../dashboard/accountant-dashboard" },
     ],
   },
   {

@@ -2,16 +2,25 @@
 
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
-import { ChartConfig, ChartTooltip } from "@/components/ui/chart";
-import { Package, Gauge, HandCoins, Clock, CheckCircle } from "lucide-react";
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
+import { ChartConfig } from "@/components/ui/chart";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Package, Gauge, FileText, Clock, CheckCircle, XCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 
+
 interface MetricsData {
-  totalSpend: number;
   purchaseOrderCount: number;
-  pendingCount: number;
-  approvedCount: number;
+  purchaseRequestCount: number;
+  officeQuotationsCount: number;
+  supplierQuotationsCount: number;
+  pendingPurchaseRequestCount: number;
+  approvedPurchaseRequestCount: number;
+  rejectedPurchaseRequestCount: number;
+  pendingPurchaseOrderCount: number;
+  approvedPurchaseOrderCount: number;
   spendingData: SpendingData[];
 }
 
@@ -40,31 +49,25 @@ export default function ProcurementDashboard() {
   const [period, setPeriod] = useState("thisMonth");
   const [metrics, setMetrics] = useState<MetricsData | null>(null);
   const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     async function fetchMetrics() {
       try {
-        const response = await fetch(`/api/key-metrics/office-head?period=${period}`);
+        const response = await fetch(`/api/key-metrics/accountant-metrics`);
         if (!response.ok) throw new Error("Failed to fetch metrics");
         const data = await response.json();
-  
-        console.log("Fetched Metrics Data:", data);
-  
-        // Map directly to match API response
-        setMetrics({
-          totalSpend: parseFloat(data.totalSpend), // Ensure it's a number
-          purchaseOrderCount: data.purchaseOrderCount,
-          pendingCount: data.pendingCount,
-          approvedCount: data.approvedCount,
-          spendingData: data.spendingData || []
-        });
+        setMetrics(data);
       } catch (error) {
-        console.error('Failed to fetch metrics:', error);
+        console.error("Failed to fetch metrics:", error);
       }
     }
     fetchMetrics();
   }, [period]);
   
+  
+  
+
   return (
     <div className="min-h-screen p-8 bg-background">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -77,25 +80,36 @@ export default function ProcurementDashboard() {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-4 lg:grid-cols-4">
-        <StatsCard
-          title="Total Expenditure"
-          value={metrics ? formatCurrency(metrics.totalSpend) : "Loading..."}
-          icon={<HandCoins className="h-4 w-4" />}
-        />
+      <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-3">
         <StatsCard
           title="Purchase Orders"
           value={metrics ? metrics.purchaseOrderCount.toString() : "Loading..."}
           icon={<Package className="h-4 w-4" />}
         />
         <StatsCard
-          title="Pending Orders"
-          value={metrics?.pendingCount !== undefined ? metrics.pendingCount.toString() : "0"}
+          title="Pending Purchase Orders"
+          value={metrics ? metrics.pendingPurchaseOrderCount.toString() : "Loading..."}
           icon={<Clock className="h-4 w-4" />}
         />
         <StatsCard
-          title="Approved Orders"
-          value={metrics?.approvedCount !== undefined ? metrics.approvedCount.toString() : "0"}
+          title="Approved Purchase Orders"
+          value={metrics ? metrics.approvedPurchaseOrderCount.toString() : "Loading..."}
+          icon={<CheckCircle className="h-4 w-4" />}
+        />
+
+        <StatsCard
+          title="Purchase Requests"
+          value={metrics ? metrics.purchaseRequestCount.toString() : "Loading..."}
+          icon={<Package className="h-4 w-4" />}
+        />
+        <StatsCard
+          title="Pending Purchase Requests"
+          value={metrics ? metrics.pendingPurchaseRequestCount.toString() : "Loading..."}
+          icon={<Clock className="h-4 w-4" />}
+        />
+        <StatsCard
+          title="Approved Purchase Requests"
+          value={metrics ? metrics.approvedPurchaseRequestCount.toString() : "Loading..."}
           icon={<CheckCircle className="h-4 w-4" />}
         />
       </div>
@@ -109,10 +123,26 @@ export default function ProcurementDashboard() {
             <div className="h-[400px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={metrics?.spendingData || []}>
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <ChartTooltip />
-                  <Bar dataKey="totalExpenses" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  <XAxis 
+                    dataKey="month" 
+                    stroke="red-950" 
+                    tick={{ fontSize: 12 }}
+                  />
+                  <YAxis 
+                    stroke="red-950" 
+                    tickFormatter={(value) => `${value.toLocaleString()}`}
+                  />
+                  <CartesianGrid strokeDasharray="3 3" stroke="red-950" />
+                  <Tooltip 
+                    formatter={(value) => `${value.toLocaleString()}`}
+                    labelFormatter={(label) => label}
+                  />
+                  <Bar 
+                    dataKey="totalExpenses" 
+                    fill="red-950" 
+                    radius={[4, 4, 0, 0]} 
+                    name="Total Expenses"
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -124,7 +154,13 @@ export default function ProcurementDashboard() {
   );
 }
 
-function StatsCard({ title, value, icon }: { title: string; value: string; icon: React.ReactNode }) {
+interface StatsCardProps {
+  title: string;
+  value: string;
+  icon: React.ReactNode;
+}
+
+function StatsCard({ title, value, icon }: StatsCardProps) {
   return (
     <Card className="bg-red-950 text-white">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

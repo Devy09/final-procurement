@@ -220,6 +220,7 @@ model PurchaseOrder {
   totalAmount  Float
   date         DateTime
   status       PurchaseOrderStatus @default(pending)
+  section      String              // Add section field to track the section
 
   // Accountant Approval
   approvedByAccountant   Boolean   @default(false)
@@ -245,6 +246,7 @@ model PurchaseOrder {
   updatedAt      DateTime            @updatedAt
 
   @@index([prno])
+  @@index([section])
 }
 
 model PurchaseOrderItem {
@@ -349,6 +351,6 @@ model SavedReport {
 
 generator erd {
   provider = "prisma-erd-generator"
-  output   = "./ERD.pdf"  // ✅ Goes to the root of your project
+  output   = "./ERD.pdf"  // Goes to the root of your project
   format   = "pdf"
 }

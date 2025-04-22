@@ -207,7 +207,8 @@ export function AbstractDialog({
         supplierName: selectedWinner,
         items: winningBids,
         totalAmount: winningBids.reduce((sum, item) => sum + item.totalCost, 0),
-        date: new Date().toISOString()
+        date: new Date().toISOString(),
+        section: userSection || ''
       };
 
       const response = await fetch('/api/purchase-order', {

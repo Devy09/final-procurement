@@ -30,8 +30,7 @@ export async function GET() {
       purchaseOrders,
       purchaseOrderItems,
       abstracts,
-      abstractItems,
-      notifications
+      abstractItems
     ] = await Promise.all([
       prisma.user.findMany(),
       prisma.pPMP.findMany(),
@@ -46,8 +45,7 @@ export async function GET() {
       prisma.purchaseOrder.findMany(),
       prisma.purchaseOrderItem.findMany(),
       prisma.abstract.findMany(),
-      prisma.abstractItem.findMany(),
-      prisma.notification.findMany()
+      prisma.abstractItem.findMany()
     ]);
 
     // Prepare the backup data object
@@ -66,7 +64,6 @@ export async function GET() {
       purchaseOrderItems,
       abstracts,
       abstractItems,
-      notifications,
       backupDate: new Date().toISOString(),
     };
 

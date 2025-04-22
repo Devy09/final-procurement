@@ -66,6 +66,7 @@ export function PurchaseOrderActions({ purchaseOrder }: PurchaseOrderActionsProp
   const [poDetails, setPoDetails] = useState<PurchaseOrderDetails | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isApproving, setIsApproving] = useState(false)
+  const [showApprovalDialog, setShowApprovalDialog] = useState(false)
   const { toast } = useToast();
 
   useEffect(() => {
@@ -115,6 +116,7 @@ export function PurchaseOrderActions({ purchaseOrder }: PurchaseOrderActionsProp
           setPoDetails(updatedData)
         }
       }
+      setShowApprovalDialog(false)
     } catch (error) {
       console.error('Error approving purchase order:', error)
       toast({
@@ -142,19 +144,12 @@ export function PurchaseOrderActions({ purchaseOrder }: PurchaseOrderActionsProp
             <ExternalLink className="mr-2 h-4 w-4" />View Details
           </DropdownMenuItem>
           <DropdownMenuItem 
-            onClick={handleApprove}
-            disabled={isApproving || poDetails?.approvedByPresident === true}
-            className="text-green-500"
+            onClick={() => setShowApprovalDialog(true)}
+            disabled={poDetails?.approvedByPresident === true}
+            className="text-green-700"
           >
             <CheckCircle className="mr-2 h-4 w-4" />
-            {isApproving ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Approving...
-              </>
-            ) : (
-              'Approve Order'
-            )}
+            Approve Order
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -249,6 +244,42 @@ export function PurchaseOrderActions({ purchaseOrder }: PurchaseOrderActionsProp
               </Card>
             </ScrollArea>
           ) : null}
+        </DialogContent>
+      </Dialog>
+
+      {/* Approval Dialog */}
+      <Dialog open={showApprovalDialog} onOpenChange={setShowApprovalDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Approve Purchase Order</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h4 className="font-semibold mb-2">Legal Basis</h4>
+              <p className="text-sm text-gray-600">
+                This digital approval is in accordance with Republic Act No. 9184 (Government Procurement Reform Act) and its Implementing Rules and Regulations (IRR), which recognizes electronic procurement systems as valid means of conducting procurement processes.
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={() => setShowApprovalDialog(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleApprove}
+              disabled={isApproving || poDetails?.approvedByPresident === true}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              {isApproving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Approving...
+                </>
+              ) : (
+                'Approve'
+              )}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </>
