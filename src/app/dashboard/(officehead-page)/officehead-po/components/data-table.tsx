@@ -29,6 +29,7 @@ import { CheckCircle } from "lucide-react"
 import { XCircle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
+import { useUser } from "@clerk/nextjs"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -42,9 +43,36 @@ export function DataTable<TData, TValue>({
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const { toast } = useToast()
+  const { user } = useUser()
+  const [section, setSection] = React.useState<string | null>(null)
+
+  React.useEffect(() => {
+    const fetchSection = async () => {
+      try {
+        const response = await fetch(`/api/user/profile/${user?.id}`)
+        if (!response.ok) throw new Error("Failed to fetch user profile")
+        const userData = await response.json()
+        setSection(userData.section)
+      } catch (error) {
+        console.error("Error fetching user section:", error)
+        toast({
+          title: "Error",
+          description: "Failed to fetch user section information",
+          variant: "destructive",
+        })
+      }
+    }
+
+    if (user?.id) {
+      fetchSection()
+    }
+  }, [user?.id, toast])
+
+  // Filter data by section
+  const filteredData = section ? data.filter((item: any) => item.section === section) : data
 
   const table = useReactTable({
-    data,
+    data: filteredData,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),

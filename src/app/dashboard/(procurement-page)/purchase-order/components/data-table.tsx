@@ -57,6 +57,7 @@ export function DataTable<TData, TValue>({
             totalAmount: item.totalAmount,
             date: item.date,
             status: item.status,
+            section: item.section,
           }))
         );
       } catch (error) {

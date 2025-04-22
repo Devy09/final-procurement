@@ -21,8 +21,10 @@ export async function GET() {
 
     const { section } = user;
 
-    // Purchase Order Total (no section filtering needed)
-    const purchaseOrderCount = await prisma.purchaseOrder.count();
+    // Purchase Order Total
+    const purchaseOrderCount = await prisma.purchaseOrder.count({
+      where: { section: section }
+    });
 
     // Purchase Request Total
     const purchaseRequestCount = await prisma.purchaseRequest.count({
@@ -45,12 +47,18 @@ export async function GET() {
       }
     });
 
-    // Purchase Order Status (no section filtering needed)
+    // Purchase Order Status
     const pendingPurchaseOrderCount = await prisma.purchaseOrder.count({
-      where: { status: "pending" }
+      where: { 
+        section: section,
+        status: "pending" 
+      }
     });
     const approvedPurchaseOrderCount = await prisma.purchaseOrder.count({
-      where: { status: "approved" }
+      where: { 
+        section: section,
+        status: "approved" 
+      }
     });
 
     // PPMP Items Total
@@ -70,20 +78,20 @@ export async function GET() {
       }
     });
 
-    // Purchase Request Spending Data
-    const spendingData = await prisma.purchaseRequest.groupBy({
+    // Purchase Order Spending Data
+    const spendingData = await prisma.purchaseOrder.groupBy({
       by: ["date"],
-      _sum: { overallTotal: true },
+      _sum: { totalAmount: true },
       where: {
         section: section
       },
       orderBy: { date: "asc" },
     });
 
-    // Purchase Request Spending Data
+    // Format spending data
     const formattedData = spendingData.map((entry) => ({
       month: entry.date ? new Date(entry.date).toLocaleString("en-US", { month: "short" }) : "N/A",
-      totalExpenses: entry._sum.overallTotal || 0,
+      totalExpenses: entry._sum.totalAmount || 0,
       date: entry.date
     }));
 

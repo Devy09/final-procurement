@@ -45,6 +45,10 @@ export const columns: ColumnDef<PurchaseOrderColumn>[] = [
     },
   },
   {
+    accessorKey: "section",
+    header: "Section",
+  },
+  {
     accessorKey: "date",
     header: "Date",
     cell: ({ row }) => {

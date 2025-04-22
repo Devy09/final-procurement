@@ -22,7 +22,7 @@ export async function POST(request: Request) {
         totalAmount,
         date,
         section,
-        status: 'pending', // Set initial status
+        status: 'pending',
         items: {
           create: items.map((item: any) => ({
             itemNumber: item.itemNumber.toString(),
