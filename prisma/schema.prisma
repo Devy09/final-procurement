@@ -355,9 +355,3 @@ model SavedReport {
   createdAt DateTime @default(now())
   createdBy String
 }
-
-generator erd {
-  provider = "prisma-erd-generator"
-  output   = "./ERD.pdf"  // Goes to the root of your project
-  format   = "pdf"
-}
