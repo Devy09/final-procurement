@@ -4,25 +4,20 @@ import type React from "react"
 import { useState, useRef } from "react"
 import {
   FolderSync,
-  UploadCloud,
-  DownloadCloud,
   CheckCircle,
-  XCircle,
   Loader2,
   Clock,
-  Shield,
-  FileJson,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useToast } from "@/hooks/use-toast"
-import { Separator } from "@/components/ui/separator"
 
 const BackupRestorePage = () => {
-  const [status, setStatus] = useState<"idle" | "backing-up" | "restoring" | "success" | "error">("idle")
+  const [status, setStatus] = useState<"idle" | "backing-up" | "restoring-users" | "restoring-all" | "success">("idle")
   const { toast } = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [lastBackupDate, setLastBackupDate] = useState<string | null>(null)
 
   const handleBackup = async () => {
@@ -32,134 +27,124 @@ const BackupRestorePage = () => {
       const response = await fetch("/api/admin-api/backup-restore-api/backup")
 
       if (!response.ok) {
-        throw new Error("Failed to backup data")
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.error || "Failed to create backup");
       }
 
-      const data = await response.json()
+      // Get the response blob
+      const blob = await response.blob();
+      
+      // Create a download link
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `backup-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
 
-      // Create a Blob from the JSON data
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" })
-
-      // Create download link
-      const url = window.URL.createObjectURL(blob)
-      const link = document.createElement("a")
-
-      // Set filename with current date
-      const date = new Date().toISOString().split("T")[0]
       setLastBackupDate(new Date().toLocaleString())
-      link.href = url
-      link.download = `backup-${date}.json`
-
-      // Trigger download
-      document.body.appendChild(link)
-      link.click()
-
-      // Cleanup
-      document.body.removeChild(link)
-      window.URL.revokeObjectURL(url)
-
-      setStatus("success")
+      setStatus("success");
       toast({
-        title: "Backup Successful",
-        description: "Your data has been successfully backed up.",
-      })
-
-      // Reset status after a delay
-      setTimeout(() => setStatus("idle"), 3000)
+        title: "Backup Created",
+        description: "Your backup has been downloaded successfully",
+      });
     } catch (error) {
-      console.error("Backup error:", error)
-      setStatus("error")
+      setStatus("idle");
       toast({
         variant: "destructive",
         title: "Backup Failed",
-        description: "There was an error creating your backup. Please try again.",
-      })
-
-      // Reset status after a delay
-      setTimeout(() => setStatus("idle"), 3000)
+        description: error instanceof Error ? error.message : "An error occurred while creating backup",
+      });
     }
-  }
+  };
 
-  const handleRestore = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-
-    // Validate file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
+  const handleRestoreUsers = async () => {
+    if (!selectedFile) {
       toast({
         variant: "destructive",
-        title: "File Too Large",
-        description: "Backup file must be less than 10MB",
-      })
-      return
-    }
-
-    // Validate file type
-    if (file.type !== "application/json") {
-      toast({
-        variant: "destructive",
-        title: "Invalid File Type",
-        description: "Please upload a JSON backup file",
-      })
-      return
+        title: "No File Selected",
+        description: "Please select a backup file first",
+      });
+      return;
     }
 
     try {
-      setStatus("restoring")
-
-      const fileContent = await file.text()
-      let backupData
-
-      try {
-        backupData = JSON.parse(fileContent)
-      } catch (e) {
-        throw new Error("Invalid JSON file format")
-      }
+      setStatus("restoring-users");
+      
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('action', 'users');
 
       const response = await fetch("/api/admin-api/backup-restore-api/restore", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(backupData),
-      })
+        body: formData,
+      });
 
-      // Read the response body once and store it
-      const responseData = await response.json().catch(() => null)
+      const responseData = await response.json();
 
       if (!response.ok) {
-        if (responseData?.error) {
-          throw new Error(responseData.error)
-        }
-        throw new Error("Failed to restore data")
+        throw new Error(responseData?.error || "Failed to restore users");
       }
 
-      setStatus("success")
+      setStatus("success");
       toast({
-        title: "Restore Successful",
-        description: "Your data has been successfully restored.",
-      })
-
-      // Reset status after a delay
-      setTimeout(() => setStatus("idle"), 3000)
+        title: "Users Restored",
+        description: `Successfully restored ${responseData.usersRestored} users`,
+      });
     } catch (error) {
-      console.error("Restore error:", error)
-      setStatus("error")
+      setStatus("idle");
       toast({
         variant: "destructive",
         title: "Restore Failed",
-        description:
-          error instanceof Error ? error.message : "There was an error restoring your data. Please try again.",
-      })
-
-      // Reset status after a delay
-      setTimeout(() => setStatus("idle"), 3000)
-    } finally {
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ""
-      }
+        description: error instanceof Error ? error.message : "An error occurred while restoring users",
+      });
     }
-  }
+  };
+
+  const handleRestoreAll = async () => {
+    if (!selectedFile) {
+      toast({
+        variant: "destructive",
+        title: "No File Selected",
+        description: "Please select a backup file first",
+      });
+      return;
+    }
+
+    try {
+      setStatus("restoring-all");
+      
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('action', 'all');
+
+      const response = await fetch("/api/admin-api/backup-restore-api/restore", {
+        method: "POST",
+        body: formData,
+      });
+
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(responseData?.error || "Failed to restore data");
+      }
+
+      setStatus("success");
+      toast({
+        title: "Data Restored",
+        description: "Successfully restored all data",
+      });
+    } catch (error) {
+      setStatus("idle");
+      toast({
+        variant: "destructive",
+        title: "Restore Failed",
+        description: error instanceof Error ? error.message : "An error occurred while restoring data",
+      });
+    }
+  };
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -189,115 +174,95 @@ const BackupRestorePage = () => {
 
           <div className="space-y-6">
             <div className="space-y-2">
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-2">
-                  <UploadCloud className="w-4 h-4 text-blue-500" />
-                  <span className="font-medium text-sm">Create Backup</span>
-                </div>
-                <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">JSON</span>
+              <label className="text-sm font-medium text-muted-foreground">
+                Select Backup File
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  onChange={(e) => {
+                    if (e.target.files?.[0]) {
+                      setSelectedFile(e.target.files[0]);
+                    }
+                  }}
+                  accept=".json.gz"
+                />
+                <Button
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {selectedFile ? selectedFile.name : "Select Backup File"}
+                </Button>
               </div>
+            </div>
 
+            <div className="space-y-4">
               <Button
-                className="w-full relative bg-blue-500 hover:bg-blue-600 text-primary-foreground"
                 onClick={handleBackup}
-                disabled={status === "backing-up" || status === "restoring"}
+                disabled={status === "backing-up"}
+                className="w-full"
               >
                 {status === "backing-up" ? (
                   <>
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    Backing up...
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating Backup...
                   </>
                 ) : (
-                  <>
-                    <UploadCloud className="w-5 h-5 mr-2" />
-                    Back Up
-                  </>
+                  "Create Backup"
                 )}
               </Button>
 
-              <p className="text-xs text-muted-foreground">Creates a downloadable JSON backup of your database</p>
-            </div>
+              <div className="space-y-2">
+                <Button
+                  onClick={handleRestoreUsers}
+                  disabled={!selectedFile || status === "restoring-users"}
+                  variant="outline"
+                  className="w-full"
+                >
+                  {status === "restoring-users" ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Restoring Users...
+                    </>
+                  ) : (
+                    "Restore Users"
+                  )}
+                </Button>
 
-            <Separator />
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-2">
-                  <DownloadCloud className="w-4 h-4 text-green-500" />
-                  <span className="font-medium text-sm">Restore from Backup</span>
-                </div>
-                <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
-                  <FileJson className="w-3 h-3" />
-                  <span>Max 10MB</span>
-                </div>
-              </div>
-
-              <input type="file" ref={fileInputRef} accept=".json" onChange={handleRestore} className="hidden" />
-
-              <Button
-                className="w-full bg-green-500 hover:bg-green-600 text-primary-foreground"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={status === "backing-up" || status === "restoring"}
-              >
-                {status === "restoring" ? (
-                  <>
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    Restoring...
-                  </>
-                ) : (
-                  <>
-                    <DownloadCloud className="w-5 h-5 mr-2" />
-                    Restore
-                  </>
-                )}
-              </Button>
-
-              <div className="flex items-center gap-2 mt-2 text-xs text-amber-600 bg-amber-50 p-2 rounded">
-                <Shield className="w-4 h-4" />
-                <p>Restoring will overwrite existing data. Make sure you have a backup first.</p>
+                <Button
+                  onClick={handleRestoreAll}
+                  disabled={!selectedFile || status === "restoring-all"}
+                  variant="destructive"
+                  className="w-full"
+                >
+                  {status === "restoring-all" ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Restoring All Data...
+                    </>
+                  ) : (
+                    "Restore All Data"
+                  )}
+                </Button>
               </div>
             </div>
+
+            {status === "success" && (
+              <Alert className="bg-green-50 text-green-900 border-green-200">
+                <CheckCircle className="h-4 w-4" />
+                <AlertTitle>Success</AlertTitle>
+                <AlertDescription>
+                  {selectedFile ? "Restore completed successfully" : "Backup created successfully"}
+                </AlertDescription>
+              </Alert>
+            )}
           </div>
         </CardContent>
-
-        {status !== "idle" && (
-          <CardFooter className="pt-0">
-            <Alert variant={status === "error" ? "destructive" : "default"} className="w-full">
-              <AlertTitle className="flex items-center gap-2">
-                {status === "success" ? (
-                  <CheckCircle className="w-4 h-4" />
-                ) : status === "error" ? (
-                  <XCircle className="w-4 h-4" />
-                ) : (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                )}
-                {status === "backing-up"
-                  ? "Creating Backup..."
-                  : status === "restoring"
-                    ? "Restoring Data..."
-                    : status === "success"
-                      ? "Operation Successful"
-                      : status === "error"
-                        ? "Error"
-                        : ""}
-              </AlertTitle>
-              <AlertDescription>
-                {status === "backing-up"
-                  ? "Please wait while we prepare your backup file..."
-                  : status === "restoring"
-                    ? "Please wait while we restore your data..."
-                    : status === "success"
-                      ? "Your operation has been completed successfully."
-                      : status === "error"
-                        ? "An error occurred. Please try again."
-                        : ""}
-              </AlertDescription>
-            </Alert>
-          </CardFooter>
-        )}
       </Card>
     </div>
-  )
-}
+  );
+};
 
 export default BackupRestorePage

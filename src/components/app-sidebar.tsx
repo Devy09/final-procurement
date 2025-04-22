@@ -214,15 +214,6 @@ const navOfficeHead = [
 // BAC OFFICE SIDEBAR
 const navBac = [
   {
-    title: "Dashboard",
-    url: "../../dashboard/bac-dashboard",
-    icon: LayoutDashboard,
-    isActive: true,
-    items: [
-      { title: "Overview", url: "../../dashboard/bac-dashboard" },
-    ],
-  },
-  {
     title: "BAC Transactions",
     url: "#",
     icon: FileBadge,

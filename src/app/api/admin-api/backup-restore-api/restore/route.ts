@@ -1,336 +1,419 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
+import zlib from "zlib";
 
-// Validation schema
-const backupDataSchema = z
-  .object({
-    ppmp: z
-      .array(
-        z.object({
-          id: z.string(),
-          ppmp_item: z.string(),
-          unit_cost: z.union([z.string(), z.number()]),
-          ppmp_category: z.string(),
-          createdAt: z.string(),
-        })
-      )
-      .optional(),
-    officeHeadPPMP: z
-      .array(
-        z.object({
-          id: z.string(),
-          ppmp_item: z.string(),
-          unit_cost: z.union([z.string(), z.number()]),
-          ppmp_category: z.string(),
-          createdAt: z.string(),
-          updatedAt: z.string().optional(),
-          userId: z.string(),
-        })
-      )
-      .optional(),
-    purchaseRequests: z
-      .array(
-        z.object({
-          id: z.string(),
-          prno: z.string(),
-          department: z.string(),
-          section: z.string(),
-          purpose: z.string(),
-          overallTotal: z.union([z.string(), z.number()]),
-          procurementMode: z.string(),
-          status: z.string(),
-          createdById: z.string(),
-          createdAt: z.string(),
-          updatedAt: z.string(),
-        })
-      )
-      .optional(),
-    purchaseRequestItems: z
-      .array(
-        z.object({
-          id: z.string(),
-          itemNo: z.number(),
-          quantity: z.number(),
-          unit: z.string(),
-          description: z.string(),
-          unitCost: z.union([z.string(), z.number()]),
-          totalCost: z.union([z.string(), z.number()]),
-          purchaseRequestId: z.string(),
-          createdAt: z.string(),
-          updatedAt: z.string(),
-        })
-      )
-      .optional(),
-    purchaseRequestSequence: z
-      .array(
-        z.object({
-          id: z.string(),
-          year: z.number(),
-          lastNumber: z.number(),
-          createdAt: z.string().optional(),
-          updatedAt: z.string().optional(),
-        })
-      )
-      .optional(),
-    quotations: z
-      .array(
-        z.object({
-          id: z.string(),
-          prno: z.string(),
-          department: z.string(),
-          section: z.string(),
-          date: z.string(),
-          createdAt: z.string(),
-          updatedAt: z.string(),
-        })
-      )
-      .optional(),
-    quotationItems: z
-      .array(
-        z.object({
-          id: z.string(),
-          itemNo: z.number(),
-          quantity: z.number(),
-          unit: z.string(),
-          description: z.string(),
-          unitCost: z.union([z.string(), z.number()]),
-          totalCost: z.union([z.string(), z.number()]),
-          quotationId: z.string(),
-          createdAt: z.string(),
-          updatedAt: z.string(),
-        })
-      )
-      .optional(),
-    supplierQuotations: z
-      .array(
-        z.object({
-          id: z.string(),
-          supplierName: z.string(),
-          prno: z.string(),
-          department: z.string(),
-          section: z.string(),
-          date: z.string(),
-          requestDate: z.string(),
-          overallTotal: z.union([z.string(), z.number()]),
-          createdAt: z.string(),
-          updatedAt: z.string(),
-        })
-      )
-      .optional(),
-    supplierQuotationItems: z
-      .array(
-        z.object({
-          id: z.string(),
-          supplierQuotationId: z.string(),
-          itemNumber: z.string(),
-          description: z.string(),
-          quantity: z.number(),
-          unit: z.string(),
-          createdAt: z.string(),
-          updatedAt: z.string(),
-        })
-      )
-      .optional(),
-    purchaseOrders: z
-      .array(
-        z.object({
-          id: z.string(),
-          createdAt: z.string(),
-          updatedAt: z.string(),
-        })
-      )
-      .optional(),
-    purchaseOrderItems: z
-      .array(
-        z.object({
-          id: z.string(),
-          createdAt: z.string(),
-          updatedAt: z.string(),
-        })
-      )
-      .optional(),
-    abstracts: z
-      .array(
-        z.object({
-          id: z.string(),
-          prno: z.string(),
-          requestDate: z.string(),
-          overallTotal: z.union([z.string(), z.number()]),
-          date: z.string(),
-          winningBidder: z.string().optional(),
-          createdAt: z.string(),
-          updatedAt: z.string(),
-        })
-      )
-      .optional(),
-    abstractItems: z
-      .array(
-        z.object({
-          id: z.string(),
-          abstractId: z.string(),
-          itemNo: z.number(),
-          description: z.string(),
-          qty: z.number(),
-          unit: z.string(),
-          bids: z.any(),
-          createdAt: z.string(),
-          updatedAt: z.string(),
-        })
-      )
-      .optional(),
-    notifications: z
-      .array(
-        z.object({
-          id: z.string(),
-          createdAt: z.string(),
-          updatedAt: z.string(),
-        })
-      )
-      .optional(),
-    backupDate: z.string(),
-  })
-  .passthrough();
+const backupDataSchema = z.object({
+  users: z.array(z.object({
+    id: z.string(),
+    clerkId: z.string(),
+    email: z.string(),
+    name: z.string(),
+    image: z.string().nullable().optional(),
+    role: z.string().nullable().optional(),
+    department: z.string().nullable().optional(),
+    section: z.string().nullable().optional(),
+    title: z.string().nullable().optional(),
+    designation: z.string().nullable().optional(),
+    saino: z.string().nullable().optional(),
+    alobsno: z.string().nullable().optional(),
+    signatureUrl: z.string().nullable().optional(),
+    createdAt: z.string(),
+    updatedAt: z.string().nullable().optional(),
+    emailVerified: z.string().nullable().optional(),
+  })),
+  ppmp: z.array(z.any()),
+  officeHeadPPMP: z.array(z.any()),
+  purchaseRequests: z.array(z.any()),
+  purchaseRequestItems: z.array(z.any()),
+  purchaseRequestSequence: z.array(z.any()),
+  quotations: z.array(z.any()),
+  quotationItems: z.array(z.any()),
+  supplierQuotations: z.array(z.any()),
+  supplierQuotationItems: z.array(z.any()),
+  purchaseOrders: z.array(z.any()),
+  purchaseOrderItems: z.array(z.any()),
+  abstracts: z.array(z.any()),
+  abstractItems: z.array(z.any()),
+  backupDate: z.string(),
+});
 
-type TableName = 
-  | "pPMP" 
-  | "officeHeadPPMP" 
-  | "purchaseRequest" 
-  | "purchaseRequestItem"
-  | "purchaseRequestSequence"
-  | "quotation"
-  | "quotationItem"
-  | "supplierQuotation"
-  | "supplierQuotationItem"
-  | "purchaseOrder"
-  | "purchaseOrderItem"
-  | "abstract"
-  | "abstractItem"
-
-type BackupDataItem = Record<string, unknown>;
-
-export async function POST(req: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const data = await req.json();
-    console.log("Received backup data:", data);
+    const formData = await request.formData();
+    const file = formData.get('file') as File;
+    const action = formData.get('action') as string;
 
-    // Validate backup data structure
-    try {
-      backupDataSchema.parse(data);
-    } catch (validationError) {
-      console.error("Validation error details:", JSON.stringify(validationError, null, 2));
-      return new NextResponse(
-        JSON.stringify({ error: "Invalid backup file format", details: validationError }),
+    if (!file) {
+      return NextResponse.json(
+        { error: "No file uploaded" },
         { status: 400 }
       );
     }
 
-    // Validate backup date
-    const backupDate = new Date(data.backupDate);
-    const maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
-    if (Date.now() - backupDate.getTime() > maxAge) {
-      return new NextResponse("Backup file is too old (max 30 days)", { status: 400 });
-    }
-
-    // Start a transaction to ensure data consistency
-    await prisma.$transaction(async (tx) => {
-      // Delete existing data in all tables
-      await Promise.all([
-        tx.purchaseOrderItem.deleteMany({}),
-        tx.purchaseOrder.deleteMany({}),
-        tx.supplierQuotationItem.deleteMany({}),
-        tx.supplierQuotation.deleteMany({}),
-        tx.quotationItem.deleteMany({}),
-        tx.quotation.deleteMany({}),
-        tx.purchaseRequestItem.deleteMany({}),
-        tx.purchaseRequest.deleteMany({}),
-        tx.officeHeadPPMP.deleteMany({}),
-        tx.pPMP.deleteMany({}),
-        tx.user.deleteMany({}),
-        tx.abstractItem.deleteMany({}),
-        tx.abstract.deleteMany({}),
-        tx.notification.deleteMany({}),
-        tx.purchaseRequestSequence.deleteMany({}),
-      ]);
-
-      if (data.users?.length) {
-        await tx.user.createMany({
-          data: data.users.map((item: BackupDataItem) => ({
-            ...item,
-            createdAt: new Date(item.createdAt as string),
-            updatedAt: item.updatedAt ? new Date(item.updatedAt as string) : undefined,
-            emailVerified: item.emailVerified ? new Date(item.emailVerified as string) : null,
-          })),
-        });
-      }
-
-      const tableMap: Record<TableName, { model: any; dataKey: keyof typeof data }> = {
-        pPMP: { model: tx.pPMP, dataKey: "ppmp" },
-        officeHeadPPMP: { model: tx.officeHeadPPMP, dataKey: "officeHeadPPMP" },
-        purchaseRequest: { model: tx.purchaseRequest, dataKey: "purchaseRequests" },
-        purchaseRequestItem: { model: tx.purchaseRequestItem, dataKey: "purchaseRequestItems" },
-        purchaseRequestSequence: { model: tx.purchaseRequestSequence, dataKey: "purchaseRequestSequence" },
-        quotation: { model: tx.quotation, dataKey: "quotations" },
-        quotationItem: { model: tx.quotationItem, dataKey: "quotationItems" },
-        supplierQuotation: { model: tx.supplierQuotation, dataKey: "supplierQuotations" },
-        supplierQuotationItem: { model: tx.supplierQuotationItem, dataKey: "supplierQuotationItems" },
-        purchaseOrder: { model: tx.purchaseOrder, dataKey: "purchaseOrders" },
-        purchaseOrderItem: { model: tx.purchaseOrderItem, dataKey: "purchaseOrderItems" },
-        abstract: { model: tx.abstract, dataKey: "abstracts" },
-        abstractItem: { model: tx.abstractItem, dataKey: "abstractItems" },
-      };
-
-      // Process each table in order
-      const tableOrder = [
-        "user", // Process users first since they're referenced by other tables
-        "pPMP",
-        "officeHeadPPMP",
-        "purchaseRequestSequence",
-        "purchaseRequest",
-        "purchaseRequestItem",
-        "quotation",
-        "quotationItem",
-        "supplierQuotation",
-        "supplierQuotationItem",
-        "purchaseOrder",
-        "purchaseOrderItem",
-        "abstract",
-        "abstractItem",
-      ];
-
-      for (const tableName of tableOrder) {
-        const table = tableName as TableName;
-        const { model, dataKey } = tableMap[table];
-        if (data[dataKey]?.length) {
-          const cleanData = data[dataKey].filter(
-            (item: BackupDataItem) =>
-              item && typeof item === "object" && Object.values(item).every((v) => v !== undefined)
-          );
-
-          if (cleanData.length > 0) {
-            await model.createMany({
-              data: cleanData.map((item: BackupDataItem) => ({
-                ...item,
-                createdAt: new Date(item.createdAt as string),
-                ...(item.updatedAt ? { updatedAt: new Date(item.updatedAt as string) } : {}),
-                ...(item.unit_cost ? { unit_cost: Number(item.unit_cost) } : {}),
-                ...(item.totalCost ? { totalCost: Number(item.totalCost) } : {}),
-                ...(item.unitCost ? { unitCost: Number(item.unitCost) } : {}),
-                ...(item.overallTotal ? { overallTotal: Number(item.overallTotal) } : {}),
-                ...(item.year ? { year: Number(item.year) } : {}),
-                ...(item.lastNumber ? { lastNumber: Number(item.lastNumber) } : {}),
-              })),
-            });
+    // Read and decompress the file
+    const fileContent = await file.arrayBuffer();
+    const backupData = await new Promise<any>((resolve, reject) => {
+      // Try decompressing first
+      zlib.gunzip(Buffer.from(fileContent), (err, result) => {
+        if (err) {
+          // If decompression fails, try parsing as JSON directly
+          try {
+            const text = Buffer.from(fileContent).toString();
+            resolve(JSON.parse(text));
+          } catch (parseError) {
+            reject(new Error("Invalid backup file format"));
+          }
+        } else {
+          try {
+            resolve(JSON.parse(result.toString()));
+          } catch (parseError) {
+            reject(new Error("Invalid backup file format"));
           }
         }
+      });
+    });
+
+    // Validate backup date
+    const backupDateObj = new Date(backupData.backupDate);
+    const maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
+    if (Date.now() - backupDateObj.getTime() > maxAge) {
+      return NextResponse.json(
+        { error: "Backup file is too old (max 30 days)" },
+        { status: 400 }
+      );
+    }
+
+    // Validate backup data structure
+    backupDataSchema.parse(backupData);
+
+    if (action === "users") {
+      return await restoreUsers(backupData);
+    } else if (action === "all") {
+      return await restoreAllData(backupData);
+    } else {
+      return NextResponse.json(
+        { error: "Invalid action. Must be either 'users' or 'all'" },
+        { status: 400 }
+      );
+    }
+  } catch (error: unknown) {
+    console.error("Restore error:", error);
+    return NextResponse.json(
+      { 
+        error: error instanceof Error ? error.message : 
+               typeof error === 'string' ? error : 
+               'An unexpected error occurred during restore' 
+      },
+      { status: 500 }
+    );
+  }
+}
+
+async function restoreUsers(backupData: any) {
+  try {
+    // Delete existing users
+    await prisma.user.deleteMany();
+
+    // Create users with basic info
+    const basicUsers = backupData.users.map((item: any) => ({
+      clerkId: item.clerkId,
+      email: item.email,
+      name: item.name || item.email.split('@')[0],
+      createdAt: new Date(item.createdAt),
+      updatedAt: item.updatedAt ? new Date(item.updatedAt) : undefined,
+      emailVerified: item.emailVerified ? new Date(item.emailVerified) : null,
+    }));
+
+    await prisma.user.createMany({
+      data: basicUsers,
+      skipDuplicates: true,
+    });
+
+    // Update user profiles
+    const updatePromises = backupData.users.map(async (item: any) => {
+      try {
+        await prisma.user.update({
+          where: { clerkId: item.clerkId },
+          data: {
+            department: item.department ?? undefined,
+            section: item.section ?? undefined,
+            title: item.title ?? undefined,
+            designation: item.designation ?? undefined,
+            saino: item.saino ?? undefined,
+            alobsno: item.alobsno ?? undefined,
+            signatureUrl: item.signatureUrl ?? undefined,
+            updatedAt: new Date(item.updatedAt || item.createdAt)
+          }
+        });
+      } catch (error: unknown) {
+        console.error(`Error updating user ${item.clerkId}:`, error);
+        throw error;
       }
     });
 
-    return NextResponse.json({ message: "Restore completed successfully" });
-  } catch (error) {
-    console.error("Restore error:", error);
-    return new NextResponse(
-      error instanceof Error ? error.message : "Internal Server Error", { status: 500 }
+    await Promise.all(updatePromises);
+
+    return NextResponse.json({ 
+      message: "Users restored successfully",
+      usersRestored: backupData.users.length 
+    });
+  } catch (error: unknown) {
+    console.error("Error in restoreUsers:", error);
+    return NextResponse.json(
+      { 
+        error: error instanceof Error ? error.message : 
+               typeof error === 'string' ? error : 
+               'An unexpected error occurred during restore' 
+      },
+      { status: 500 }
+    );
+  }
+}
+
+async function restoreAllData(backupData: any) {
+  try {
+    console.log('Starting full data restoration...');
+    
+    // Delete all other data (except users)
+    console.log('Deleting existing data...');
+    await Promise.all([
+      prisma.officeHeadPPMP.deleteMany(),
+      prisma.purchaseRequest.deleteMany(),
+      prisma.purchaseRequestItem.deleteMany(),
+      prisma.purchaseRequestSequence.deleteMany(),
+      prisma.pPMP.deleteMany(),
+      prisma.quotation.deleteMany(),
+      prisma.quotationItem.deleteMany(),
+      prisma.supplierQuotation.deleteMany(),
+      prisma.supplierQuotationItem.deleteMany(),
+      prisma.purchaseOrder.deleteMany(),
+      prisma.purchaseOrderItem.deleteMany(),
+      prisma.abstract.deleteMany(),
+      prisma.abstractItem.deleteMany(),
+    ]);
+
+    // Create a map of users by section for later reference
+    const allUsers = await prisma.user.findMany({
+      select: { 
+        id: true, 
+        section: true 
+      }
+    });
+    // Create a map from section to database id
+    const userMapBySection = new Map(allUsers.map(u => [u.section, u.id]));
+
+    // Process tables in order of dependencies
+    const tableOrder = [
+      "users", // Process users first
+      "pPMP", // No dependencies
+      "officeHeadPPMP", // Depends on users
+      "purchaseRequest", // Depends on users
+      "purchaseRequestItem", // Depends on purchaseRequests
+      "purchaseRequestSequence", // Depends on purchaseRequests
+      "quotation", // Depends on purchaseRequests
+      "quotationItem", // Depends on quotations
+      "supplierQuotation", // Depends on purchaseRequests
+      "supplierQuotationItem", // Depends on supplierQuotations
+      "purchaseOrder", // Depends on purchaseRequests
+      "purchaseOrderItem", // Depends on purchaseOrders
+      "abstract", // Depends on purchaseRequests
+      "abstractItem" // Depends on abstracts
+    ];
+
+    interface TableConfig {
+      model: any;
+      dataKey: keyof typeof backupData;
+    }
+
+    const tableMap: Record<string, TableConfig> = {
+      users: { model: prisma.user, dataKey: "users" },
+      pPMP: { model: prisma.pPMP, dataKey: "ppmp" },
+      officeHeadPPMP: { model: prisma.officeHeadPPMP, dataKey: "officeHeadPPMP" },
+      purchaseRequest: { model: prisma.purchaseRequest, dataKey: "purchaseRequests" },
+      purchaseRequestItem: { model: prisma.purchaseRequestItem, dataKey: "purchaseRequestItems" },
+      purchaseRequestSequence: { model: prisma.purchaseRequestSequence, dataKey: "purchaseRequestSequence" },
+      quotation: { model: prisma.quotation, dataKey: "quotations" },
+      quotationItem: { model: prisma.quotationItem, dataKey: "quotationItems" },
+      supplierQuotation: { model: prisma.supplierQuotation, dataKey: "supplierQuotations" },
+      supplierQuotationItem: { model: prisma.supplierQuotationItem, dataKey: "supplierQuotationItems" },
+      purchaseOrder: { model: prisma.purchaseOrder, dataKey: "purchaseOrders" },
+      purchaseOrderItem: { model: prisma.purchaseOrderItem, dataKey: "purchaseOrderItems" },
+      abstract: { model: prisma.abstract, dataKey: "abstracts" },
+      abstractItem: { model: prisma.abstractItem, dataKey: "abstractItems" },
+    };
+
+    let totalRecordsRestored = 0;
+
+    for (const tableName of tableOrder) {
+      const tableConfig = tableMap[tableName];
+      if (!tableConfig) {
+        console.error(`Invalid table name: ${tableName}`);
+        continue;
+      }
+
+      const data = backupData[tableConfig.dataKey];
+      
+      if (!data || !Array.isArray(data)) {
+        console.log(`Skipping ${tableName}: No data found`);
+        continue;
+      }
+
+      console.log(`Processing ${tableName}: ${data.length} records`);
+      
+      // Process each record individually with proper error handling
+      const createPromises = data.map((item: any, index: number) => {
+        console.log(`Processing ${tableName} record ${index + 1}/${data.length}`);
+        
+        // For users, handle optional fields properly
+        if (tableName === 'users') {
+          // Clean up optional fields by converting null to undefined
+          const cleanData = {
+            ...item,
+            // Convert null to undefined for optional fields
+            department: item.department ?? undefined,
+            section: item.section ?? undefined,
+            title: item.title ?? undefined,
+            designation: item.designation ?? undefined,
+            saino: item.saino ?? undefined,
+            alobsno: item.alobsno ?? undefined,
+            signatureUrl: item.signatureUrl ?? undefined,
+            // Convert dates
+            createdAt: new Date(item.createdAt),
+            updatedAt: item.updatedAt ? new Date(item.updatedAt) : undefined,
+            emailVerified: item.emailVerified ? new Date(item.emailVerified) : undefined,
+            // Remove any fields that might cause conflicts
+            id: undefined,
+            _id: undefined,
+            __id: undefined
+          };
+
+          console.log('Creating user with data:', cleanData);
+
+          return prisma.user.create({
+            data: cleanData
+          }).then((result) => {
+            console.log(`Successfully created user record ${index + 1}`);
+            return result;
+          }).catch((error: unknown) => {
+            console.error(`Error creating user record ${index + 1}:`, error);
+            console.error('Failed record data:', item);
+            console.error('Clean data:', cleanData);
+            return null;
+          });
+        }
+
+        // For OfficeHeadPPMP, handle user references by section
+        if (tableName === 'officeHeadPPMP') {
+          // Get the section from the backup data
+          const section = item.user?.section; // Get section from user relation
+          console.log(`Looking up user for section: ${section}`);
+          const userId = userMapBySection.get(section);
+          
+          if (!userId) {
+            console.error(`No user found for section: ${section}`);
+            console.error('Available sections:', Array.from(userMapBySection.entries()));
+            return null; // Skip this record
+          }
+
+          console.log(`Found user ID: ${userId} for section: ${section}`);
+
+          // Create a clean data object with only the fields we need
+          const cleanData = {
+            ppmp_item: item.ppmp_item,
+            unit_cost: item.unit_cost, // Keep as string, Prisma will handle conversion
+            ppmp_category: item.ppmp_category,
+            userId: userId, // Use the mapped user ID
+            createdAt: new Date(item.createdAt),
+            updatedAt: item.updatedAt ? new Date(item.updatedAt) : undefined,
+            id: undefined, // Don't use the backup ID
+            _id: undefined,
+            __id: undefined
+          };
+
+          console.log('Creating record with data:', cleanData);
+
+          return prisma.officeHeadPPMP.create({
+            data: cleanData
+          }).then((result) => {
+            console.log(`Successfully created OfficeHeadPPMP record ${index + 1}`);
+            return result;
+          }).catch((error: unknown) => {
+            console.error(`Error creating OfficeHeadPPMP record ${index + 1}:`, error);
+            console.error('Failed record data:', item);
+            console.error('Clean data:', cleanData);
+            return null;
+          });
+        }
+
+        // For other tables, create a clean data object
+        const cleanData = {
+          ...item,
+          // Convert dates
+          createdAt: new Date(item.createdAt as string),
+          ...(item.updatedAt ? { updatedAt: new Date(item.updatedAt as string) } : {}),
+          // Handle numeric fields
+          ...(item.unit_cost ? { unit_cost: item.unit_cost } : {}),
+          ...(item.totalCost ? { totalCost: item.totalCost } : {}),
+          ...(item.unitCost ? { unitCost: item.unitCost } : {}),
+          ...(item.overallTotal ? { overallTotal: item.overallTotal } : {}),
+          ...(item.year ? { year: item.year } : {}),
+          ...(item.lastNumber ? { lastNumber: item.lastNumber } : {}),
+          // Handle user references
+          ...(item.userId && userMapBySection.get(item.user?.section) ? { userId: userMapBySection.get(item.user?.section) } : {}),
+          ...(item.createdBy && userMapBySection.get(item.user?.section) ? { createdBy: userMapBySection.get(item.user?.section) } : {}),
+          ...(item.updatedBy && userMapBySection.get(item.user?.section) ? { updatedBy: userMapBySection.get(item.user?.section) } : {}),
+          // Remove any fields that might cause conflicts
+          id: undefined,
+          _id: undefined,
+          __id: undefined
+        };
+
+        console.log(`Creating ${tableName} record ${index + 1} with data:`, cleanData);
+
+        return tableConfig.model.create({
+          data: cleanData,
+          skipDuplicates: true
+        }).catch((error: unknown) => {
+          console.error(`Error creating ${tableName} record ${index + 1}:`, error);
+          console.error('Failed record data:', item);
+          console.error('Clean data:', cleanData);
+          return null;
+        });
+      });
+
+      // Filter out null values (failed records)
+      const filteredPromises = createPromises.filter((p: any) => p !== null);
+      
+      try {
+        const results = await Promise.all(filteredPromises);
+        const successCount = results.filter((r: any) => r).length;
+        totalRecordsRestored += successCount;
+        console.log(`Successfully restored ${successCount} records out of ${data.length} for ${tableName}`);
+        if (successCount < data.length) {
+          console.warn(`Warning: ${data.length - successCount} records failed to restore for ${tableName}`);
+        }
+      } catch (error: unknown) {
+        console.error(`Failed to restore records for ${tableName}:`, error);
+        continue;
+      }
+    }
+
+    console.log(`Total records restored: ${totalRecordsRestored}`);
+    return NextResponse.json({ 
+      message: "All data restored successfully",
+      recordsRestored: totalRecordsRestored,
+      success: totalRecordsRestored > 0
+    });
+  } catch (error: unknown) {
+    console.error("Error in restoreAllData:", error);
+    return NextResponse.json(
+      { 
+        error: error instanceof Error ? error.message : 
+               typeof error === 'string' ? error : 
+               'An unexpected error occurred during restore' 
+      },
+      { status: 500 }
     );
   }
 }
