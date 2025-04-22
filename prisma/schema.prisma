@@ -103,7 +103,7 @@ model PurchaseRequest {
   items       PurchaseRequestItem[]
   quotations  Quotation[]
   supplierQuotations SupplierQuotation[]
-  abstract    Abstract?
+  abstract    Abstract?             @relation
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -112,6 +112,7 @@ model PurchaseRequest {
   @@index([department])
   @@index([section])
   @@index([createdAt])
+  @@unique([prno, section])
 }
 
 model PurchaseRequestItem {
@@ -145,7 +146,7 @@ model Quotation {
   section    String
   date       DateTime @default(now())
 
-  purchaseRequest PurchaseRequest @relation(fields: [prno], references: [prno])
+  purchaseRequest PurchaseRequest @relation(fields: [prno, section], references: [prno, section])
 
   // Quotation items
   items QuotationItem[]
@@ -183,7 +184,7 @@ model SupplierQuotation {
   items        SupplierQuotationItem[]
   
   // Add relation to PurchaseRequest
-  purchaseRequest PurchaseRequest @relation(fields: [prno], references: [prno])
+  purchaseRequest PurchaseRequest @relation(fields: [prno, section], references: [prno, section])
 
   createdAt    DateTime                @default(now())
   updatedAt    DateTime                @updatedAt
@@ -247,6 +248,7 @@ model PurchaseOrder {
 
   @@index([prno])
   @@index([section])
+  @@unique([prno, section])
 }
 
 model PurchaseOrderItem {
@@ -292,7 +294,7 @@ model Notification {
 
 model Abstract {
   id            String   @id @default(cuid())
-  prno          String   @unique
+  prno          String
   requestDate   DateTime
   overallTotal  Decimal  @db.Decimal(10, 2)
   date          DateTime
@@ -303,12 +305,13 @@ model Abstract {
   section       String
   
   // Add relation to PurchaseRequest
-  purchaseRequest PurchaseRequest @relation(fields: [prno], references: [prno])
+  purchaseRequest PurchaseRequest @relation(fields: [prno, section], references: [prno, section], onDelete: Cascade)
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   @@index([prno])
+  @@unique([prno, section])
 }
 
 model AbstractItem {
