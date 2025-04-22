@@ -104,6 +104,7 @@ model PurchaseRequest {
   quotations  Quotation[]
   supplierQuotations SupplierQuotation[]
   abstract    Abstract?             @relation
+  purchaseOrders PurchaseOrder[]     @relation
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -221,7 +222,10 @@ model PurchaseOrder {
   totalAmount  Float
   date         DateTime
   status       PurchaseOrderStatus @default(pending)
-  section      String              // Add section field to track the section
+  section      String
+
+  // Relations
+  purchaseRequest PurchaseRequest @relation(fields: [prno, section], references: [prno, section])
 
   // Accountant Approval
   approvedByAccountant   Boolean   @default(false)
