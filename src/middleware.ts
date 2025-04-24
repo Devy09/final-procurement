@@ -3,8 +3,10 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)', 
   '/',
-  '/_next/image(.*)',
-  '/public/images/(.*)'
+  '/_next/image/(.*)',
+  '/public/(.*)',
+  '/favicon.ico',
+  '/api/auth/(.*)', // Allow Clerk auth routes
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
@@ -15,11 +17,11 @@ export default clerkMiddleware(async (auth, request) => {
 
 export const config = {
   matcher: [
-    // Skip Next.js internals and static files
+    // Skip Next.js internals
     '/((?!_next/static|_next/image|favicon\.ico).*)',
-    '/public/images/(.*)',
-
-    // Only exclude specific API routes that need to bypass auth
-    '/(api/(?!key-metrics/officer-metrics|admin-api/backup-restore-api/backup).*)',
+    // Allow specific public routes
+    '/(sign-in|_next/image|public|favicon.ico|api/auth)',
+    // Protect all other routes
+    '/((?!api/auth).*)',
   ],
 };
