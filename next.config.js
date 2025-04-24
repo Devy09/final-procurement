@@ -5,6 +5,7 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
+    domains: ['localhost', 'csuprocurement.com'],
     unoptimized: true,
   },
 };
