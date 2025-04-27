@@ -11,7 +11,7 @@ export type PurchaseRequestColumn = {
   department: string
   section: string
   date_submitted: string
-  pr_status: string
+  accountant_status: string
 }
 
 export const columns: ColumnDef<PurchaseRequestColumn>[] = [
@@ -42,7 +42,7 @@ export const columns: ColumnDef<PurchaseRequestColumn>[] = [
     header: "Date Submitted",
   },
   {
-    accessorKey: "pr_status",
+    accessorKey: "accountant_status",
     header: ({ column }) => {
       return (
         <Button
@@ -58,7 +58,8 @@ export const columns: ColumnDef<PurchaseRequestColumn>[] = [
   {
     id: "actions",
     cell: ({ row }) => {
-      return <PurchaseRequestActions requisition={row.original} />
+      const purchaseRequest = row.original
+      return <PurchaseRequestActions requisition={purchaseRequest} />
     },
   },
 ]

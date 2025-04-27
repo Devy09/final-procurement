@@ -60,13 +60,14 @@ export async function PUT(
         where: { id },
         data: {
           approvedByAccountant: true,
-          approvedAtAccountant: new Date(),
+          accountantStatus: "approved", 
+          status: "pending", 
           accountantName: user.name,
           accountantRole: user.role,
           accountantTitle: user.title,
           accountantSignatureUrl: user.signatureUrl,
           accountantDesignation: user.designation,
-          status: 'pending'
+          approvedAtAccountant: new Date(),
         },
       }),
       // Create notification for the request creator

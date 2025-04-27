@@ -67,6 +67,7 @@ interface PurchaseRequestDetails {
   approvedAtAccountant?: string
   accountantName?: string
   accountantRole?: string
+  accountantStatus?: 'pending' | 'approved' | 'rejected'
 }
 
 interface PurchaseRequestColumn {
@@ -111,6 +112,17 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
     }
   }, [open, requisition.id])
 
+  useEffect(() => {
+    if (prDetails) {
+      const accountantStatus = prDetails.approvedByAccountant 
+        ? 'approved'
+        : prDetails.status === 'rejected' 
+          ? 'rejected'
+          : 'pending';
+      setPrDetails(prev => prev && { ...prev, accountantStatus });
+    }
+  }, [prDetails]);
+
   const handleApprove = async () => {
     setIsApproving(true)
     try {
@@ -125,12 +137,23 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
         throw new Error('Failed to approve purchase request')
       }
 
+      // First update the local state with the new status
+      if (prDetails) {
+        setPrDetails(prev => prev && {
+          ...prev,
+          approvedByAccountant: true,
+          accountantStatus: 'approved',
+          status: 'pending' // Keep the overall status as pending since it needs president approval
+        });
+      }
+
       toast({
         title: "Success",
         description: "Purchase request approved successfully",
         variant: "default",
       });
-      // Refresh the data
+      
+      // Then refresh from the server
       if (open) {
         const updatedResponse = await fetch(`/api/requisition-view/${requisition.id}`)
         if (updatedResponse.ok) {
@@ -361,6 +384,22 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
                             <dd>{prDetails.createdBy.name}</dd>
                           </div>
                         </dl>
+                      </div>
+                      <div className="space-y-4">
+                        <div className="flex flex-col gap-1">
+                          <span className="font-medium text-gray-500">Status:</span>
+                          <span 
+                            className={`font-medium ${
+                              prDetails?.accountantStatus === 'approved' ? 'text-green-500' :
+                              prDetails?.accountantStatus === 'rejected' ? 'text-red-500' :
+                              'text-yellow-500'
+                            }`}
+                          >
+                            {prDetails?.accountantStatus === 'approved' && 'Approved (Accountant)'}
+                            {prDetails?.accountantStatus === 'rejected' && 'Rejected'}
+                            {prDetails?.accountantStatus === 'pending' && 'Pending (Accountant)'}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </CardContent>

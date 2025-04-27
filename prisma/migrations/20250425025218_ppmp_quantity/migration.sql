@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "OfficeHeadPPMP" ADD COLUMN     "quantity" DECIMAL(10,2) NOT NULL DEFAULT 1;

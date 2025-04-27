@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/table";
 import { Clock, CheckCircle, Loader2, XCircle, FileClock } from "lucide-react";
 
-
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data?: TData[];
@@ -56,6 +55,7 @@ export function DataTable<TData, TValue>({
             section: item.section,
             date_submitted: new Date(item.date).toLocaleDateString(),
             pr_status: item.status,
+            accountant_status: item.accountantStatus,
           }))
         );
       } catch (error) {
@@ -94,7 +94,6 @@ export function DataTable<TData, TValue>({
       <Loader2 className="h-16 w-16 animate-spin" />
     </div>
   );
-
 
   return (
     <div className="w-full pr-6">
@@ -136,20 +135,34 @@ export function DataTable<TData, TValue>({
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {cell.column.id === "pr_status" ? (
+                      {cell.column.id === "accountant_status" ? (
                         <span
                           className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium capitalize ${
                             cell.getValue() === "pending"
-                            ? "bg-yellow-100 text-yellow-700"
-                            : cell.getValue() === "approved"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"
+                              ? "bg-yellow-100 text-yellow-700"
+                              : cell.getValue() === "approved"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-red-100 text-red-700"
                           }`}
                         >
-                          {cell.getValue() === "pending" && <Clock className="mr-1 h-3 w-3" />}
-                          {cell.getValue() === "approved" && <CheckCircle className="mr-1 h-3 w-3" />}
-                          {cell.getValue() === "rejected" && <XCircle className="mr-1 h-3 w-3" />}
-                          {cell.getValue() as string}
+                          {cell.getValue() === "pending" && (
+                            <>
+                              <Clock className="mr-1 h-3 w-3" />
+                              Pending
+                            </>
+                          )}
+                          {cell.getValue() === "approved" && (
+                            <>
+                              <CheckCircle className="mr-1 h-3 w-3" />
+                              Approved
+                            </>
+                          )}
+                          {cell.getValue() === "rejected" && (
+                            <>
+                              <XCircle className="mr-1 h-3 w-3" />
+                              Rejected
+                            </>
+                          )}
                         </span>
                       ) : (
                         flexRender(cell.column.columnDef.cell, cell.getContext())

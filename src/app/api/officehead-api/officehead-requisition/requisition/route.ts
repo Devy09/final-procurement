@@ -138,40 +138,69 @@ export async function POST(req: NextRequest) {
     }, 0);
     console.log("Overall total calculated:", overallTotal);
 
-    // Create purchase request in database
-    const purchaseRequest = await prisma.purchaseRequest.create({
-      data: {
-        prno,
-        department: user.department || "",
-        section: user.section || "",
-        saino: user.saino || "",
-        alobsno: user.alobsno || "",
-        purpose,
-        overallTotal,
-        procurementMode,
-        certificationFile: certificationUrl || "", // Store S3 URL or empty string
-        letterFile: letterUrl, // Store S3 URL
-        proposalFile: proposalUrl || "", // Store S3 URL or empty string
-        createdById: user.id,
-        items: {
-          create: items.map((item: any, index: number) => ({
-            itemNo: index + 1,
-            quantity: item.quantity,
-            unit: item.unit,
-            description: item.description,
-            stockNo: item.stockNo,
-            unitCost: item.unitCost,
-            totalCost: (item.quantity || 0) * (item.unitCost || 0),
-          })),
+    // Start a transaction to ensure data consistency
+    const result = await prisma.$transaction(async (tx) => {
+      // Create purchase request in database
+      const purchaseRequest = await tx.purchaseRequest.create({
+        data: {
+          prno,
+          department: user.department || "",
+          section: user.section || "",
+          saino: user.saino || "",
+          alobsno: user.alobsno || "",
+          purpose,
+          overallTotal,
+          procurementMode,
+          certificationFile: certificationUrl || "", // Store S3 URL or empty string
+          letterFile: letterUrl, // Store S3 URL
+          proposalFile: proposalUrl || "", // Store S3 URL or empty string
+          createdById: user.id,
+          items: {
+            create: items.map((item: any, index: number) => ({
+              itemNo: index + 1,
+              quantity: item.quantity,
+              unit: item.unit,
+              description: item.description,
+              stockNo: item.stockNo,
+              unitCost: item.unitCost,
+              totalCost: (item.quantity || 0) * (item.unitCost || 0),
+            })),
+          },
         },
-      },
-      include: { items: true },
+        include: { items: true },
+      });
+
+      // Update PPMP quantities
+      for (const item of items) {
+        // Find the corresponding PPMP item
+        const ppmpItem = await tx.officeHeadPPMP.findFirst({
+          where: {
+            ppmp_item: item.description,
+            userId: user.id,
+          },
+        });
+
+        if (ppmpItem) {
+          // Reduce the quantity
+          await tx.officeHeadPPMP.update({
+            where: {
+              id: ppmpItem.id,
+            },
+            data: {
+              quantity: {
+                decrement: item.quantity,
+              },
+            },
+          });
+        }
+      }
+
+      return purchaseRequest;
     });
-    console.log("Purchase request created:", purchaseRequest);
 
     return NextResponse.json({
       message: "Purchase request created successfully",
-      purchaseRequest,
+      purchaseRequest: result,
     });
   } catch (error) {
     console.error("Error:", error);

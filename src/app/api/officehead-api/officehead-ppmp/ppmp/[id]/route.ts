@@ -23,12 +23,17 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
     const { id } = params;
     const body = await req.json();
-    const { ppmp_item, unit_cost, ppmp_category } = body;
+    const { ppmp_item, unit_cost, ppmp_category, quantity } = body;
 
     try {
         const updatedItem = await prisma.officeHeadPPMP.update({
             where: { id },
-            data: { ppmp_item, unit_cost: parseFloat(unit_cost), ppmp_category },
+            data: { 
+                ppmp_item, 
+                unit_cost: parseFloat(unit_cost),
+                ppmp_category,
+                quantity: parseFloat(quantity)
+            },
         });
         return NextResponse.json(updatedItem, { status: 200 });
     } catch (error) {

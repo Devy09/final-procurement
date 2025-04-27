@@ -49,39 +49,29 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
+        const body = await req.json();
+        const { ppmp_item, unit_cost, ppmp_category, quantity } = body;
+
         const userProfile = await prisma.user.findUnique({
             where: { clerkId: userId },
-            select: { id: true }
+            select: { id: true, section: true }
         });
 
-        if (!userProfile) {
-            return NextResponse.json({ error: "User not found" }, { status: 400 });
+        if (!userProfile?.section) {
+            return NextResponse.json({ error: "User section not found" }, { status: 400 });
         }
 
-        const body = await req.json();
-        const { ppmp_item, unit_cost, ppmp_category } = body;
-
-        if (!ppmp_item || !unit_cost || !ppmp_category) {
-            return NextResponse.json({ error: "Missing required fields." }, { status: 400 });
-        }
-
-        const newItem = await prisma.officeHeadPPMP.create({
-            data: { 
-                ppmp_item, 
-                unit_cost, 
+        const createdItem = await prisma.officeHeadPPMP.create({
+            data: {
+                ppmp_item,
+                unit_cost: parseFloat(unit_cost),
                 ppmp_category,
+                quantity: parseFloat(quantity),
                 userId: userProfile.id
-            },
-            include: {
-                user: {
-                    select: {
-                        name: true,
-                        section: true
-                    }
-                }
             }
         });
-        return NextResponse.json(newItem, { status: 201 });
+
+        return NextResponse.json(createdItem, { status: 201 });
     } catch (error) {
         console.error("Error creating PPMP item:", error);
         return NextResponse.json({ error: "Failed to create PPMP item." }, { status: 500 });

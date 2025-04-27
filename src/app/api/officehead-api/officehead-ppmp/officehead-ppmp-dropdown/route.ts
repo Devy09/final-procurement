@@ -27,6 +27,7 @@ export async function GET() {
                 id: true,
                 ppmp_item: true,
                 unit_cost: true,
+                quantity: true
             },
             orderBy: {
                 ppmp_item: 'asc'

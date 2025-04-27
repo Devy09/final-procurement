@@ -53,6 +53,7 @@ model OfficeHeadPPMP {
   unit_cost     Decimal  @db.Decimal(10, 2)
   ppmp_category String
   createdAt     DateTime @default(now())
+  quantity      Decimal  @db.Decimal(10, 2) @default(1)
   
   // Add user relation
   user          User     @relation(fields: [userId], references: [id])
@@ -78,6 +79,7 @@ model PurchaseRequest {
 
   // Approval statuses
   status                 RequestStatus @default(pending)
+  accountantStatus      RequestStatus @default(pending)
   // Accountant Approval
   approvedByAccountant   Boolean       @default(false)
   accountantName         String?

@@ -213,12 +213,22 @@ export async function GET(req: NextRequest) {
         date: true,
         procurementMode: true,
         status: true,
+        approvedByAccountant: true,
+        accountantStatus: true,
       },
       orderBy: {
         date: "desc",
       },
     });
-    return NextResponse.json(purchaseRequests);
+
+    // Transform the data to include accountant status
+    const transformedData = purchaseRequests.map(request => ({
+      ...request,
+      accountantStatus: request.accountantStatus || 
+        (request.approvedByAccountant ? 'approved' : request.status === 'rejected' ? 'rejected' : 'pending'),
+    }));
+
+    return NextResponse.json(transformedData);
   } catch (error) {
     console.error("Error fetching purchase requests:", error);
     return NextResponse.json({ error: "Failed to fetch purchase requests" }, { status: 500 });

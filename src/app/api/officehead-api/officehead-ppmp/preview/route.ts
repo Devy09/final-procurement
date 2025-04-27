@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import * as XLSX from 'xlsx';
 
-export const dynamic = "force-dynamic"; // ✅ Disable static rendering
-export const fetchCache = "force-no-store"; // ✅ Disable caching
+export const dynamic = "force-dynamic"; // Disable static rendering
+export const fetchCache = "force-no-store"; // Disable caching
 
 export async function POST(req: Request) {
   try {
@@ -32,9 +32,9 @@ export async function POST(req: Request) {
 
     const transformedData = jsonData
       .slice(1)
-      .filter((row): row is [unknown, string, unknown, unknown, string | number] => 
+      .filter((row): row is [unknown, string, unknown, unknown, string | number, unknown] => 
         Array.isArray(row) && 
-        row.length >= 5 &&
+        row.length >= 6 &&
         typeof row[1] === 'string' && 
         row[1] !== 'GENERAL DESCRIPTION' && 
         !row[1].includes('PART') && 
@@ -42,10 +42,11 @@ export async function POST(req: Request) {
         !row[1].includes('FURNITURE AND FIXTURES')
       )
       .map((row) => ({
-        ppmp_item: row[1],
-        unit_cost: parseFloat(row[4]?.toString().replace(/,/g, '')) || 0  // Parse the number properly
+        ppmp_item: row[1]?.toString() || '',
+        quantity: row[3] ? parseFloat(row[3].toString().replace(/,/g, '')) : 0,  // Properly parse quantity and handle commas
+        unit_cost: row[4] ? parseFloat(row[4].toString().replace(/,/g, '')) : 0
       }))
-      .filter(item => item.ppmp_item && !isNaN(item.unit_cost));
+      .filter(item => item.ppmp_item && !isNaN(item.unit_cost) && !isNaN(item.quantity));
 
     console.log('Transformed Data:', transformedData); // For debugging
 

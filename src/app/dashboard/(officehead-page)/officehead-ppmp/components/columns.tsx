@@ -41,6 +41,24 @@ export const generateColumns = (
     },
   },
   {
+    accessorKey: "quantity",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Quantity
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    cell: ({ row }) => {
+      const amount = parseFloat(row.getValue("quantity"));
+      return amount.toLocaleString();
+    },
+  },
+  {
     accessorKey: "unit_cost",
     header: ({ column }) => {
       return (
@@ -133,6 +151,7 @@ export const generateColumns = (
         ppmp_item: ppmp.ppmp_item,
         unit_cost: ppmp.unit_cost.toString(),
         ppmp_category: ppmp.ppmp_category,
+        quantity: ppmp.quantity ? ppmp.quantity.toString() : '0',
       });
 
       const handleUpdate = async () => {
@@ -141,6 +160,7 @@ export const generateColumns = (
           ...ppmp,
           ...formData,
           unit_cost: parseFloat(formData.unit_cost),
+          quantity: formData.quantity ? parseFloat(formData.quantity) : 0,
         };
 
         try {
@@ -227,6 +247,17 @@ export const generateColumns = (
                     value={formData.ppmp_item}
                     onChange={(e) =>
                       setFormData({ ...formData, ppmp_item: e.target.value })
+                    }
+                    className="mt-2"
+                  />
+                </Label>
+
+                <Label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Quantity
+                  <Input
+                    value={formData.quantity}
+                    onChange={(e) =>
+                      setFormData({ ...formData, quantity: e.target.value })
                     }
                     className="mt-2"
                   />

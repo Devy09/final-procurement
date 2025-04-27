@@ -13,8 +13,7 @@ import { ClipboardPlus, PackagePlus, FileDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 
-interface PrItem {
-  id: number;
+interface PrItemForm {
   description: string;
   unitCost: number;
   quantity: number;
@@ -22,10 +21,16 @@ interface PrItem {
   stockNo: string;
 }
 
+interface PrItem extends PrItemForm {
+  id: number;
+  availableQuantity: number;
+}
+
 interface PPMPDropdownItem {
   id: string;
   ppmp_item: string;
   unit_cost: number;
+  quantity: number;
 }
 
 interface AttachmentFiles {
@@ -101,13 +106,14 @@ export default function PurchaseRequestFormWrapper({ onSuccess }: PurchaseReques
 
 function PurchaseRequestForm() {
   const [prItems, setPrItems] = useState<PrItem[]>([]);
-  const [newPrItem, setNewPrItem] = useState<Omit<PrItem, 'id'>>({
+  const [newPrItem, setNewPrItem] = useState<PrItemForm>({
     description: '',
     unitCost: 0,
     quantity: 0,
     unit: '',
     stockNo: ''
   });
+  const [availableQuantity, setAvailableQuantity] = useState(0);
   const [files, setFiles] = useState<AttachmentFiles>({
     certification: null,
     letter: null,
@@ -149,13 +155,39 @@ function PurchaseRequestForm() {
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    
+    // If it's the quantity input, validate against available quantity and minimum value
+    if (name === 'quantity' && value) {
+      const numValue = Number(value);
+      
+      // Prevent 0 or negative values
+      if (numValue <= 0) {
+        toast({
+          title: "Validation Error",
+          description: "Quantity must be greater than 0",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Check against available quantity
+      if (numValue > availableQuantity) {
+        toast({
+          title: "Validation Error",
+          description: `Quantity cannot exceed available quantity (${availableQuantity})`,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     setNewPrItem(prev => ({
       ...prev,
       [name]: name === 'unitCost' || name === 'quantity' ? Number(value) : value
     }));
-  }, []);
+  }, [availableQuantity, toast]);
 
-  const handleSelectChange = useCallback((name: keyof Omit<PrItem, 'id'>, value: string) => {
+  const handleSelectChange = useCallback((name: keyof Omit<PrItemForm, 'id'>, value: string) => {
     setNewPrItem(prev => {
       const updates: Partial<typeof prev> = { [name]: value };
       
@@ -163,6 +195,8 @@ function PurchaseRequestForm() {
         const selectedItem = dropdownItems.find(item => item.ppmp_item === value);
         if (selectedItem) {
           updates.unitCost = selectedItem.unit_cost;
+          setAvailableQuantity(selectedItem.quantity); // Store available quantity in separate state
+          updates.quantity = 1; // Default input quantity to 1
         }
       }
       
@@ -171,20 +205,47 @@ function PurchaseRequestForm() {
   }, [dropdownItems]);
 
   const addItem = useCallback(() => {
-    const { description, unitCost, quantity, unit } = newPrItem;
-    if (!description || unitCost <= 0 || quantity <= 0 || !unit) {
+    const { description, unitCost, quantity, unit, stockNo } = newPrItem;
+    
+    if (quantity > availableQuantity) {
       toast({
         title: "Validation Error",
-        description: "All fields are required and must be valid.",
+        description: `Quantity cannot exceed available quantity (${availableQuantity})`,
         variant: "destructive",
       });
       return;
     }
 
-    setPrItems(prev => [...prev, { ...newPrItem, id: Date.now() }]);
-    setNewPrItem({ description: '', unitCost: 0, quantity: 0, unit: '', stockNo: '' });
+    if (!description || unitCost <= 0 || quantity <= 0 || !unit) {
+      toast({
+        title: "Validation Error",
+        description: "Description, unit cost, quantity, and unit are required.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Create a new item with all required fields
+    const newItem: PrItem = {
+      id: Date.now(),
+      description,
+      unitCost,
+      quantity,
+      unit,
+      stockNo: stockNo || '', // Allow empty stockNo
+      availableQuantity: 0 // We don't need this for display items
+    };
+
+    setPrItems(prev => [...prev, newItem]);
+    setNewPrItem({
+      description: '',
+      unitCost: 0,
+      quantity: 0,
+      unit: '',
+      stockNo: ''
+    });
     setIsDialogOpen(false);
-  }, [newPrItem, toast]);
+  }, [newPrItem, availableQuantity, toast]);
 
   const calculateTotal = useCallback(() => {
     return prItems.reduce((total, item) => total + (item.unitCost * item.quantity), 0);
@@ -281,79 +342,98 @@ function PurchaseRequestForm() {
           <DialogTrigger asChild>
             <Button variant="customMaroon"><PackagePlus /> Add New Item</Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-2xl w-full">
             <DialogHeader className='bg-red-950 text-white p-6 rounded-lg'>
-              <DialogTitle className='text-2xl'>Add New Item</DialogTitle>
+              <DialogTitle className='text-2xl'>Select Item</DialogTitle>
             </DialogHeader>
             <div className="flex flex-col gap-4">
-              <Select onValueChange={(value) => handleSelectChange('description', value)}>
-                <SelectTrigger disabled={isLoadingItems}>
-                  <SelectValue placeholder={isLoadingItems ? "Loading items..." : "Item Description"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {isLoadingItems ? (
-                    <SelectItem value="loading" disabled>
-                      Loading items...
+            <Select onValueChange={(value) => handleSelectChange('description', value)}>
+              <SelectTrigger disabled={isLoadingItems}>
+                <SelectValue placeholder={isLoadingItems ? "Loading items..." : "Item Description"} />
+              </SelectTrigger>
+              <SelectContent>
+                {isLoadingItems ? (
+                  <SelectItem value="loading" disabled>
+                    Loading items...
+                  </SelectItem>
+                ) : dropdownItems.length > 0 ? (
+                  dropdownItems.map((item) => (
+                    <SelectItem key={item.id} value={item.ppmp_item}>
+                      {item.ppmp_item}
                     </SelectItem>
-                  ) : dropdownItems.length > 0 ? (
-                    dropdownItems.map((item) => (
-                      <SelectItem key={item.id} value={item.ppmp_item}>
-                        {item.ppmp_item}
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="no-items" disabled>
-                      No items available
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-              <Input
-                name="unitCost"
-                placeholder="Unit Cost"
-                type="number"
-                value={newPrItem.unitCost || ''}
-                onChange={handleInputChange}
-                min="0"
-                step="0.01"
-                required
-                readOnly
-              />
-              <Input
-                name="quantity"
-                placeholder="Quantity"
-                type="number"
-                value={newPrItem.quantity || ''}
-                onChange={handleInputChange}
-                min="0"
-                step="1"
-                required
-              />
-              <Select onValueChange={(value) => handleSelectChange('unit', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Unit" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Pcs">Pcs</SelectItem>
-                  <SelectItem value="Ream">Ream</SelectItem>
-                  <SelectItem value="Box">Box</SelectItem>
-                  <SelectItem value="Pack">Pack</SelectItem>
-                  <SelectItem value="Set">Set</SelectItem>
-                  <SelectItem value="Bottle">Bottle</SelectItem>
-                  <SelectItem value="Roll">Roll</SelectItem>
-                  <SelectItem value="Gallon">Gallon</SelectItem>
-                  <SelectItem value="Ampule">Ampule</SelectItem>
-                  <SelectItem value="Vial">Vial</SelectItem>
-                  <SelectItem value="Cup">Cup</SelectItem>
-                </SelectContent>
-              </Select>
+                  ))
+                ) : (
+                  <SelectItem value="none" disabled>
+                    No items found
+                  </SelectItem>
+                )}
+              </SelectContent>
+            </Select>
+            
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-medium">Available Quantity: {availableQuantity > 0 ? availableQuantity : 'N/A'}</label>
+              </div>
+            </div>
 
-              <Input
-                name="stockNo"
-                placeholder="Stock No."
-                value={newPrItem.stockNo}
-                onChange={handleInputChange}
-              />
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <Input
+                  name="quantity"
+                  placeholder="Quantity"
+                  type="number"
+                  value={newPrItem.quantity || ''}
+                  onChange={handleInputChange}
+                  min="1"
+                  step="1"
+                  required
+                />
+              </div>
+              <div className="flex-1">
+                <Input
+                  name="unitCost"
+                  placeholder="Unit Cost"
+                  type="number"
+                  value={newPrItem.unitCost || ''}
+                  onChange={handleInputChange}
+                  min="0"
+                  step="0.01"
+                  required
+                  readOnly
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <Select onValueChange={(value) => handleSelectChange('unit', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Unit" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Pcs">Pcs</SelectItem>
+                    <SelectItem value="Ream">Ream</SelectItem>
+                    <SelectItem value="Box">Box</SelectItem>
+                    <SelectItem value="Pack">Pack</SelectItem>
+                    <SelectItem value="Set">Set</SelectItem>
+                    <SelectItem value="Bottle">Bottle</SelectItem>
+                    <SelectItem value="Roll">Roll</SelectItem>
+                    <SelectItem value="Gallon">Gallon</SelectItem>
+                    <SelectItem value="Ampule">Ampule</SelectItem>
+                    <SelectItem value="Vial">Vial</SelectItem>
+                    <SelectItem value="Cup">Cup</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex-1">
+                <Input
+                  name="stockNo"
+                  placeholder="Stock No."
+                  value={newPrItem.stockNo}
+                  onChange={handleInputChange}
+                />
+              </div>
+            </div>
               
               <Button onClick={addItem} className="bg-red-950 text-white hover:bg-red-900"><PackagePlus /> Add Item</Button>
             </div>

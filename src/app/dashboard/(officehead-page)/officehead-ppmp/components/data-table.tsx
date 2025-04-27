@@ -45,6 +45,7 @@ export function DataTable({ data, setData }: DataTableProps) {
   const [itemDescription, setItemDescription] = React.useState("");
   const [unitCost, setUnitCost] = React.useState("");
   const [category, setCategory] = React.useState("");
+  const [quantity, setQuantity] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [loadingTable, setLoadingTable] = React.useState(false);
   const [dialogOpen, setDialogOpen] = React.useState(false);
@@ -108,7 +109,8 @@ export function DataTable({ data, setData }: DataTableProps) {
     const newItem = {
       ppmp_item: itemDescription,
       unit_cost: parseFloat(unitCost),
-      ppmp_category: category
+      ppmp_category: category,
+      quantity: quantity ? parseFloat(quantity) : 1 // Default to 1 if quantity is empty
     };
 
     try {
@@ -130,6 +132,7 @@ export function DataTable({ data, setData }: DataTableProps) {
       setItemDescription("");
       setUnitCost("");
       setCategory("");
+      setQuantity("");
       toast({
         title: "Success",
         description: "Item added successfully"
@@ -255,7 +258,8 @@ export function DataTable({ data, setData }: DataTableProps) {
           const data = await response.json();
           const simplifiedData = data.map((item: any) => ({
             ppmp_item: item.ppmp_item,
-            unit_cost: item.unit_cost
+            quantity: parseFloat(item.quantity),  
+            unit_cost: parseFloat(item.unit_cost)  
           }));
           setPreviewData(simplifiedData);
         } else {
@@ -284,7 +288,8 @@ export function DataTable({ data, setData }: DataTableProps) {
       const itemsToUpload = previewData.map(item => ({
         ppmp_item: item.ppmp_item,
         unit_cost: item.unit_cost,
-        ppmp_category: 'Supplies'
+        ppmp_category: 'Supplies',
+        quantity: item.quantity  
       }));
 
       const uploadPromises = itemsToUpload.map(item => 
@@ -380,6 +385,7 @@ export function DataTable({ data, setData }: DataTableProps) {
                       <TableHeader>
                         <TableRow>
                           <TableHead>Item Description</TableHead>
+                          <TableHead>Quantity</TableHead>
                           <TableHead>Unit Cost</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -387,6 +393,7 @@ export function DataTable({ data, setData }: DataTableProps) {
                         {previewData.map((item, index) => (
                           <TableRow key={index}>
                             <TableCell>{item.ppmp_item}</TableCell>
+                            <TableCell>{item.quantity}</TableCell>
                             <TableCell>{formatCurrency(parseFloat(item.unit_cost))}</TableCell>
                           </TableRow>
                         ))}
@@ -452,6 +459,20 @@ export function DataTable({ data, setData }: DataTableProps) {
                     value={unitCost}
                     onChange={(e) => setUnitCost(e.target.value)}
                     autoComplete="off"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="quantity" className="text-right">
+                    Quantity
+                  </Label>
+                  <Input
+                    id="quantity"
+                    className="col-span-3"
+                    value={quantity}
+                    onChange={(e) => setQuantity(e.target.value)}
+                    autoComplete="off"
+                    type="number"
+                    min="1"
                   />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
