@@ -134,14 +134,10 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
         description: "Purchase request approved successfully",
         variant: "default",
       });
-      // Refresh the data
-      if (open) {
-        const updatedResponse = await fetch(`/api/requisition-view/${requisition.id}`)
-        if (updatedResponse.ok) {
-          const updatedData = await updatedResponse.json()
-          setPrDetails(updatedData)
-        }
-      }
+      
+      // Refresh the page after successful approval
+      window.location.reload()
+      
       setShowApprovalDialog(false)
     } catch (error) {
       console.error('Error approving purchase request:', error)
@@ -176,14 +172,9 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
         variant: "default",
       });
       
-      // Refresh the data
-      if (open) {
-        const updatedResponse = await fetch(`/api/requisition-view/${requisition.id}`)
-        if (updatedResponse.ok) {
-          const updatedData = await updatedResponse.json()
-          setPrDetails(updatedData)
-        }
-      }
+      // Refresh the page after successful rejection
+      window.location.reload()
+      
       setShowRejectionDialog(false)
     } catch (error) {
       console.error('Error rejecting purchase request:', error)

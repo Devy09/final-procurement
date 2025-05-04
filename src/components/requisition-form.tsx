@@ -13,6 +13,7 @@ import { ClipboardPlus, PackagePlus, FileDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 
+
 interface PrItem {
   id: number;
   description: string;
@@ -26,6 +27,12 @@ interface PPMPDropdownItem {
   id: string;
   ppmp_item: string;
   unit_cost: number;
+}
+
+interface AttachmentFiles {
+  certification: File | null;
+  letter: File | null;
+  proposal: File | null;
 }
 
 const formatCurrency = (amount: number) => {
@@ -50,32 +57,10 @@ interface PurchaseRequestFormWrapperProps {
 export default function PurchaseRequestFormWrapper({ onSuccess }: PurchaseRequestFormWrapperProps) {
   const [isMainDialogOpen, setIsMainDialogOpen] = useState(false);
 
-  const handleSubmit = async (formData: any) => {
-    try {
-      const optimisticRequest = {
-        id: crypto.randomUUID(),
-        prno: formData.prno,
-        department: formData.department,
-        section: formData.section,
-        date_submitted: new Date().toLocaleDateString(),
-        pr_status: "pending"
-      };
-      
-      onSuccess?.(optimisticRequest);
-
-      const response = await fetch("/api/purchase-request", {
-        method: "POST",
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to create purchase request");
-      }
-      const result = await response.json();
-      
-    } catch (error) {
-      console.error(error);
-    }
+  const handleSuccess = (newRequest: any) => {
+    onSuccess?.(newRequest);
+    setIsMainDialogOpen(false);
+    window.location.reload();
   };
 
   return (
@@ -83,17 +68,19 @@ export default function PurchaseRequestFormWrapper({ onSuccess }: PurchaseReques
       <DialogTrigger asChild>
         <Button variant="customMaroon"><ClipboardPlus /> Purchase Request</Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className='bg-red-950 text-white p-4 rounded-md w-full'>
           <DialogTitle className='text-2xl font-bold'>Purchase Request Form</DialogTitle>
         </DialogHeader>
-        <PurchaseRequestForm />
+        <PurchaseRequestForm onSuccess={handleSuccess} />
       </DialogContent>
     </Dialog>
   );
 }
 
-function PurchaseRequestForm() {
+function PurchaseRequestForm({ onSuccess }: PurchaseRequestFormWrapperProps) {
+  
+  const { toast } = useToast();
   const [prItems, setPrItems] = useState<PrItem[]>([]);
   const [newPrItem, setNewPrItem] = useState<Omit<PrItem, 'id'>>({
     description: '',
@@ -102,10 +89,14 @@ function PurchaseRequestForm() {
     unit: '',
     stockNo: ''
   });
+  const [files, setFiles] = useState<AttachmentFiles>({
+      certification: null,
+      letter: null,
+      proposal: null
+    });
   const [purpose, setPurpose] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
   const [dropdownItems, setDropdownItems] = useState<PPMPDropdownItem[]>([]);
   const [isLoadingItems, setIsLoadingItems] = useState(true);
 
@@ -179,10 +170,11 @@ function PurchaseRequestForm() {
     e.preventDefault();
     setIsLoading(true);
   
-    if (!purpose.trim() || prItems.length === 0) {
+    if (!purpose.trim() || prItems.length === 0 || 
+    !files.certification || !files.letter || !files.proposal) {
       toast({
         title: "Submission Error",
-        description: "Please provide a purpose and at least one item.",
+        description: "Please provide all required fields and attachments",
         variant: "destructive",
       });
       setIsLoading(false);
@@ -190,24 +182,29 @@ function PurchaseRequestForm() {
     }
   
     const total = calculateTotal();
-    const payload = {
-      purpose,
-      items: prItems.map(item => ({
-        description: item.description,
-        quantity: item.quantity,
-        unit: item.unit,
-        stockNo: item.stockNo,
-        unitCost: item.unitCost
-      })),
-      procurementMode: getProcurementMode(total),
-      totalAmount: total
-    };
+    const formData = new FormData();
+
+    // Append form data
+    formData.append('purpose', purpose);
+    formData.append('items', JSON.stringify(prItems.map(item => ({
+      description: item.description,
+      quantity: item.quantity,
+      unit: item.unit,
+      stockNo: item.stockNo,
+      unitCost: item.unitCost
+    }))));
+    formData.append('procurementMode', getProcurementMode(total));
+    formData.append('totalAmount', total.toString());
+    
+    // Append files
+    formData.append('certification', files.certification);
+    formData.append('letter', files.letter);
+    formData.append('proposal', files.proposal);
   
     try {
       const response = await fetch("/api/purchase-request", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: formData,
       });
   
       if (!response.ok) {
@@ -219,14 +216,16 @@ function PurchaseRequestForm() {
           variant: "destructive",
         });
       } else {
+        const result = await response.json();
+        onSuccess?.(result);
         setPrItems([]);
         setPurpose('');
+        setFiles({ certification: null, letter: null, proposal: null });
         toast({
           title: "Success",
           description: "Purchase request submitted successfully!",
           variant: "default",
         });
-        setIsDialogOpen(false);
       }
     } catch (error) {
       console.error("Submission error:", error);
@@ -238,7 +237,15 @@ function PurchaseRequestForm() {
     } finally {
       setIsLoading(false);
     }
-  }, [prItems, purpose, toast, calculateTotal]);
+  }, [prItems, purpose, files, toast, calculateTotal, onSuccess]);
+
+  const handleFileChange = useCallback(
+      (e: React.ChangeEvent<HTMLInputElement>, key: keyof AttachmentFiles) => {
+        const file = e.target.files?.[0] || null;
+        setFiles(prev => ({ ...prev, [key]: file }));
+      },
+      []
+    );
 
   return (
     <div className="space-y-6">
@@ -310,10 +317,6 @@ function PurchaseRequestForm() {
                   <SelectItem value="Set">Set</SelectItem>
                   <SelectItem value="Bottle">Bottle</SelectItem>
                   <SelectItem value="Roll">Roll</SelectItem>
-                  <SelectItem value="Gallon">Gallon</SelectItem>
-                  <SelectItem value="Ampule">Ampule</SelectItem>
-                  <SelectItem value="Vial">Vial</SelectItem>
-                  <SelectItem value="Cup">Cup</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -383,6 +386,41 @@ function PurchaseRequestForm() {
           className="w-full"
           required
         />
+        <div className="w-full space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Certification (required)
+            </label>
+            <Input
+              type="file"
+              accept=".pdf,.doc,.docx,.jpg,.png"
+              onChange={(e) => handleFileChange(e, 'certification')}
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Letter (required)
+            </label>
+            <Input
+              type="file"
+              accept=".pdf,.doc,.docx,.jpg,.png"
+              onChange={(e) => handleFileChange(e, 'letter')}
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Proposal (required)
+            </label>
+            <Input
+              type="file"
+              accept=".pdf,.doc,.docx,.jpg,.png"
+              onChange={(e) => handleFileChange(e, 'proposal')}
+              required
+            />
+          </div>
+        </div>
         <Button type="submit" className='flex items-center bg-customMaroon' disabled={isLoading}>
           {isLoading ? 'Submitting...' : <><FileDown /> Submit</>}
         </Button>

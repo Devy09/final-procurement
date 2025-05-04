@@ -84,6 +84,9 @@ export default function PurchaseRequestFormWrapper({ onSuccess }: PurchaseReques
       }
       const result = await response.json();
       
+      // Refresh the page after successful submission
+      window.location.reload();
+      
     } catch (error) {
       console.error(error);
     }

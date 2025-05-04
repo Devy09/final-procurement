@@ -13,6 +13,7 @@ import { ClipboardPlus, PackagePlus, FileDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 
+
 interface PrItem {
   id: number;
   description: string;
@@ -56,6 +57,12 @@ interface PurchaseRequestFormWrapperProps {
 export default function PurchaseRequestFormWrapper({ onSuccess }: PurchaseRequestFormWrapperProps) {
   const [isMainDialogOpen, setIsMainDialogOpen] = useState(false);
 
+  const handleSuccess = (newRequest: any) => {
+    onSuccess?.(newRequest);
+    setIsMainDialogOpen(false);
+    window.location.reload();
+  };
+
   return (
     <Dialog open={isMainDialogOpen} onOpenChange={setIsMainDialogOpen}>
       <DialogTrigger asChild>
@@ -65,7 +72,7 @@ export default function PurchaseRequestFormWrapper({ onSuccess }: PurchaseReques
         <DialogHeader className='bg-red-950 text-white p-4 rounded-md w-full'>
           <DialogTitle className='text-2xl font-bold'>Purchase Request Form</DialogTitle>
         </DialogHeader>
-        <PurchaseRequestForm onSuccess={onSuccess} />
+        <PurchaseRequestForm onSuccess={handleSuccess} />
       </DialogContent>
     </Dialog>
   );
@@ -219,7 +226,6 @@ function PurchaseRequestForm({ onSuccess }: PurchaseRequestFormWrapperProps) {
           description: "Purchase request submitted successfully!",
           variant: "default",
         });
-        setIsDialogOpen(false);
       }
     } catch (error) {
       console.error("Submission error:", error);

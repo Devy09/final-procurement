@@ -76,9 +76,10 @@ interface PurchaseRequestColumn {
 
 interface PurchaseRequestActionsProps {
   requisition: PurchaseRequestColumn
+  onRefresh?: () => void
 }
 
-export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsProps) {
+export function PurchaseRequestActions({ requisition, onRefresh }: PurchaseRequestActionsProps) {
   const [open, setOpen] = useState(false)
   const [prDetails, setPrDetails] = useState<PurchaseRequestDetails | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -137,30 +138,15 @@ export function PurchaseRequestActions({ requisition }: PurchaseRequestActionsPr
         throw new Error('Failed to approve purchase request')
       }
 
-      // First update the local state with the new status
-      if (prDetails) {
-        setPrDetails(prev => prev && {
-          ...prev,
-          approvedByAccountant: true,
-          accountantStatus: 'approved',
-          status: 'pending' // Keep the overall status as pending since it needs president approval
-        });
-      }
-
       toast({
         title: "Success",
         description: "Purchase request approved successfully",
         variant: "default",
       });
       
-      // Then refresh from the server
-      if (open) {
-        const updatedResponse = await fetch(`/api/requisition-view/${requisition.id}`)
-        if (updatedResponse.ok) {
-          const updatedData = await updatedResponse.json()
-          setPrDetails(updatedData)
-        }
-      }
+      // Refresh the page after successful approval
+      window.location.reload()
+      
       setShowApprovalDialog(false)
     } catch (error) {
       console.error('Error approving purchase request:', error)
